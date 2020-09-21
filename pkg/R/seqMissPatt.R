@@ -211,7 +211,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
 
     # 2.5 Number of sequences (rows) wiht and without NAs
-    library(swfscMisc)
+    #library(swfscMisc)
     numbOfSeqWithNA <- na.count(apply(OD,1,max))
     numbOfSeqWithoutNA <- nr - numbOfSeqWithNA
 
@@ -222,9 +222,9 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    #library(Amelia) # function missmap
+    #library(mlbench)
+    #library(stringr)
     # Creating the label for the y axis
     y.labels <- c()
     x.labels <- c()
@@ -249,7 +249,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
         colnames(OD)[i] <- paste(colnames(OD)[i],"%",sep='')
     }
     OD <- data.frame(OD)
-    missmap(OD, legend=TRUE, col=c("black","grey"), main="Overview of the missing data", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
+    missmap(OD, vars=1:ncol(OD), legend=TRUE, col=c("black","grey"), main="Overview of the missing data", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
     #*************************************************
 
 
@@ -321,9 +321,9 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    #library(Amelia) # function missmap
+    #library(mlbench)
+    #library(stringr)
     # Creating the label for the y axis
     y.labels <- c()
     # y.labels
@@ -336,7 +336,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     # Saving ODInitOrdered is possible by uncommenting the lines
     # "jpeg('OD.jpg')" and "dev.off()"
     ODInitOrdered <- data.frame(ODInitOrdered)
-    missmap(ODInitOrdered, legend=TRUE, col=c("black","grey"), main="Ascending visualization of initial gaps", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
+    missmap(ODInitOrdered, vars=1:ncol(ODInitOrdered), legend=TRUE, col=c("black","grey"), main="Ascending visualization of initial gaps", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
     #*************************************************
 
 
@@ -407,9 +407,9 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    #library(Amelia) # function missmap
+    #library(mlbench)
+    #library(stringr)
     # Creating the label for the y axis
     y.labels <- c()
     # y.labels
@@ -422,7 +422,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     # Saving ODTermOrdered is possible by uncommenting the lines
     # "jpeg('OD.jpg')" and "dev.off()"
     ODTermOrdered <- data.frame(ODTermOrdered)
-    missmap(ODTermOrdered, legend=TRUE, col=c("black","grey"), main="Ascending visualization of terminal gaps", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
+    missmap(ODTermOrdered, vars=1:ncol(ODTermOrdered), legend=TRUE, col=c("black","grey"), main="Ascending visualization of terminal gaps", x.cex=0.6, y.cex=0.7, y.labels, y.at, rank.order=FALSE, margins=c(10,10))
     #*************************************************
 
 
@@ -461,7 +461,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     #       - Legend
     #       - Histogram of sequences turbulence
     #
-    library(TraMineR)
+    #library(TraMineR)
 
     # Defining 'idxs' based on numbOfMostFreqSeq
     idxs <- 1:numbOfMostFreqSeq
@@ -494,7 +494,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     # and retrieve for each individual sequence
     # the cluster membership of the 3 class
     # solution
-    library(cluster)
+    #library(cluster)
     clusterward1 <- agnes(dist.om1, diss=T, method="ward")
     plot(clusterward1)
     # cl1.3 <- cutree(clusterward1, k=3)

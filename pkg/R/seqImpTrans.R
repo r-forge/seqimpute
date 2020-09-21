@@ -133,7 +133,7 @@ seqImpTrans <- function(OD, k, impTrans){
 
     # 1.4 Test on input parameter impTrans -----------------------------------------
     for (i in 1:length(impTrans)) {
-        library(stringr)
+        #library(stringr)
         if (!str_detect(impTrans[i],"->")) {
             stop("/!\\ Warning, you should construct your impossible transition(s) vector impTrans with little arrows as follow: impTrans <- c('...->...', '...->...', etc.).")
         }
@@ -259,7 +259,7 @@ seqImpTrans <- function(OD, k, impTrans){
     ORDERVectChar <- paste(ORDERVect,collapse="")
     # Identifying the patterns "0 1" (this is the signature look of an internal gap
     # (it always indicates the beginning of an internal gap!))
-    library(stringr)
+    #library(stringr)
     numbOfInternGaps <- str_count(ORDERVectChar,pattern="01")
 
 
@@ -305,7 +305,7 @@ seqImpTrans <- function(OD, k, impTrans){
 
     # 3.1 Number of listed impossible transitions -------------------------------------------------------------------------------------------------------
     # Identifying the patterns of the impossible transitions in each line of OD
-    library(stringr)
+    #library(stringr)
     countImpTrans <- function(ODCharAndDashes) {
         str_count(ODCharAndDashes,pattern=impTrans)
     }

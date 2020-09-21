@@ -393,7 +393,7 @@ seqQuickLook <- function(OD, k, np=1, nf=0) {
     ORDERSLGLeftVectChar <- paste(ORDERSLGLeftVect,collapse="")
     # Identifying the patterns "0 1" (this is the signature look of an internal gap
     # (it always indicates the beginning of an internal gap!))
-    library(stringr)
+    #library(stringr)
     numbOfSLGLeftGaps <- str_count(ORDERSLGLeftVectChar,pattern="01")
 
     sumNASLGLeftGaps <- sum(ORDERSLGLeft)
@@ -443,7 +443,7 @@ seqQuickLook <- function(OD, k, np=1, nf=0) {
     ORDERSLGRightVectChar <- paste(ORDERSLGRightVect,collapse="")
     # Identifying the patterns "0 1" (this is the signature look of an internal gap
     # (it always indicates the beginning of an internal gap!))
-    library(stringr)
+    #library(stringr)
     numbOfSLGRightGaps <- str_count(ORDERSLGRightVectChar,pattern="01")
 
     sumNASLGRightGaps <- sum(ORDERSLGRight)
@@ -475,7 +475,7 @@ seqQuickLook <- function(OD, k, np=1, nf=0) {
     ORDERVectChar <- paste(ORDERVect,collapse="")
     # Identifying the patterns "0 1" (this is the signature look of an internal gap
     # (it always indicates the beginning of an internal gap!))
-    library(stringr)
+    #library(stringr)
     numbOfInternGaps <- str_count(ORDERVectChar,pattern="01")
 
     sumNAInternGaps <- sum(ORDER)
@@ -561,7 +561,7 @@ seqQuickLook <- function(OD, k, np=1, nf=0) {
 
 
     # 3.4 Number of sequences (rows) wiht and without NAs
-    library(swfscMisc)
+    #library(swfscMisc)
     numbOfSeqWithNA <- na.count(apply(OD,1,max))
     numbOfSeqWithoutNA <- nr - numbOfSeqWithNA
 
