@@ -33,7 +33,7 @@
 
 seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
-
+# test
 
     nr <- nrow(OD)
     nc <- ncol(OD)

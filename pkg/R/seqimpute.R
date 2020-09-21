@@ -70,7 +70,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
 
-
+# test
 
 
 
