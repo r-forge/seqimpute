@@ -211,7 +211,6 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
 
     # 2.5 Number of sequences (rows) wiht and without NAs
-    library(swfscMisc)
     numbOfSeqWithNA <- na.count(apply(OD,1,max))
     numbOfSeqWithoutNA <- nr - numbOfSeqWithNA
 
@@ -222,9 +221,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    
     # Creating the label for the y axis
     y.labels <- c()
     x.labels <- c()
@@ -321,9 +318,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    
     # Creating the label for the y axis
     y.labels <- c()
     # y.labels
@@ -407,9 +402,7 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
     # Display result with Amelia
     #*************************************************
-    library(Amelia) # function missmap
-    library(mlbench)
-    library(stringr)
+    
     # Creating the label for the y axis
     y.labels <- c()
     # y.labels
@@ -461,7 +454,6 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     #       - Legend
     #       - Histogram of sequences turbulence
     #
-    library(TraMineR)
 
     # Defining 'idxs' based on numbOfMostFreqSeq
     idxs <- 1:numbOfMostFreqSeq
@@ -494,7 +486,6 @@ seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
     # and retrieve for each individual sequence
     # the cluster membership of the 3 class
     # solution
-    library(cluster)
     clusterward1 <- agnes(dist.om1, diss=T, method="ward")
     plot(clusterward1)
     # cl1.3 <- cutree(clusterward1, k=3)
