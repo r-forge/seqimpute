@@ -1,4 +1,4 @@
-Package: seqimpute
+﻿Package: seqimpute
 Type: Package
 Title: Imputation of missing data in sequence analysis
 Version: 1.0.3
@@ -11,6 +11,7 @@ LazyData: true
 Imports:
     mlogit,
     rms,
+    stringi,
     stringr,
     Amelia,
     mlbench,
