@@ -4,7 +4,9 @@
 \name{COt}
 \alias{COt}
 \title{Dataset containing 1 time-dependant covariate about the game addiction of young subjects}
-\format{A data frame of time-dependant covariates with 500 sequences and 4 columns.}
+\format{
+A data frame of time-dependant covariates with 500 sequences and 4 columns.
+}
 \usage{
 data(COt)
 }

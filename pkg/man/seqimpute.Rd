@@ -4,10 +4,23 @@
 \alias{seqimpute}
 \title{Imputation of missing data in sequence analysis}
 \usage{
-seqimpute(OD, regr = "mlogit", k, np = 1, nf = 0, nfi = 1,
-  npt = 1, available = TRUE, CO = matrix(NA, nrow = 1, ncol = 1),
-  COt = matrix(NA, nrow = 1, ncol = 1), pastDistrib = FALSE,
-  futureDistrib = FALSE, mi = 1, mi.return = 1, noise = 0)
+seqimpute(
+  OD,
+  regr = "mlogit",
+  k,
+  np = 1,
+  nf = 0,
+  nfi = 1,
+  npt = 1,
+  available = TRUE,
+  CO = matrix(NA, nrow = 1, ncol = 1),
+  COt = matrix(NA, nrow = 1, ncol = 1),
+  pastDistrib = FALSE,
+  futureDistrib = FALSE,
+  mi = 1,
+  mi.return = 1,
+  noise = 0
+)
 }
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}

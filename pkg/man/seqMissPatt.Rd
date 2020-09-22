@@ -4,8 +4,7 @@
 \alias{seqMissPatt}
 \title{Visualizing missing patterns among a dataset}
 \usage{
-seqMissPatt(OD, k, numbOfMostFreqSeq = 10, pbarw = FALSE,
-  clustNumb = 3)
+seqMissPatt(OD, k, numbOfMostFreqSeq = 10, pbarw = FALSE, clustNumb = 3)
 }
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).}

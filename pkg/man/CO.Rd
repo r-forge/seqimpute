@@ -4,7 +4,9 @@
 \name{CO}
 \alias{CO}
 \title{Dataset containing 3 fixed covariates about the game addiction of young subjects}
-\format{A data frame of fixed covariates with 500 sequences and 3 columns.}
+\format{
+A data frame of fixed covariates with 500 sequences and 3 columns.
+}
 \usage{
 data(CO)
 }

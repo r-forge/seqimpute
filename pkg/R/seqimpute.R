@@ -60,6 +60,15 @@
 #'
 #' @keywords multinomial logistic regression, missing data, missing patterns
 #'
+#' @import mlogit
+#' @import rms
+#' @import stringr
+#' @import Amelia
+#' @import mlbench
+#' @import TramineR 
+#' @import cluster
+#' @import swfscMisc 
+#' @import plyr
 #' @export
 
 

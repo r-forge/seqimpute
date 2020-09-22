@@ -1,4 +1,4 @@
-﻿Package: seqimpute
+Package: seqimpute
 Type: Package
 Title: Imputation of missing data in sequence analysis
 Version: 1.0.3
@@ -19,4 +19,4 @@ Imports:
     cluster,
     swfscMisc,
     plyr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0

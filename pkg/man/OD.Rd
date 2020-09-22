@@ -4,7 +4,9 @@
 \name{OD}
 \alias{OD}
 \title{Dataset containing variables about the game addiction of young subjects}
-\format{A data frame of factor variables with 500 sequences and 4 columns.}
+\format{
+A data frame of factor variables with 500 sequences and 4 columns.
+}
 \usage{
 data(OD)
 }
