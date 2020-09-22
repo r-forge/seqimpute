@@ -142,9 +142,9 @@ seqImpTrans <- function(OD, k, impTrans){
         firstState <- substr(impTrans[i],1,locDash-1)
         locSpike <- str_locate(impTrans[i],">")
         secondState <- substr(impTrans[i],locSpike+1,nchar(impTrans[1]))
-        if (firstState==secondState) {
-            stop("/!\\ You have typed in two same states (two times '",firstState,"') on both sides of the arrow. This doesn't correspond to a transition.")
-        }
+        # if (firstState==secondState) {
+            # stop("/!\\ You have typed in two same states (two times '",firstState,"') on both sides of the arrow. This doesn't correspond to a transition.")
+        # }
     }
 
 
