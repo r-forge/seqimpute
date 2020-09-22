@@ -226,7 +226,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     #*************************************
     if (ODClass == "factor") {
         ODlevels <- levels(OD[1,1])
-        #library(plyr)
+        library(plyr)
         OD <- as.data.frame( sapply(OD, mapvalues, from = ODlevels,
                                     to = as.character(as.vector(1:length(ODlevels)))) )
     }
@@ -1474,7 +1474,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             ## Case of MULTINOMIAL REGRESSION MODEL
 
                             # Linking the package mlogit
-                            #library(mlogit)
+                            library(mlogit)
 
                             # By default, every column of CD are of class
                             # "numeric".
@@ -1571,7 +1571,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
                             # Linking to the package rms to use the function
                             # "lrm"
-                            #library(rms)
+                            library(rms)
 
                             # Since we are performing an ordinal regression,
                             # each element of CD are numbers and have then to
@@ -2617,7 +2617,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         ## Case of MULTINOMIAL REGRESSION MODEL
 
                         # Linking the package mlogit
-                        #library(mlogit)
+                        library(mlogit)
 
                         # By default, every column of CD are of class "numeric".
                         # Thus, there is no need to convert the columns
@@ -2711,7 +2711,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         ## Case of ORDINAL REGRESSION MODEL
 
                         # Linking to the package rms to use the function "lrm"
-                        #library(rms)
+                        library(rms)
 
                         # Since we are performing an ordinal regression, each
                         # element of CD are numbers and have then to remain as
@@ -3211,7 +3211,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         ## Case of MULTINOMIAL REGRESSION MODEL
 
                         # Linking the package mlogit
-                        #library(mlogit)
+                        library(mlogit)
 
                         # By default, every column of CD are of class "numeric".
                         # Thus, there is no need to convert the columns
@@ -3305,7 +3305,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         ## Case of ORDINAL REGRESSION MODEL
 
                         # Linking to the package rms to use the function "lrm"
-                        #library(rms)
+                        library(rms)
 
                         # Since we are performing an ordinal regression, each
                         # element of CD are numbers and have then to remain as
@@ -4114,7 +4114,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     ## Case of MULTINOMIAL REGRESSION MODEL
 
                                     # Linking the package mlogit
-                                    #library(mlogit)
+                                    library(mlogit)
 
                                     # By default, every column of CD are of
                                     # class "numeric". Thus, there is no need to
@@ -4213,7 +4213,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
                                     # Linking to the package rms to use the
                                     # function "lrm"
-                                    #library(rms)
+                                    library(rms)
 
                                     # Since we are performing an ordinal
                                     # regression, each element of CD are numbers
@@ -5363,7 +5363,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     ## Case of MULTINOMIAL REGRESSION MODEL
 
                                     # Linking the package mlogit
-                                    #library(mlogit)
+                                    library(mlogit)
 
                                     # By default, every column of CD are of
                                     # class "numeric".
@@ -5464,7 +5464,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
                                     # Linking to the package rms to use the
                                     # function "lrm"
-                                    #library(rms)
+                                    library(rms)
 
                                     # Since we are performing an ordinal
                                     # regression, each element of CD are numbers
