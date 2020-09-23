@@ -65,7 +65,7 @@
 #' @import stringr
 #' @import Amelia
 #' @import mlbench
-#' @import TramineR 
+#' @import TraMineR 
 #' @import cluster
 #' @import swfscMisc 
 #' @import plyr
