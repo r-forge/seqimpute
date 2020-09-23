@@ -18,7 +18,7 @@
 #' hand side SLG, RIGHT-hand side SLG) present among the original dataset.
 #'
 #' @examples
-#' data(OD, package="seqimpute")
+#' data(OD)
 #'
 #' seqQuickLook(OD=OD, k=2, np=1, nf=0)
 #'

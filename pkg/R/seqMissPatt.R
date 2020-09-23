@@ -21,7 +21,7 @@
 #' }
 #'
 #' @examples
-#' data(OD, package="seqimpute")
+#' data(OD)
 #'
 #' seqMissPatt(OD=OD, k=2, numbOfMostFreqSeq=5, pbarw=TRUE, clustNumb=3)
 #'
