@@ -2,6 +2,8 @@ Package: seqimpute
 Type: Package
 Title: Imputation of missing data in sequence analysis
 Version: 1.0.3
+Author: Andre Berchtold, Anthony Guinchard
+Maintainer: Andre Berchtold <andre.berchtold@unil.ch>
 Description: Imputation of missing data present in a data set through the prediction based on either a multinomial, a linear of an ordinal regression model. In order to specify even more the prediction, covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the theory of Prof. Brendan Halpin.
 License: What license is it under?
 Encoding: UTF-8
