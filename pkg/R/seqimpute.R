@@ -51,7 +51,6 @@
 #' @return RESULT \code{data.frame} object containing the imputed original dataset.
 #'
 #' @examples
-#' library(seqimpute)
 #' data(OD, CO, COt, package="seqimpute")
 #'
 #' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, available=TRUE, CO=CO, COt=COt, pastDistrib=FALSE, futureDistrib=FALSE, mi=1, mi.return=1, noise=0)

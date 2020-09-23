@@ -28,7 +28,6 @@ running the main function \code{seqimpute.R} in order to identify a judicious ch
 for the values of \code{np} and \code{nf}.
 }
 \examples{
-library(seqimpute)
 data(OD, package="seqimpute")
 
 seqQuickLook(OD=OD, k=2, np=1, nf=0)

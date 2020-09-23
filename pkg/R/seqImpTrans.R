@@ -16,7 +16,6 @@
 #' @return colMat \code{matrix} object containing the column coordinates of the impossible transitions (stored in \code{seqImpTransList[2]}).
 #'
 #' @examples
-#' library(seqimpute)
 #' data(OD, package="seqimpute")
 #'
 #' seqImpTransList <- seqImpTrans(OD=OD, k=2, impTrans=c("yes->no"))
