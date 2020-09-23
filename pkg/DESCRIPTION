@@ -17,4 +17,5 @@ Imports:
     TraMineR,
     cluster,
     swfscMisc,
-    plyr
+    plyr,
+    mlbench
