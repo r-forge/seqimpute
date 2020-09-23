@@ -32,7 +32,7 @@ of the inputed dataset:
 patterns among the dataset especially thanks to the package \code{TraMineR}.
 }
 \examples{
-data(OD, package="seqimpute")
+data(OD)
 
 seqMissPatt(OD=OD, k=2, numbOfMostFreqSeq=5, pbarw=TRUE, clustNumb=3)
 

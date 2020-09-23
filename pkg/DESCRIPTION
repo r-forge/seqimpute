@@ -8,7 +8,7 @@ Description: Imputation of missing data present in a data set through the predic
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports: 
     Amelia,
     mlogit,
@@ -18,4 +18,5 @@ Imports:
     cluster,
     swfscMisc,
     plyr,
-    mlbench
+    mlbench,
+    rlang

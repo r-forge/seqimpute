@@ -27,7 +27,7 @@ collection or not intelligently imputed during a first run of
 \code{seqimpute.R}.
 }
 \examples{
-data(OD, package="seqimpute")
+data(OD)
 
 seqImpTransList <- seqImpTrans(OD=OD, k=2, impTrans=c("yes->no"))
 
