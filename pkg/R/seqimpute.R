@@ -68,7 +68,6 @@
 #' @import cluster
 #' @import swfscMisc 
 #' @import plyr
-#' @import rlang
 #' 
 #' @export
 

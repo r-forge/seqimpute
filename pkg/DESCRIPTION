@@ -18,5 +18,4 @@ Imports:
     cluster,
     swfscMisc,
     plyr,
-    mlbench,
-    rlang
+    mlbench
