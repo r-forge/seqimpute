@@ -35,38 +35,13 @@ seqImpTrans <- function(OD, k, impTrans){
 
 # test
 
-
-
-
-
-
     # 1. Initial tests on parameters --------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
     # 1.1 Testing the class of the variables of the original dataset OD ---------------------------------------------------------------------------------
     ODClass <- class(OD[1,1])
     if ( (ODClass != "factor") & (ODClass != "numeric") ) {
         stop("/!\\ The class of the variables contained in your original dataset
          should be either 'factor' or 'numeric'")
     }
-
-
-
-
-
-
-
 
     # 1.2 Testing effectively exactly k possible categories of the multinomial variable -----------------------------------------------------------------
     if (class(OD[1,1]) == "numeric") {
@@ -92,14 +67,6 @@ seqImpTrans <- function(OD, k, impTrans){
     }
 
 
-
-
-
-
-
-
-
-
     # 1.3 Indicating the existence of entire rows of OD filled only with NAs to the user ----------------------------------------------------------------
     i <- 1
     numbOfNAFilledLines <- 0
@@ -123,13 +90,6 @@ seqImpTrans <- function(OD, k, impTrans){
     nr <- nrow(OD)
 
 
-
-
-
-
-
-
-
     # 1.4 Test on input parameter impTrans -----------------------------------------
     for (i in 1:length(impTrans)) {
         if (!str_detect(impTrans[i],"->")) {
@@ -144,22 +104,6 @@ seqImpTrans <- function(OD, k, impTrans){
             # stop("/!\\ You have typed in two same states (two times '",firstState,"') on both sides of the arrow. This doesn't correspond to a transition.")
         # }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -81,9 +81,6 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 # test
 
-
-
-
     # Selecting the columns of CO the user finally wants to use in his model
     #*******************************************************************************
     # if (ncol(CO) > 1) {          # if nco is greater than "1", it means that
