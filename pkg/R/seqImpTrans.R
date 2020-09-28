@@ -282,7 +282,7 @@ seqImpTrans <- function(OD, k, impTrans){
     # 3.1 Number of listed impossible transitions -------------------------------------------------------------------------------------------------------
     # Identifying the patterns of the impossible transitions in each line of OD
     countImpTrans <- function(ODCharAndDashes) {
-        str_count(ODCharAndDashes,pattern=impTrans)
+        str_count(ODCharAndDashes,pattern=paste0("(?=",impTrans,")"))
     }
     numbOfImpTransByRow <- sapply(ODCharAndDashes,countImpTrans)
     if(length(impTrans)>1) {
@@ -309,12 +309,12 @@ seqImpTrans <- function(OD, k, impTrans){
 
     # 3.2 Location of the listed impossible transitions -------------------------------------------------------------------------------------------------
     locOfImpTrans <- function(ODCharAndDashes) {
-        str_locate_all(ODCharAndDashes,pattern=impTrans)
+        str_locate_all(ODCharAndDashes,pattern=paste0("(?=",impTrans,")"))
     }
     if (length(impTrans)>1) {
         startLocList <- sapply(ODCharAndDashes,locOfImpTrans)[1:length(impTrans),]
     } else {
-        startLocList <- str_locate_all(ODCharAndDashes,pattern=impTrans)
+        startLocList <- str_locate_all(ODCharAndDashes,pattern=paste0("(?=",impTrans[1],")"))
     }
 
 
