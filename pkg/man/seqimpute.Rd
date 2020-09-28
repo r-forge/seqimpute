@@ -91,7 +91,7 @@ Order of imputation of the gaps types:
 \examples{
 data(OD, CO, COt)
 
-RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, available=TRUE, CO=CO, COt=COt, pastDistrib=FALSE, futureDistrib=FALSE, mi=1, mi.return=1, noise=0)
+RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=1)
 
 }
 \references{
