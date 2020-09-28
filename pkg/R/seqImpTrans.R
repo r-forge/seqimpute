@@ -21,6 +21,41 @@
 #' seqImpTransList <- seqImpTrans(OD=OD, k=2, impTrans=c("yes->no"))
 #'
 #' @keywords multinomial logistic regression, linear regression, ordinal regression, missing data, impossible transitions
+#' 
+#' @importFrom stringr str_count
+#' @importFrom stringr str_detect
+#' @importFrom stringr str_locate
+#' @importFrom stringr str_locate_all
+#' 
+#' @importFrom graphics plot
+#' 
+#' @importFrom stats as.formula
+#' @importFrom stats cutree
+#' @importFrom stats lm
+#' @importFrom stats predict
+#' @importFrom stats rnorm
+#' @importFrom stats runif
+#' 
+#' @importFrom utils capture.output
+#' 
+#' @importFrom swfscMisc na.count
+#' 
+#' @importFrom Amelia missmap
+#' 
+#' @importFrom TraMineR seqdef
+#' @importFrom TraMineR seqfplot
+#' @importFrom TraMineR seqdplot
+#' @importFrom TraMineR seqsubm
+#' @importFrom TraMineR seqdist
+#' 
+#' @importFrom cluster agnes
+#' 
+#' @importFrom plyr mapvalues
+#' 
+#' @importFrom mlogit mlogit.data
+#' @importFrom mlogit mlogit
+#' 
+#' @importFrom rms lrm
 #'
 #' @export
 
