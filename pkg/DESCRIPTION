@@ -21,4 +21,4 @@ Imports:
     plyr,
     mlbench
 Depends:
-    R (>= 4.0.2)
+    R (>= 3.6.3)
