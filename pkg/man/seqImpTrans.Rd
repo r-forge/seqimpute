@@ -33,7 +33,7 @@ seqImpTransList <- seqImpTrans(OD=OD, k=2, impTrans=c("yes->no"))
 
 }
 \author{
-Andre Berchtold <andre.berchtold@unil.ch>
+Andre Berchtold <andre.berchtold@unil.ch>, Kevin Emery
 }
 \keyword{data,}
 \keyword{impossible}
