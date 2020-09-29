@@ -20,5 +20,3 @@ Imports:
     swfscMisc,
     plyr,
     mlbench
-Depends:
-    R (>= 3.6.3)
