@@ -1490,7 +1490,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
                             # Dataframe for mlogit
-                            NCD <- mlogit.data(CD, varying=NULL, choice="V1", shape="wide")
+                            NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
 
 
                             # Computation of the multinomial model
@@ -2629,7 +2629,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
                         # Dataframe for mlogit
-                        NCD <- mlogit.data(CD, varying=NULL, choice="V1", shape="wide")
+                        NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
 
 
                         # Computation of the multinomial model
@@ -3221,7 +3221,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
                         # Dataframe for mlogit
-                        NCD <- mlogit.data(CD, varying=NULL, choice="V1", shape="wide")
+                        NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
 
 
                         # Computation of the multinomial model
@@ -4125,7 +4125,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
                                     # Dataframe for mlogit
-                                    NCD <- mlogit.data(CD, varying=NULL, choice="V1", shape="wide")
+                                    NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
 
 
                                     # Computation of the multinomial model
@@ -5374,7 +5374,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
 
 
                                     # Dataframe for mlogit
-                                    NCD <- mlogit.data(CD, varying=NULL, choice="V1", shape="wide")
+                                    NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
 
 
                                     # Computation of the multinomial model

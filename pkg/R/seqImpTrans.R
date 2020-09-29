@@ -52,7 +52,7 @@
 #' 
 #' @importFrom plyr mapvalues
 #' 
-#' @importFrom mlogit mlogit.data
+#' @importFrom dfidx dfidx
 #' @importFrom mlogit mlogit
 #' 
 #' @importFrom rms lrm

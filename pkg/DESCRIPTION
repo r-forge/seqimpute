@@ -1,7 +1,7 @@
 Package: seqimpute
 Type: Package
 Title: Imputation of Missing Data in Sequence Analysis
-Version: 1.0.8
+Version: 1.0.9
 Author: Andre Berchtold, Anthony Guinchard, Kevin Emery
 Date: 2020-09-29
 Maintainer: Andre Berchtold <andre.berchtold@unil.ch>
@@ -12,7 +12,7 @@ LazyData: true
 RoxygenNote: 7.1.1
 Imports: 
     Amelia,
-    mlogit,
+    mlogit (>= 1.1),
     rms,
     stringr,
     TraMineR,
