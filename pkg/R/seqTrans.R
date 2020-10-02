@@ -1,24 +1,22 @@
-#' Spotting impossible transitions among a dataset
+#' Computing and spotting transitions among a dataset
 #'
-#' The purpose of \code{seqImpTrans.R} is to spot the impossible transitions
-#' in a dataset. These could have been introduced by mistake during data
-#' collection or not intelligently imputed during a first run of
-#' \code{seqimpute.R}.
+#' The purpose of \code{seqTrans.R} is to compute and spot transitions
+#' in a dataset. 
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
 #' @param k \code{numeric} object corresponding to the number of categories of the variable numbered from \code{1} to \code{k}.
-#' @param impTrans \code{character} vector gathering the impossible transitions. For example: impTrans <- c("1->3","1->4","2->1","4->1","4->3")
+#' @param trans \code{character} vector gathering the desired transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")
 #'
 #' @author Andre Berchtold <andre.berchtold@@unil.ch>, Kevin Emery
 #'
-#' @return It returns a message containing the impTransOverview \code{data.frame} object that gathers the occurences of each type of impossible transitions.
-#' @return rowMat \code{matrix} object containing the row coordinates of the impossible transitions (stored in \code{seqImpTransList[1]}).
-#' @return colMat \code{matrix} object containing the column coordinates of the impossible transitions (stored in \code{seqImpTransList[2]}).
+#' @return It returns a message containing the transOverview \code{data.frame} object that gathers the occurences of each type of impossible transitions.
+#' @return rowMat \code{matrix} object containing the row coordinates of the impossible transitions (stored in \code{seqTransList[1]}).
+#' @return colMat \code{matrix} object containing the column coordinates of the impossible transitions (stored in \code{seqTransList[2]}).
 #'
 #' @examples
 #' data(OD)
 #'
-#' seqImpTransList <- seqImpTrans(OD=OD, k=2, impTrans=c("yes->no"))
+#' seqTransList <- seqTrans(OD=OD, k=2, trans=c("yes->no"))
 #'
 #' @keywords multinomial logistic regression, linear regression, ordinal regression, missing data, impossible transitions
 #' 
@@ -60,9 +58,9 @@
 #' @export
 
 
-seqImpTrans <- function(OD, k, impTrans){
+seqTrans <- function(OD, k, trans){
   
-  
+  impTrans <- trans
   # Naming the number of rows and columns of OD
   nr <- nrow(OD)
   nc <- ncol(OD)
@@ -128,7 +126,7 @@ seqImpTrans <- function(OD, k, impTrans){
   # 1.4 Test on input parameter impTrans -----------------------------------------
   for (i in 1:length(impTrans)) {
     if (!str_detect(impTrans[i],"->")) {
-      stop("/!\\ Warning, you should construct your impossible transition(s) vector impTrans with little arrows as follow: impTrans <- c('...->...', '...->...', etc.).")
+      stop("/!\\ Warning, you should construct your transition(s) vector trans with little arrows as follow: trans <- c('...->...', '...->...', etc.).")
     }
     # Testing if we are effectively analyzing a transition or not
     locDash <- str_locate(impTrans[i],"-")
@@ -245,7 +243,7 @@ seqImpTrans <- function(OD, k, impTrans){
   if ( (numbOfInitGaps > 0) | (numbOfTermGaps > 0) | (numbOfInternGaps > 0) ) {
     warning("/!\\ We have detected ",numbOfInitGaps," initial gap(s), ",numbOfTermGaps," terminal gap(s)","\n",
             "    and ",numbOfInternGaps," internal gap(s) in your dataset.","\n",
-            "    Be aware that these gaps may hide other impossible transitions!")
+            "    Be aware that these gaps may hide other transitions!")
   }
   
   
@@ -261,7 +259,6 @@ seqImpTrans <- function(OD, k, impTrans){
   
   
   # 3. Spotting impossible transitions ----------------------------------------------------------------------------------------------------------------
-  
   
   
   ## Setup
@@ -293,7 +290,7 @@ seqImpTrans <- function(OD, k, impTrans){
   # Interrupting the program in case no impossible transitions among impTrans have
   # been found
   if (sum(numbOfImpTrans) == 0) {
-    stop(" /!\\ Warning, no impossible transitions have been found. Your input vector impTrans doesn't contain any transitions present in your dataset.")
+    stop(" /!\\ Warning, no transitions have been found. Your input vector trans doesn't contain any transitions present in your dataset.")
   }
   
   if(length(impTrans)==1){
@@ -303,9 +300,18 @@ seqImpTrans <- function(OD, k, impTrans){
   
   
   
-  
+  # Computation of the matrix startLocMat of size length(impTrans)*ncol(OD)
+  # Each line correspond to a transition specified by the user. In each column j,
+  # we have the indices corresponding to the specified transition of observations j in the
+  # original dataset OD under the form of a string. For example, if the transition
+  # 3 and 14 of observation j correspond to the transition i specified by the user,
+  # we will have "3 14" in place i,j
   startLocMat <- matrix(NA,nrow=length(impTrans),ncol=nrow(OD))
   for(i in 1:length(impTrans)){
+    #We need this roundabout with "(?=)" because in the case of a transition
+    # yes->yes->yes for example, if the user is interested in the transition
+    # yes->yes, the simple version without "(?=)" won't spot
+    # the second transtion because a part of it is used in the first one.
     Tmplist <- str_locate_all(ODCharAndDashes, paste0("(?=",impTrans[i],")"))
     for(j in 1:length(ODCharAndDashes)){
       tempMat <- Tmplist[[j]]
@@ -320,10 +326,19 @@ seqImpTrans <- function(OD, k, impTrans){
   
   
   
-  
+  # Function to extract the different digits when a string is composed
+  # of multiple digits
   Numextract <- function(string){
     unlist(regmatches(string,gregexpr("[[:digit:]]+\\.*[[:digit:]]*",string)))
   }
+  # Function that translates the value corresponding to where the transition
+  # occures in the string to where it occures in a observation
+  # To do so, we extract the substring until the desired a transition occures
+  # in the string and we compute the number +1 of ">" in this substring.
+  # For example, if the observation j is of the form "yes->yes->no->yes->yes"
+  # and the value 15 is stored in StartLocMat, we extract the substring
+  # "yes->yes->no->", we compute 3 + 1. The target transition therefore occurs
+  # in position 4.
   GetRealColPosition <- function(ODCharAndDashes,RowPos,ColPos) {
     ODCharAndDashesSubstring <- substr(ODCharAndDashes[RowPos],1,ColPos)
     realColPosition <- str_count(ODCharAndDashesSubstring,pattern=">")+1
@@ -397,18 +412,18 @@ seqImpTrans <- function(OD, k, impTrans){
   #
   # Update of impTrans with an arrow
   impTransOverview <- data.frame(c(impTrans,"","Total:"),c(numbOfImpTrans,"",sum(numbOfImpTrans)))
-  colnames(impTransOverview) <- c("Impossible transitions", "Occurence")
+  colnames(impTransOverview) <- c("Transitions", "Occurence")
   
   
-  message("Impossible transitions summarizing table:","\n",
+  message("Transitions summarizing table:","\n",
           "-----------------------------------------","\n",
           "Note:","\n",
-          "The location of these spotted impossible transitions can","\n",
+          "The location of these spotted transitions can","\n",
           "be found by looking in parallel at the matrices 'rowMat' and","\n",
           "'colMat': the row in which the corresponding in OD row (resp. the column)","\n",
-          "index appears indicates the case of impossible transition you are","\n",
+          "index appears indicates the case of transition you are","\n",
           "looking at and the column informs about the rank of this specific","\n",
-          "impossible transition (i.e. if it is the first (1)) impossible transition","\n",
+          "transition (i.e. if it is the first (1)) transition","\n",
           "of this kind that is met or the second (2)), etc.)","\n","\n",
           
           paste0(capture.output(impTransOverview), collapse = "\n"),"\n")
@@ -421,8 +436,8 @@ seqImpTrans <- function(OD, k, impTrans){
   
   
   
-  seqImpTransList <- list("rowMat" = rowMat, "colMat" = colMat)
-  return(seqImpTransList)
+  seqTransList <- list("rowMat" = rowMat, "colMat" = colMat)
+  return(seqTransList)
   
   
   
