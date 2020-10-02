@@ -43,12 +43,18 @@
 #' @param pastDistrib \code{logical} object allowing to take account of the past distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param futureDistrib \code{logical} object allowing to take account of the future distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param mi \code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).
-#' @param mi.return \code{numeric} object being either "\code{1}" (omitting \code{OD}) or "\code{2}" (including \code{OD}) and corresponding to the two possible returned formats of the final matrix \code{RESULT} (default: \code{1}).
+#' @param mice.return If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice}, is returned. 
+#' @param include \code{logical} object that determines, in the case where a \code{data.frame} is returnes, if the original
+#' dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.
 #' @param noise \code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).
 #'
-#' @author Andre Berchtold <andre.berchtold@@unil.ch>
+#' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery
 #'
-#' @return RESULT \code{data.frame} object containing the imputed original dataset.
+#' @return Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
+#' or a dataframe, where the imputed dataset are stacked vertically. In the second case,
+#' two columns are added: \code{.imp} integer that refers to the imputation number
+#' (0 corresponding to the original dataset if \code{include=TRUE}) and \code{.id} character corresponding to
+#' the rownames of the dataset to impute. 
 #'
 #' @examples
 #' data(OD, CO, COt)
@@ -66,7 +72,7 @@
 seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                      futureDistrib=FALSE, mi=1, mi.return=1, noise=0) {
+                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE,noise=0) {
     
     
     
@@ -134,11 +140,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     
     
     
-    
-    
-    
-    
+    rownamesDataset <- rownames(OD)
     nrowsDataset <- nrow(OD)
+    
+    if(mice.return==TRUE){
+        include <- TRUE
+    }
     
     
     # Deleting entire rows of OD filled only with NAs
@@ -160,7 +167,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             # empty and updating the covariate matrix COt as well!
             COt <- COt[-rowsNA,]
         }
-        warning(paste("/!\\ Row number",paste(rowsNA,collapse=", "),"of OD has been completely erased
+        warning(paste("/!\\ Row number",paste(rowsNA,collapse=", "),"was not imputed
                           because it only consisted of NAs."),sep='')
     }
     
@@ -410,15 +417,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     
     
     
-    # 0.9 Testing effectively mi.return == 1 or mi.retunr ==2 -----------------------------------------------------------------------------------------------------
-    if (mi.return!=1 & mi.return!=2)
-        stop("/!\\ mi.return can only take the values of '1' or '2'")
     
-    
-    
-    
-    
-    # 0.10 Taking the absolute value of the parameter "noise" -----------------------------------------------------------------------------------------------------
+    # 0.9 Taking the absolute value of the parameter "noise" -----------------------------------------------------------------------------------------------------
     # Since "noise" is the variance of the elements of the final vector pred, it
     # can't be negative
     noise <- abs(noise)
@@ -6193,9 +6193,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     
     
     
-    
-    ## Adjustment of the rendered form of RESULT
-    if (mi.return == 1) {    # case mi.return == 1 (not including initial data
+    # 
+    # ## Adjustment of the rendered form of RESULT
+    if (include == FALSE) {    # case include == 1 (not including initial data
         # set OD)
         if (mi == 1) {       # case mi == 1, we render only the single matrix
             # ODi (without the numerotation variables aside)
@@ -6208,9 +6208,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             # (and we keep the variables numbering the imputations aside)
             RESULT <- RESULT[(nr+1):((mi+1)*nr),]
         }
-        
+
     }
-    # Else (meaning that we are in the case mi.return == 2 (including initial
+    # Else (meaning that we are in the case include == 2 (including initial
     # dataset OD)), we simply don't do any change in the form of RESULT (which
     # has already been constructed to fit the shape option '2')
     
@@ -6246,14 +6246,14 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     # RE-RECODING RESULT to go from "1", "2", etc. to "words"
     #*************************************
     if (ODClass == "factor") {
-        if (mi == 1 & mi.return == 1) {
+        if (mi == 1 & include == FALSE) {
             RESULT <- as.data.frame( sapply(RESULT, mapvalues,
                                             from = as.character(as.vector(1:length(ODlevels))),
                                             to = ODlevels) )
         } else {
             # Taking account ot the special notation of RESULT that has an extra
             # column on the left of RESULT (as soon as mi > 1 or in any case if
-            # mi.return == 2)
+            # include == 2)
             RESULT[,2:ncol(RESULT)] <- as.data.frame( sapply(RESULT[,2:ncol(RESULT)],
                                                              mapvalues,
                                                              from = as.character(as.vector(1:length(ODlevels))),
@@ -6267,7 +6267,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     
     #### We put again the rows having only NA's discarder at the beginning
     if(length(rowsNA)>0){
-        if (mi.return == 1) {
+        if (include == FALSE) {
             if (mi == 1) {
                 for(i in 1:length(rowsNA)){
                     if(rowsNA[i]==1){
@@ -6306,11 +6306,22 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         }
     }
     
-    
-    
-    
-    
-    
+    if(include==TRUE){
+    RESULT <- cbind(RESULT[,1],rep(rownamesDataset,mi+1),RESULT[,2:ncol(RESULT)])
+    colnames(RESULT)[1] <- ".imp"
+    colnames(RESULT)[2] <- ".id"
+    }else if(include==FALSE & mi>1){
+        RESULT <- cbind(RESULT[,1],rep(rownamesDataset,mi),RESULT[,2:ncol(RESULT)])
+        colnames(RESULT)[1] <- ".imp"
+        colnames(RESULT)[2] <- ".id"
+    }else{
+        rownames(RESULT)<-rownamesDataset
+    }
+     
+    if(mice.return==TRUE){
+        RESULT <- as.mids(RESULT)
+    }
+     
     
     
     # Returning the matrix composed of every imputations

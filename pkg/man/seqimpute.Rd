@@ -18,7 +18,8 @@ seqimpute(
   pastDistrib = FALSE,
   futureDistrib = FALSE,
   mi = 1,
-  mi.return = 1,
+  mice.return = FALSE,
+  include = FALSE,
   noise = 0
 )
 }
@@ -49,12 +50,19 @@ seqimpute(
 
 \item{mi}{\code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).}
 
-\item{mi.return}{\code{numeric} object being either "\code{1}" (omitting \code{OD}) or "\code{2}" (including \code{OD}) and corresponding to the two possible returned formats of the final matrix \code{RESULT} (default: \code{1}).}
+\item{mice.return}{If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice}, is returned.}
+
+\item{include}{\code{logical} object that determines, in the case where a \code{data.frame} is returnes, if the original
+dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
 
 \item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).}
 }
 \value{
-RESULT \code{data.frame} object containing the imputed original dataset.
+Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
+or a dataframe, where the imputed dataset are stacked vertically. In the second case,
+two columns are added: \code{.imp} integer that refers to the imputation number
+(0 corresponding to the original dataset if \code{include=TRUE}) and \code{.id} character corresponding to
+the rownames of the dataset to impute.
 }
 \description{
 Imputation of missing data present in a dataset through the prediction based
@@ -98,7 +106,7 @@ RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=1)
 HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and terminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
 }
 \author{
-Andre Berchtold <andre.berchtold@unil.ch>
+Andre Berchtold <andre.berchtold@unil.ch> Kevin Emery
 }
 \keyword{data,}
 \keyword{logistic}

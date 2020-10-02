@@ -54,6 +54,8 @@
 #' @importFrom mlogit mlogit
 #' 
 #' @importFrom rms lrm
+#' 
+#' @importFrom mice as.mids
 #'
 #' @export
 
@@ -107,18 +109,18 @@ seqTrans <- function(OD, k, trans){
     if (all(is.na(OD[i,]))) {
       OD <- OD[-i,]
       numbOfNAFilledLines <- numbOfNAFilledLines + 1
-      warning(paste("/!\\ Row number",i,"of OD consists only of NAs."),sep='')
+      #warning(paste("/!\\ Row number",i,"of OD consists only of NAs."),sep='')
     }
     i <- i+1
   }
-  if (numbOfNAFilledLines == 1) {
-    warning(paste("Your data matrix contains 1 row filled solely with NAs. This row won't be included into the next statistics about NAs."),sep='')
-  }
-  if (numbOfNAFilledLines > 1) {
-    warning(paste("Your data matrix contains",numbOfNAFilledLines,"rows filled solely with NAs."),sep='',"\n",
-            "  These rows have been removed and thus haven't been included in","\n",
-            "  the analysis of the impossible transitions among your dataset.")
-  }
+  # if (numbOfNAFilledLines == 1) {
+  #   warning(paste("Your data matrix contains 1 row filled solely with NAs. This row won't be included into the next statistics about NAs."),sep='')
+  # }
+  # if (numbOfNAFilledLines > 1) {
+  #   warning(paste("Your data matrix contains",numbOfNAFilledLines,"rows filled solely with NAs."),sep='',"\n",
+  #           "  These rows have been removed and thus haven't been included in","\n",
+  #           "  the analysis of the impossible transitions among your dataset.")
+  # }
   # Updating the number of rows in OD
   nr <- nrow(OD)
   
