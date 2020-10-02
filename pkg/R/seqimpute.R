@@ -67,10 +67,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                       futureDistrib=FALSE, mi=1, mi.return=1, noise=0) {
-
-
-
-# test
+    
+    
+    
+    # test
     # Selecting the columns of CO the user finally wants to use in his model
     #*******************************************************************************
     # if (ncol(CO) > 1) {          # if nco is greater than "1", it means that
@@ -129,57 +129,58 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         # then, ncot has to be set to "0"
         ncot <- 0
     }
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    nrowsDataset <- nrow(OD)
+    
+    
     # Deleting entire rows of OD filled only with NAs
     # (and deleting corresponding lines in CO and COt)
-    i <- 1
-    while (i <= nrow(OD)) {
+    rowsNA <- c()
+    for(i in 1:nrow(OD)) {
         if (all(is.na(OD[i,]))) {
-            OD <- OD[-i,]
-            if (all(is.na(CO))==FALSE) { # Checking if CO is NOT completely
-                # empty and updating the covariate matrix CO as well!
-                CO <- CO[-i,]
-            }
-            if (all(is.na(COt))==FALSE) { # Checking if COt is NOT completely
-                # empty and updating the covariate matrix COt as well!
-                COt <- COt[-i,]
-            }
-            warning(paste("/!\\ Row number",i,"of OD has been completely erased
-                          because it only consisted of NAs."),sep='')
+            rowsNA <- c(rowsNA,i)
         }
-        i <- i+1
     }
-
-
-
-
-
-
-
-
-
-
+    
+    if(length(rowsNA)>0){
+        OD <- OD[-rowsNA,]
+        if (all(is.na(CO))==FALSE) { # Checking if CO is NOT completely
+            # empty and updating the covariate matrix CO as well!
+            CO <- CO[-rowsNA,]
+        }
+        if (all(is.na(COt))==FALSE) { # Checking if COt is NOT completely
+            # empty and updating the covariate matrix COt as well!
+            COt <- COt[-rowsNA,]
+        }
+        warning(paste("/!\\ Row number",paste(rowsNA,collapse=", "),"of OD has been completely erased
+                          because it only consisted of NAs."),sep='')
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     # Definition of the number of rows and columns in OD
     # (And eventually update of nr)
     nr <- nrow(OD)
     nc <- ncol(OD)
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     if (ncot > 0) {
         # Creaion of a sample of COt
         # (taking a unique sample of each time-dependent covariates and coercing
@@ -191,12 +192,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             COtsample <- cbind(COtsample,COt[,1 + (d-1)*nc])
         }
     }
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     # Total number of variables in the imputation model
     totV <- 1+np+nf+nco+(ncot/nc)
     totVi <- 1+nfi+nco+(ncot/nc)
@@ -209,13 +210,13 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         totV <- totV + k
         totVi <- totVi + k
     }
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
     # In case of a factor dataset OD:
     # RECODING of OD with numbers "1", "2", etc. instead of its "words"
     ODClass <- class(OD[1,1])
@@ -226,11 +227,11 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     to = as.character(as.vector(1:length(ODlevels)))) )
     }
     #*************************************
-
-
-
-
-
+    
+    
+    
+    
+    
     # Making sure that OD is a matrix and not a data frame
     # /!\ Using simply "OD <- data.matrix(OD)"
     # may convert the components of OD to a different number
@@ -244,9 +245,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     #********************************************
     # When using as.matrix(), factors become strings. Using apply() will convert
     # everything to numeric without losing the matrix structure.
-
-
-
+    
+    
+    
     # Converting the columns of OD to factor
     #
     # /!\ With:
@@ -270,28 +271,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             ODi[,j] <- factor(x = OD[,j], levels = c(1:k))
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # 0. Initial tests and manipulations on parameters ------------------------------------------------------------------------------------------------------------
-
+    
     # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
     if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm")) {
         stop("/!\\ regr defines the type of regression model you want to use.
@@ -299,20 +300,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
              regression),'lm' (for linear regression) or 'lrm' (for ordinal
              regression)")
     }
-
-
-
-
-
+    
+    
+    
+    
+    
     # 0.2 Testing the class of the variables of the original dataset OD -------------------------------------------------------------------------------------------
     if ( (ODClass != "factor") & (ODClass != "numeric") ) {
         stop("/!\\ The class of the variables contained in your original dataset
          should be either 'factor' or 'numeric'")
     }
-
-
-
-
+    
+    
+    
+    
     # 0.3 Testing effectively exactly k possible categories of the variable (in case we consider categorical variables) -------------------------------------------
     if (ODClass == "factor") {
         for (i in 1:nr) {
@@ -326,13 +327,13 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             }
         }
     }
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
     # 0.4 Eventually discarding the consideration of pastDistrib and futureDistrib --------------------------------------------------------------------------------
     # Making sure that pastDistrib and futureDistrib are set to FALSE by default
     # in case OD is made of "numeric" variables
@@ -346,15 +347,15 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         totVi <- 1+nfi+nco+(ncot/nc)
         totVt <- 1+npt+nco+(ncot/nc)
     }
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # 0.5 Testing not np<0, nor nf<0 nor both ==0 -----------------------------------------------------------------------------------------------------------------
     # No VIs is not possible (we should have at least np>0 or nf>0)
     if(np==0 & nf==0)
@@ -363,35 +364,35 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     # Negative value for np as well as nf raises an error
     if(np<0 | nf<0)
         stop("/!\\ np and nf can't be negative numbers")
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     # 0.6 Testing np and nf are not chosen too large --------------------------------------------------------------------------------------------------------------
     if (np+1+nf>nc)
         stop("/!\\ You have to choose lower value for np and nf. Your selected
              np and nf are too large to fit the dimensions of your data matrix")
-
-
-
-
-
+    
+    
+    
+    
+    
     # 0.7 Testing not nfi<0, nor npt<0 ----------------------------------------------------------------------------------------------------------------------------
     # Negative value for nfi as well as npt raises an error
     if(nfi<0 | npt<0)
         stop("/!\\ nfi and npt can't be negative numbers")
     # In case nfi = 0 and/or npt = 0, the imputation of the initial gaps and/or
     # the terminal gaps respectively is simply omitted
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
     # 0.8 Testing the right construction of COt -------------------------------------------------------------------------------------------------------------------
     # Since COt contains the time-dependent covariates, each of them is
     # represented by a submatrix that has the same number of columns as OD.
@@ -400,45 +401,45 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     if (ncot%%nc != 0) {
         stop("/!\\ Be sure to have understood the notion of time-dependent covariates. Each time-dependent covariates contained in COt has to have the same number of columns as OD.")
     }
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # 0.9 Testing effectively mi.return == 1 or mi.retunr ==2 -----------------------------------------------------------------------------------------------------
     if (mi.return!=1 & mi.return!=2)
         stop("/!\\ mi.return can only take the values of '1' or '2'")
-
-
-
-
-
+    
+    
+    
+    
+    
     # 0.10 Taking the absolute value of the parameter "noise" -----------------------------------------------------------------------------------------------------
     # Since "noise" is the variance of the elements of the final vector pred, it
     # can't be negative
     noise <- abs(noise)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # 1. Analysis of OD and creation of matrices ORDER, ORDER2 and ORDER3 -----------------------------------------------------------------------------------------
-
+    
     # Coding of missing data in function of the length of the gap
     # ORDER: matrix of the same size of OD giving the imputation order of each
     # MD (0 for observed data and 1 for MD) --> there will be 1 everywhere there
@@ -447,18 +448,18 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
     # example from 1 to 3 for a gap of length 3)
     # ORDER3: matrix of the same size of OD replacing each MD by the length of
     # the gap it belongs to
-
+    
     # Creation of matrix ORDER
     ORDER <- matrix(0,nr,nc) # initialization of matrix ORDER with 0 everywhere
     SEL <- is.na(OD)==TRUE   # creation of matrix SEL, constituted of TRUE where
     # there is MD in OD and of FALSE everywhere else
     ORDER[SEL] <- 1          # setting some 1 in ORDER at the location where in
     # SEL we have some TRUE
-
-
-
-
-
+    
+    
+    
+    
+    
     # Creation of vector InitGapSize (i.e. a vector containing the size of the
     # initial gaps of each line)
     InitGapSize <- vector()
@@ -476,10 +477,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             }
         }
     }
-
+    
     MaxInitGapSize <- max(InitGapSize)
-
-
+    
+    
     # Creation of vector TermGapSize (i.e. a vector containing the size of the
     # terminal gaps of each line)
     TermGapSize <- vector()
@@ -497,10 +498,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             }
         }
     }
-
+    
     MaxTermGapSize <- max(TermGapSize)
-
-
+    
+    
     # Updating of ORDER with "0" on every external NAs
     # (The purpose of this modification of ORDER is that we don't take into
     # account external NAs at this moment of the program.
@@ -510,29 +511,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         if (InitGapSize[i]!=0) {
             ORDER[i,1:InitGapSize[i]] <- vector("numeric",InitGapSize[i])
         }
-
+        
         if (TermGapSize[i]!=0) {
             ORDER[i,(nc-TermGapSize[i]+1):nc] <- vector("numeric",TermGapSize[i])
         }
-
+        
         else {
             next
         }
     }
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # Creation of matrices ORDER2 and ORDER3
     ORDER2 <- ORDER                         # initially both ORDER2 and
     ORDER3 <- ORDER                         # ORDER3 are equal to ORDER
-
+    
     for (i in 1:nr){                            # in matrix ORDER, we go line
         # by line...
         for (j in 2:nc){                        # ... from column to column
@@ -560,31 +561,31 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             }
         }
     }
-
+    
     MaxGap <- max(max(ORDER2)) # renders us the size of the greatest gap in OD
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     if (max(ORDER)!=0) {
-
+        
         # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
-
+        
         # 2.1. Model 1: use of previous and future observations ---------------------------------------------------------------------------------------------------
         if (np>0 & nf>0){
-
+            
             ord <- integer(MaxGap)          # initialization of the vector "ord"
-
+            
             # Creation of the longest vector of the matrix
             ord[1] <- 1
             iter_even <-0
@@ -600,15 +601,15 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                 index <- i + shift
                 ord[index] <- i
             }
-
+            
             ifelse(MaxGap%%2==0, ord<-ord, ord<-rev(ord)) # reverse the order of
             # ord in case we are
             # in an even-first
             # case (that is in the
             # case of an uneven
             # MaxGap)
-
-
+            
+            
             # Creation of every shorter vector based on "ord" (taking some parts
             # of "ord")
             for (i in 1:nr){
@@ -629,10 +630,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                 }
             }
         }
-
-
-
-
+        
+        
+        
+        
         # 2.2. Model 2: use of previous observations only ---------------------------------------------------------------------------------------------------------
         if (np>0 & nf==0){            # Verifying that we are in case of model 2
             for (i in 1:nr){          # Beginning from row 1, we will go row by
@@ -680,10 +681,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                 }
             }
         }
-
-
-
-
+        
+        
+        
+        
         # 2.3. Model 3: use of future observations only -----------------------------------------------------------------------------------------------------------
         if (np==0 & nf>0){                  # Verifying that we are effectively
             # in case of model 3
@@ -739,17 +740,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                 }
             }
         }
-
-
-
-
-
-
-
-
-
-
-
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         # Updating ORDER with "0" on every NAs belonging to a Specially Located
         # Gap (SLG)
         # (The purpose of this modification of ORDER is that we don't take into
@@ -757,70 +758,70 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         # We will first impute internal gaps, external gaps and consider SLG at
         # the very end
         # (as far as some SLG have been detected)
-
+        
         # 6.1 Creation of ORDERSLG (ORDERSLGLeft and ORDERSLGRight)
-
+        
         # Initialization of matrix in which we will store the SLG
         ORDERSLG <- matrix(0,nrow=nr,ncol=nc)
-
+        
         # Initialization of the range in which SLG could be found
         tempMinGapLeft <- matrix(0,nrow=nr,ncol=nc)
         tempMaxGapLeft <- matrix(0,nrow=nr,ncol=nc)
         tempMinGapRight <- matrix(0,nrow=nr,ncol=nc)
         tempMaxGapRight <- matrix(0,nrow=nr,ncol=nc)
-
+        
         for (i in 1:nr) {                # we will go through each line of ORDER
-
+            
             if (np > 1) {                # if np > 1, it may be possible that
                 # SLG on the left-hand side of OD exist
                 j <- 2
-
+                
                 while (j <= np) {
                     jump <- 1
-
+                    
                     if (ORDER[i,j]>0) {
                         tempMinGapLeft[i,j] <- j
-
+                        
                         while (ORDER[i,j]>0) {
                             ORDERSLG[i,j] <- ORDER[i,j]
                             j <- j+1
                         }
-
+                        
                         tempMaxGapLeft[i,j] <- j-1
-
+                        
                         jump <- max(tempMaxGapLeft[i,]) - max(tempMinGapLeft[i,])
                     }
-
+                    
                     j <- j+jump
                 }
             }
-
+            
             if (nf > 1) {               # if nf > 1, it may be possible that SLG
                 # on the right-hand side of OD exist
                 j <- nc-1
-
+                
                 while ((nc-j+1) <= nf) {
                     jump <- 1
-
+                    
                     if (ORDER[i,j]>0) {
                         tempMinGapRight[i,j] <- j
-
+                        
                         while (ORDER[i,j]>0) {
                             ORDERSLG[i,j] <- ORDER[i,j]
                             j <- j-1
                         }
-
+                        
                         tempMaxGapRight[i,j] <- j+1
-
+                        
                         jump <- max(tempMinGapRight[i,]) - max(tempMaxGapRight[i,])
                     }
-
+                    
                     j <- j-jump
                 }
             }
-
+            
         }
-
+        
         # Extracting extrema from tempMinGapLeft, tempMaxGapLeft,
         # tempMinGapRight and tempMaxGapRight
         # And creation of ORDERSLGLeft and ORDERSLGRight (matrices for both
@@ -832,30 +833,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             maxGapLeft <- max(tempMaxGapLeft[tempMaxGapLeft!=0])
             ORDERSLGLeft[,minGapLeft:maxGapLeft] <- ORDERSLG[,minGapLeft:maxGapLeft]
         }
-
+        
         ORDERSLGRight <- matrix(nrow=nr,ncol=nc,0)
         if (max(tempMinGapRight!=0) & max(tempMaxGapRight)!=0) {
             minGapRight <- max(tempMinGapRight[tempMinGapRight!=0])
             maxGapRight <- min(tempMaxGapRight[tempMaxGapRight!=0])
             ORDERSLGRight[,maxGapRight:minGapRight] <- ORDERSLG[,maxGapRight:minGapRight]
         }
-
+        
         # /!\ Final version of the matrix ORDER that we use through point 3.1 to
         # 3.3 of the program
         ORDER <- ORDER - ORDERSLGLeft - ORDERSLGRight
-
-
-
-
-
-
-
-
-
-
-
-
-
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         # 2.4. Creation of matrices REFORD ------------------------------------------------------------------------------------------------------------------------
         # The purpose of this section is to accelerate part 3.3 in which we
         # initially (i.e. with the first versions of seqimpute3.R) go "order"
@@ -867,71 +868,71 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         # It will create MaxGap lookup matrices that will be used in point 3.3
         # to directly pinpoint the NA that have to be currently imputed
         # according to the value of the variable "order"
-
+        
         # Updating MaxGap
         MaxGap <- max(ORDER[ORDER!=0])-(min(ORDER[ORDER!=0]) - 1)
-
+        
         # Initialization of the REFORD matrices
         for(order in 1:MaxGap) {
             assign(paste("REFORD_",order,sep=''),matrix(nrow=0,ncol=2))
         }
-
+        
         ORDERinit <- ORDER
-
+        
         for (i in 1:nr) {
             for (j in 1:nc) {
                 if (ORDER[i,j] > 0) {
-
+                    
                     # Updating ORDER so that it becomes a matrix with positive
                     # values going from 1 to MaxGap
                     ORDER[i,j] <- ORDER[i,j] - (min(ORDERinit[ORDERinit!=0]) - 1)
-
+                    
                     # Collecting the coordinates for each value of "order"
                     coord <- t(matrix(c(i,j)))
-
+                    
                     tempObject = get(paste0("REFORD_",ORDER[coord]))
                     update <- rbind(tempObject,coord)
-
+                    
                     assign( (paste("REFORD_",ORDER[coord],sep='')),update )
                 }
             }
         }
-
-
-
-
-
-
-
-
+        
+        
+        
+        
+        
+        
+        
+        
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # Initialization of the matrix in which we are going to store the results of
     # the multiple imputations
     RESULT <- cbind(replicate(nr,0),OD)
-
-
+    
+    
     # Beginning of the multiple imputation (imputing "mi" times)
     for (o in 1:mi) {
-
-
-
-
+        
+        
+        
+        
         # Trying to catch the potential singularity error (part 1/2)
         # (comment this part of code (as well as the one at the very end of
         # seqimpute.R) to debug more easily and see the full message of any
@@ -939,35 +940,35 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         #********************************************************************************************************************************
         tryCatch( # Trying to catch the potential singularity error
             # in order to display a more accurate comment on it
-
+            
             {
                 #************************************************************************************************************************
-
-
-
-
+                
+                
+                
+                
                 if (max(ORDER)!=0) {
                     # Otherwise if there is only 0 in ORDER,
                     # there is no need to impute internal gaps
                     # and we directly jump to the imputation of
                     # external gaps (i.e. points 4. and 5.)
-
-
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     # 3. Imputation using a specific model --------------------------------------------------------------------------------------------------------
-
+                    
                     # 3.1 Building of the data matrix CD for the computation of the model -------------------------------------------------------------------------
-
+                    
                     for (order in 1:MaxGap){ # /!\ "order" corresponds to the
                         # values of the components of ORDER (i.e. the number
                         # of the iteration, the order in which the
                         # values are going to be imputed)
-
+                        
                         # Building of a data matrix for the computation of the
                         # model
                         ud <- nc-(MaxGap-order+np+nf)    # number of usable data
@@ -1006,7 +1007,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # everywhere (/!\ for each
                         # "order", we are going to
                         # build such a CD)
-
+                        
                         # Dealing with the change of shape of the prediction
                         # frame (according to whether the imputed data is
                         # located at the beginning (left) of a gap or at the end
@@ -1023,22 +1024,22 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # case of model 2 (only past)
                             # and model 3 (only future))
                         }
-
+                        
                         iter <- 1                # initialisation of the number
                         # of iterations of the
                         # following for loops
-
+                        
                         # Only PAST
                         if (np>0 & nf==0) {              # only PAST VIs do
-                                                         # exist
+                            # exist
                             # initialisation of matrix CDp
                             CDp <- matrix(NA, nrow=nr*ud, ncol=np)
-
+                            
                             if (ncot > 0) {
                                 # initialisation of matrix COtselected
                                 COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                             }
-
+                            
                             # initialisation of matrix CDdb (for past
                             # distribution analysis) (Distribution Before)
                             if (pastDistrib) {
@@ -1049,7 +1050,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # ud matrix db on top
                                 # of each other
                             }
-
+                            
                             # initialisation of matrix CDda (for future
                             # distribution analysis) (Distribution After)
                             if (futureDistrib) {
@@ -1058,8 +1059,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 da <- matrix(NA, nrow=nr, ncol=k)
                                 # da has same dimensions as db
                             }
-
-
+                            
+                            
                             for (j in frameSize:nc){
                                 # /!\ j is initialised at
                                 # the very end (utmost right) of the
@@ -1078,7 +1079,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # +np+1"
                                 # Past VIs
                                 CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)]
-
+                                
                                 # Eventually considering time-dependent
                                 # covariates
                                 if (ncot > 0) {
@@ -1088,7 +1089,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     }
                                     COtselected[t1:t2,] <- COttemp
                                 }
-
+                                
                                 # Past distribution (i.e. Before)
                                 if (pastDistrib) {
                                     ODt <- t(OD)
@@ -1096,12 +1097,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     tempOD <- lapply(ODt[(1:(j-frameSize+np)),], factor, levels=c(1:k,NA), exclude=NULL)
                                     # because:
                                     # j-frameSize+np+1 - 1 = j-frameSize+np
-
+                                    
                                     db_list <- lapply(tempOD,summary)
                                     db_matrix <- do.call(rbind,db_list)
                                     CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
                                 }
-
+                                
                                 # Future distribution (i.e. After)
                                 if (futureDistrib) {
                                     if ( (j-frameSize+np+2) <= nc ) {
@@ -1111,7 +1112,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # because:
                                         # j-frameSize+np+1 + 1
                                         # = j-frameSize+np+2
-
+                                        
                                         da_list <- lapply(tempOD,summary)
                                         da_matrix <- do.call(rbind,da_list)
                                         CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
@@ -1123,25 +1124,25 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         CDda[t1:t2,] <- matrix(nrow=nr,ncol=k,0)
                                     }
                                 }
-
+                                
                                 iter <- iter+1
                             }
-
-
+                            
+                            
                             # Concatenating CD
                             CD <- cbind(CD, CDp)
-
+                            
                             if (pastDistrib) {
                                 CD <- cbind(CD, CDdb)
                             }
-
+                            
                             if (futureDistrib) {
                                 CD <- cbind(CD, CDda)
                             }
-
+                            
                             # Conversion of CD into a data frame
                             CD <- as.data.frame(CD)
-
+                            
                             # Eventually concatenating CD with COs (the matrix
                             # containing the covariates)
                             if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
@@ -1154,7 +1155,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             }
                             # Else, in case CO is empty (i.e. we don't consider
                             # any covariate) simply continue with the current CD
-
+                            
                             # Eventually concatenating CD with COtselected (the
                             # matrix containing the current time-dependent
                             # covariates)
@@ -1163,19 +1164,19 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Concatenating CD and COtselected into CD
                                 CD <- cbind(CD, as.data.frame(COtselected))
                             }
-
-
+                            
+                            
                             # Only FUTURE
                         } else if (np==0 & nf>0) {
                             # only FUTURE VIs do exist
                             # initialisation of matrix CDf
                             CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
-
+                            
                             if (ncot > 0) {
                                 # initialisation of matrix COtselected
                                 COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                             }
-
+                            
                             # initialisation of matrix CDdb
                             # (for past distribution
                             # analysis) (Distribution Before)
@@ -1187,7 +1188,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # ud matrix db on top
                                 # of each other
                             }
-
+                            
                             # initialisation of matrix CDda
                             # (for future distribution
                             # analysis) (Distribution After)
@@ -1201,8 +1202,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # dimensions as
                                 # db
                             }
-
-
+                            
+                            
                             for (j in frameSize:nc){
                                 t1 <- (nr*(iter-1)+1)
                                 t2 <- nr*iter
@@ -1214,7 +1215,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # frameSize+np+1"
                                 # Future VIs
                                 CDf[t1:t2,] <- OD[,(j-nf+1):j]
-
+                                
                                 # Eventually considering time-dependent
                                 # covariates
                                 if (ncot > 0) {
@@ -1224,7 +1225,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     }
                                     COtselected[t1:t2,] <- COttemp
                                 }
-
+                                
                                 # Past distribution (i.e. Before)
                                 if (pastDistrib) {
                                     ODt <- t(OD)
@@ -1232,12 +1233,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     tempOD <- lapply(ODt[(1:(j-frameSize+np)),], factor, levels=c(1:k,NA), exclude=NULL)
                                     # because: j-frameSize+np+1 - 1
                                     # = j-frameSize+np
-
+                                    
                                     db_list <- lapply(tempOD,summary)
                                     db_matrix <- do.call(rbind,db_list)
                                     CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
                                 }
-
+                                
                                 # Future distribution (i.e. After)
                                 if (futureDistrib) {
                                     ODt <- t(OD)
@@ -1245,29 +1246,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     tempOD <- lapply(ODt[((j-frameSize+np+2):nc),], factor, levels=c(1:k,NA), exclude=NULL)
                                     # because:
                                     # j-frameSize+np+1 + 1 = j-frameSize+np+2
-
+                                    
                                     da_list <- lapply(tempOD,summary)
                                     da_matrix <- do.call(rbind,da_list)
                                     CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
                                 }
-
+                                
                                 iter <- iter+1
                             }
-
+                            
                             # Concatenating CD
                             CD <- cbind(CD, CDf)
-
+                            
                             if (pastDistrib) {
                                 CD <- cbind(CD, CDdb)
                             }
-
+                            
                             if (futureDistrib) {
                                 CD <- cbind(CD, CDda)
                             }
-
+                            
                             # Conversion of CD into a data frame
                             CD <- as.data.frame(CD)
-
+                            
                             # Eventually concatenating CD with COs (the matrix
                             # containing the covariates)
                             if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
@@ -1281,7 +1282,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # Else, in case CO is empty (i.e. we don't consider
                             # any covariate)
                             # simply continue with the current CD
-
+                            
                             # Eventually concatenating CD with COtselected (the
                             # matrix containing the current time-dependent
                             # covariates)
@@ -1290,8 +1291,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Concatenating CD and COtselected into CD
                                 CD <- cbind(CD, as.data.frame(COtselected))
                             }
-
-
+                            
+                            
                             # PAST and FUTURE
                         } else {
                             # meaning np>0 and nf>0 and that, thus,
@@ -1299,12 +1300,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # initialisation of matrices CDp and CDf
                             CDp <- matrix(NA, nrow=nr*ud, ncol=np)
                             CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
-
+                            
                             if (ncot > 0) {
                                 # initialisation of matrix COtselected
                                 COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                             }
-
+                            
                             # initialisation of matrix CDdb (for past
                             # distribution analysis) (Distribution Before)
                             if (pastDistrib) {
@@ -1315,7 +1316,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # ud matrix db on top
                                 # of each other
                             }
-
+                            
                             # initialisation of matrix CDda (for future
                             # distribution analysis) (Distribution After)
                             if (futureDistrib) {
@@ -1328,8 +1329,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # dimensions as
                                 # db
                             }
-
-
+                            
+                            
                             for (j in frameSize:nc){
                                 t1 <- (nr*(iter-1)+1)
                                 t2 <- nr*iter
@@ -1345,7 +1346,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)]
                                 # Future VIs
                                 CDf[t1:t2,] <- OD[,(j-nf+1):j]
-
+                                
                                 # Eventually considering time-dependent
                                 # covariates
                                 if (ncot > 0) {
@@ -1355,7 +1356,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     }
                                     COtselected[t1:t2,] <- COttemp
                                 }
-
+                                
                                 # Past distribution (i.e. Before)
                                 if (pastDistrib) {
                                     ODt <- t(OD)
@@ -1364,12 +1365,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # because:
                                     # j-frameSize+np+1+shift - 1 = j-frameSize
                                     # +np+shift
-
+                                    
                                     db_list <- lapply(tempOD,summary)
                                     db_matrix <- do.call(rbind,db_list)
                                     CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np+shift))
                                 }
-
+                                
                                 # Future distribution (i.e. After)
                                 if (futureDistrib) {
                                     ODt <- t(OD)
@@ -1378,29 +1379,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # because:
                                     # j-frameSize+np+1+shift + 1 = j-frameSize+
                                     # np+shift+2
-
+                                    
                                     da_list <- lapply(tempOD,summary)
                                     da_matrix <- do.call(rbind,da_list)
                                     CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+shift+2):nc)
                                 }
-
+                                
                                 iter <- iter+1
                             }
-
+                            
                             # Concatenating CD
                             CD <- cbind(CD, CDp, CDf)
-
+                            
                             if (pastDistrib) {
                                 CD <- cbind(CD, CDdb)
                             }
-
+                            
                             if (futureDistrib) {
                                 CD <- cbind(CD, CDda)
                             }
-
+                            
                             # Conversion of CD into a data frame
                             CD <- as.data.frame(CD)
-
+                            
                             # Eventually concatenating CD with COs (the matrix
                             # containing the covariates)
                             if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
@@ -1414,7 +1415,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # Else, in case CO is empty (i.e. we don't consider
                             # any covariate)
                             # simply continue with the current CD
-
+                            
                             # Eventually concatenating CD with COtselected (the
                             # matrix containing the current time-dependent
                             # covariates)
@@ -1423,53 +1424,53 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Concatenating CD and COtselected into CD
                                 CD <- cbind(CD, as.data.frame(COtselected))
                             }
-
-
+                            
+                            
                         }
-
-
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         # 3.2 Computation of the model (Dealing with the LOCATIONS of imputation) -----------------------------------------------------------------
-
-
-
-
+                        
+                        
+                        
+                        
                         #*********************************************************************************
                         # Initially "computeModel.R"
                         #*********************************************************************************
-
-
+                        
+                        
                         # ==>> Manipulation of parameters
-
+                        
                         # Conversion of CD in a data frame
                         CD <- as.data.frame(CD)
-
+                        
                         # Transformation of the names of the columns of CD
                         # (called V1, V2, ..., "VtotV")
                         colnames(CD) <- paste("V", 1:ncol(CD), sep = "")
-
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         if (regr == "mlogit") {
                             ## Case of MULTINOMIAL REGRESSION MODEL
-
+                            
                             # Linking the package mlogit
-
+                            
                             # By default, every column of CD are of class
                             # "numeric".
                             # Thus, there is no need to convert the columns
@@ -1482,23 +1483,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # (1 up to 1+np+nf) have to be of class "factor"
                             # (because they are the columns containing our
                             # categorical data coming from OD).
-
+                            
                             # Transformation of the first columns (i.e. the
                             # categorical values) of CD (column 1 up to column
                             # 1+np+nf) into factor
                             CD[,(1:(1+np+nf))] <- lapply(CD[,(1:(1+np+nf))],factor, levels=c(1:k,NA), exclude=NULL)
-
-
+                            
+                            
                             # Dataframe for mlogit
                             NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
-
-
+                            
+                            
                             # Computation of the multinomial model
                             if(totV==1){
                                 # First case is evaluated aside
                                 reglog_3 <- mlogit(V1~0, data=NCD, reflevel="1")
                             }
-
+                            
                             if(totV>1){
                                 # creation of "V2" ... "VtotV" (to use them in
                                 # the formula)
@@ -1512,30 +1513,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
                                 reglog_3 <- mlogit(fmla, data=NCD, reflevel="1")
                             }
-
-
-
-
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                         } else if (regr == "lm") {
                             ## Case of LINEAR REGRESSION MODEL
-
+                            
                             # Since we are performing a linear regression, each
                             # element of CD are numbers and have then to remain
                             # as class "numeric" (we don't have to perform some
                             # class adjustment as for the case of the creation
                             # of a multinomial model).
-
+                            
                             # Computation of the linear regression model
                             if(totV==1){
                                 reglog_3 <- lm(V1~0, data=CD)  # first case is
                                 # evaluated aside
                             }
-
+                            
                             if(totV>1){
                                 # creation of "V2" ... "VtotV" (to use them in
                                 # the formula)
@@ -1549,35 +1550,35 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                 reglog_3 <- lm(fmla, data=CD)
                             }
-
-
-
-
-
-
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                         } else { # meaning (regr == "lrm")
                             ## Case of ORDINAL REGRESSION MODEL
-
+                            
                             # Linking to the package rms to use the function
                             # "lrm"
-
+                            
                             # Since we are performing an ordinal regression,
                             # each element of CD are numbers and have then to
                             # remain as class "numeric" (we don't have to
                             # perform some class adjustment as for the case of
                             # the creation of a multinomial model).
-
+                            
                             # Computation of the ordinal model
                             if(totV==1){
                                 reglog_3 <- lrm(V1~0, data=CD) # first case is
                                 # evaluated aside
                             }
-
+                            
                             if(totV>1){
                                 # creation of "V2" ... "VtotV" (to use them in
                                 # the formula)
@@ -1591,29 +1592,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                 reglog_3 <- lrm(fmla, data=CD)
                             }
-
+                            
                         }
-
-
-
-
+                        
+                        
+                        
+                        
                         #*********************************************************************************
                         #*********************************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         # 3.3 Imputation using the just created model (Dealing with the actual VALUES to impute) --------------------------------------------------
-
+                        
                         # Structure and building of the data matrix CDi
                         # The first column of CDi is the dependent variable (VD,
                         # response variable) that we have to implement during
@@ -1643,11 +1644,11 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         #
                         # We are then going to create a specific CDi according
                         # to the value of np and nf
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
                         # Analysing the value of parameter available
                         if (available==TRUE){   # we take the previously imputed
                             # data into account
@@ -1657,10 +1658,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # data into account
                             LOOKUP <- OD
                         }
-
-
-
-
+                        
+                        
+                        
+                        
                         # Assigning the current "REFORD_order" matrix to the
                         # variable matrix REFORD
                         # (according to the current value of "order")
@@ -1670,9 +1671,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             REFORD <- t(REFORD)
                         }
                         nr_REFORD <- nrow(REFORD)
-
-
-
+                        
+                        
+                        
                         if (np>0 & nf==0) {             # only PAST VIs do exist
                             for (u in 1:nr_REFORD) {
                                 i <- REFORD[u,1]
@@ -1681,46 +1682,46 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 j <- REFORD[u,2]
                                 # taking out the second coordinate
                                 # (column number in ORDER) from REFORD
-
+                                
                                 CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                
                                 # Matrix for past values
                                 vect <- LOOKUP[i,(j-np):(j-1)]
                                 # /!\ current pointer
                                 # on olumn is thus: "j"
                                 CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                
                                 # Matrix for past distribution
                                 if (pastDistrib) {
                                     dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
                                     CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Matrix for future distribution
                                 if (futureDistrib) {
                                     dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
                                     CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Concatenating CDi
                                 CDi <- cbind(CDi, CDpi)
-
+                                
                                 if (pastDistrib) {
                                     CDi <- cbind(CDi, CDdbi)
                                 }
-
+                                
                                 if (futureDistrib) {
                                     CDi <- cbind(CDi, CDdai)
                                 }
-
+                                
                                 # Conversion of CDi into a data frame
                                 CDi <- as.data.frame(CDi)
-
+                                
                                 # Type transformation of the columns of CDi
                                 # The first values of CDi must be of type factor
                                 # (categorical values)
                                 CDi[,(1:(1+np+nf))] <- lapply(CDi[,(1:(1+np+nf))],factor, levels=c(1:k,NA), exclude=NULL)
-
+                                
                                 # The last values of CDi must be of type numeric
                                 # (distributions)
                                 if (pastDistrib | futureDistrib) {
@@ -1742,7 +1743,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Else, in case CO is empty (i.e. we don't
                                 # consider any covariate)
                                 # simply continue with the current CDi
-
+                                
                                 # Eventually concatenating CDi with
                                 # COtselected_i (the matrix containing the
                                 # current time-dependent covariates)
@@ -1760,20 +1761,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # of CDi (called V1, V2, ..., "VtotV")
                                     colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                 }
-
-
+                                
+                                
                                 # Check for missing-values among predictors
                                 if (max(is.na(CDi[1,2:totV]))==0){
-
-
+                                    
+                                    
                                     #*******************************************************************
                                     # Initially "imputeValue.R"
                                     #*******************************************************************
-
+                                    
                                     if (regr == "mlogit") {
                                         ## Case of MULTINOMIAL REGRESSION MODEL
-
-
+                                        
+                                        
                                         pred <- predict(reglog_3,newdata=CDi)
                                         # Example of value returned by pred:
                                         # (Sytematically, the upper line
@@ -1809,30 +1810,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # 1 2
                                         # 1 2
                                         #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else if (regr == "lm") {
                                         ## Case of LINEAR REGRESSION MODEL
-
+                                        
                                         # Since we are performing a linear
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi)
                                         # Introducing a variance "noise"
                                         pred <- rnorm(length(pred),pred,noise)
@@ -1845,28 +1846,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # value: k
                                         pred <- ifelse(pred>k,k,pred)
                                         sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else { # meaning (regr == "lrm")
                                         ## Case of ORDINAL REGRESSION MODEL
-
+                                        
                                         # Since we are performing an ordinal
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi, type="fitted.ind")
                                         # Testing if we are in case where k=2
                                         # (if this is the case, we need to
@@ -1896,20 +1897,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             alea <- pred[length(pred)]
                                         }
                                         sel <- which(pred>=alea)
-
-
-
+                                        
+                                        
+                                        
                                     }
-
+                                    
                                     #*******************************************************************
                                     #*******************************************************************
-
-
-
+                                    
+                                    
+                                    
                                     ODi[i,j] <- sel[1]
                                 }
                             }
-
+                            
                         } else if (np==0 & nf>0) {  # only FUTURE VIs do exist
                             for (u in 1:nr_REFORD) {
                                 i <- REFORD[u,1]
@@ -1918,39 +1919,39 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 j <- REFORD[u,2]
                                 # taking out the second coordinate
                                 # (column number in ORDER) from REFORD
-
+                                
                                 CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                
                                 # Matrix for future values
                                 vect <- LOOKUP[i,(j+1):(j+nf)]
                                 CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                
                                 # Matrix for past distribution
                                 if (pastDistrib) {
                                     dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
                                     CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Matrix for future distribution
                                 if (futureDistrib) {
                                     dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
                                     CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Concatenating CDi
                                 CDi <- cbind(CDi, CDfi)
-
+                                
                                 if (pastDistrib) {
                                     CDi <- cbind(CDi, CDdbi)
                                 }
-
+                                
                                 if (futureDistrib) {
                                     CDi <- cbind(CDi, CDdai)
                                 }
-
+                                
                                 # Conversion of CDi into a data frame
                                 CDi <- as.data.frame(CDi)
-
+                                
                                 # Type transformation of the columns of CDi
                                 # The first values of CDi must be of type factor
                                 # (categorical values)
@@ -1976,7 +1977,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Else, in case CO is empty (i.e. we don't
                                 # consider any covariate)
                                 # simply continue with the current CDi
-
+                                
                                 # Eventually concatenating CDi with
                                 # COtselected_i (the matrix containing the
                                 # current time-dependent covariates)
@@ -1994,20 +1995,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # of CDi (called V1, V2, ..., "VtotV")
                                     colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                 }
-
-
+                                
+                                
                                 # Check for missing-values among predictors
                                 if (max(is.na(CDi[1,2:totV]))==0){
-
-
+                                    
+                                    
                                     #*******************************************************************
                                     # Initially "imputeValue.R"
                                     #*******************************************************************
-
+                                    
                                     if (regr == "mlogit") {
                                         ## Case of MULTINOMIAL REGRESSION MODEL
-
-
+                                        
+                                        
                                         pred <- predict(reglog_3,newdata=CDi)
                                         # Example of value returned by pred:
                                         # (Sytematically, the upper line
@@ -2043,30 +2044,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # 1 2
                                         # 1 2
                                         #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else if (regr == "lm") {
                                         ## Case of LINEAR REGRESSION MODEL
-
+                                        
                                         # Since we are performing a linear
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi)
                                         # Introducing a variance "noise"
                                         pred <- rnorm(length(pred),pred,noise)
@@ -2079,28 +2080,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # value: k
                                         pred <- ifelse(pred>k,k,pred)
                                         sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else { # meaning (regr == "lrm")
                                         ## Case of ORDINAL REGRESSION MODEL
-
+                                        
                                         # Since we are performing an ordinal
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi, type="fitted.ind")
                                         # Testing if we are in case where k=2
                                         # (if this is the case, we need to
@@ -2130,19 +2131,19 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             alea <- pred[length(pred)]
                                         }
                                         sel <- which(pred>=alea)
-
-
-
+                                        
+                                        
+                                        
                                     }
-
+                                    
                                     #*******************************************************************
                                     #*******************************************************************
-
-
+                                    
+                                    
                                     ODi[i,j] <- sel[1]
                                 }
                             }
-
+                            
                         } else { # meaning np>0 and nf>0 and that,
                             # thus, PAST as well as FUTURE VIs
                             # do exist
@@ -2153,43 +2154,43 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 j <- REFORD[u,2]
                                 # taking out the second coordinate
                                 # (column number in ORDER) from REFORD
-
+                                
                                 CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                
                                 # Matrix for past values
                                 vect <- LOOKUP[i,(j-shift-np):(j-shift-1)]
                                 CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                
                                 # Matrix for future values
                                 vect <- LOOKUP[i,(j-shift+MaxGap-order+1):(j-shift+MaxGap-order+nf)]
                                 CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                
                                 # Matrix for past distribution
                                 if (pastDistrib) {
                                     dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
                                     CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Matrix for future distribution
                                 if (futureDistrib) {
                                     dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
                                     CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                 }
-
+                                
                                 # Concatenating CDi
                                 CDi <- cbind(CDi, CDpi, CDfi)
-
+                                
                                 if (pastDistrib) {
                                     CDi <- cbind(CDi, CDdbi)
                                 }
-
+                                
                                 if (futureDistrib) {
                                     CDi <- cbind(CDi, CDdai)
                                 }
-
+                                
                                 # Conversion of CDi into a data frame
                                 CDi <- as.data.frame(CDi)
-
+                                
                                 # Type transformation of the columns of CDi
                                 # The first values of CDi must be of type factor
                                 # (categorical values)
@@ -2215,7 +2216,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # Else, in case CO is empty (i.e. we don't
                                 # consider any covariate)
                                 # simply continue with the current CDi
-
+                                
                                 # Eventually concatenating CDi with
                                 # COtselected_i (the matrix containing the
                                 # current time-dependent covariates)
@@ -2233,8 +2234,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # of CDi (called V1, V2, ..., "VtotV")
                                     colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                 }
-
-
+                                
+                                
                                 # Check for missing-values among predictors
                                 # (i.e. we won't impute any value on the current
                                 # MD if there is any NA among the VIs)
@@ -2246,16 +2247,16 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # data will be
                                     # imputed for the
                                     # current NA)
-
-
+                                    
+                                    
                                     #*******************************************************************
                                     # Initially "imputeValue.R"
                                     #*******************************************************************
-
+                                    
                                     if (regr == "mlogit") {
                                         ## Case of MULTINOMIAL REGRESSION MODEL
-
-
+                                        
+                                        
                                         pred <- predict(reglog_3,newdata=CDi)
                                         # Example of value returned by pred:
                                         # (Sytematically, the upper line
@@ -2291,30 +2292,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # 1 2
                                         # 1 2
                                         #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else if (regr == "lm") {
                                         ## Case of LINEAR REGRESSION MODEL
-
+                                        
                                         # Since we are performing a linear
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi)
                                         # Introducing a variance "noise"
                                         pred <- rnorm(length(pred),pred,noise)
@@ -2327,28 +2328,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # value: k
                                         pred <- ifelse(pred>k,k,pred)
                                         sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
                                     } else { # meaning (regr == "lrm")
                                         ## Case of ORDINAL REGRESSION MODEL
-
+                                        
                                         # Since we are performing an ordinal
                                         # regression, each element of CDi are
                                         # numbers and have to be considered as
                                         # class "numeric"
                                         CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                        
                                         pred <- predict(reglog_3, CDi, type="fitted.ind")
                                         # Testing if we are in case where k=2
                                         # (if this is the case, we need to
@@ -2378,52 +2379,52 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             alea <- pred[length(pred)]
                                         }
                                         sel <- which(pred>=alea)
-
-
-
+                                        
+                                        
+                                        
                                     }
-
+                                    
                                     #*******************************************************************
                                     #*******************************************************************
-
-
+                                    
+                                    
                                     ODi[i,j] <- sel[1]
                                 }
                             }
                         }
-
+                        
                     }
-
-
+                    
+                    
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
-
+                
                 if ((nfi != 0) & (MaxInitGapSize != 0)) {
                     # # we only impute the initial gaps if nfi > 0
-
-
-
+                    
+                    
+                    
                     # 4.1.-2. Creation of ORDERI ------------------------------------------------------------------------------------------------------------------
-
+                    
                     # Creation of matrix ORDERI
                     ORDERI <- matrix(0,nr,nc)
                     for (i in 1:nr) {
@@ -2433,14 +2434,14 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             next
                         }
                     }
-
+                    
                     # In a similar manner to part 2.4., we go here one single
                     # time through a reduced version of ORDERI and we create
                     # MaxInitGapSize REFORDI matrices collecting the coordinates
                     # of each corresponding values in ORDERI which are greater
                     # than 0
-
-
+                    
+                    
                     # Initialization of the REFORDI matrices
                     for(order in 1:MaxInitGapSize) {
                         assign(paste("REFORDI_",order,sep=''),matrix(nrow=0,ncol=2))
@@ -2449,27 +2450,27 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     for (i in 1:nr) {
                         for (j in MaxInitGapSize:1) {
                             if (ORDERI[i,j] > 0) {
-
+                                
                                 coord <- t(matrix(c(i,j)))
-
+                                
                                 tempObject = get(paste0("REFORDI_",ORDERI[coord]))
                                 update <- rbind(tempObject,coord)
-
+                                
                                 assign( (paste("REFORDI_",ORDERI[coord],sep='')),update )
-
+                                
                             }
                         }
                     }
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
                     # 4.3. Imputation using a specific model ------------------------------------------------------------------------------------------------------
-
+                    
                     # 4.3.1 Building of the data matrix CD for the computation of the model -----------------------------------------------------------------------
-
+                    
                     # For Initial Gaps
                     # we will impute single NA after single NA going from the
                     # center of OD towards its very left border
@@ -2480,17 +2481,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     # the NAs belonging to an "initial gap"
                     frameSize <- 1+nfi
                     ud <- nc-frameSize+1
-
+                    
                     CD <- matrix(NA, nrow=nr*ud, ncol=1)
-
+                    
                     # initialisation of matrix CDf
                     CDf <- matrix(NA, nrow=nr*ud, ncol=nfi)
-
+                    
                     if (ncot > 0) {
                         # initialisation of matrix COtselected
                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                     }
-
+                    
                     # initialisation of matrix CDda (for future distribution
                     # analysis)
                     # (Distribution After)
@@ -2501,23 +2502,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # composed of ud matrix da on
                         # top of each other
                     }
-
+                    
                     iter <- 1
-
+                    
                     for (j in frameSize:nc) {
-
+                        
                         t1 <- (nr*(iter-1)+1)
                         t2 <- nr*iter
-
+                        
                         # VD
                         CD[t1:t2,1] <- OD[,j-frameSize+1]
                         # /!\ current pointer on
                         # column is thus:
                         # "j-frameSize+1"
-
+                        
                         # Future VIs
                         CDf[t1:t2,] <- OD[,(j-nfi+1):j]
-
+                        
                         # Eventually considering time-dependent covariates
                         if (ncot > 0) {
                             COttemp <- as.data.frame(matrix(nrow=nr,ncol=0))
@@ -2526,7 +2527,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             }
                             COtselected[t1:t2,] <- COttemp
                         }
-
+                        
                         # Future distribution (i.e. After)
                         if (futureDistrib) {
                             ODt <- t(OD)
@@ -2536,20 +2537,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             da_matrix <- do.call(rbind,da_list)
                             CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+2):nc)
                         }
-
+                        
                         iter <- iter+1
                     }
-
+                    
                     # Concatenating CD
                     CD <- cbind(CD, CDf)
-
+                    
                     if (futureDistrib) {
                         CD <- cbind(CD, CDda)
                     }
-
+                    
                     # Conversion of CD into a data frame
                     CD <- as.data.frame(CD)
-
+                    
                     # Eventually concatenating CD with COs (the matrix
                     # containing the covariates)
                     if (all(is.na(CO))==FALSE) {
@@ -2563,7 +2564,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     # Else, in case CO is empty (i.e. we don't consider any
                     # covariate)
                     # simply continue with the current CD
-
+                    
                     # Eventually concatenating CD with COtselected (the
                     # matrix containing the current time-dependent
                     # covariates)
@@ -2572,45 +2573,45 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # Concatenating CD and COtselected into CD
                         CD <- cbind(CD, as.data.frame(COtselected))
                     }
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
                     # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) -------------------------------------------------------------------
-
-
+                    
+                    
                     #*********************************************************************************
                     # Initially "computeModel.R"
                     #*********************************************************************************
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
                     # ==>> Manipulation of parameters
-
+                    
                     # Conversion of CD in a data frame
                     CD <- as.data.frame(CD)
-
+                    
                     # Transformation of the names of the columns of CD
                     # (called V1, V2, ..., "VtotVi")
                     colnames(CD) <- paste("V", 1:ncol(CD), sep = "")
-
-
-
-
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     if (regr == "mlogit") {
                         ## Case of MULTINOMIAL REGRESSION MODEL
-
+                        
                         # Linking the package mlogit
-
+                        
                         # By default, every column of CD are of class "numeric".
                         # Thus, there is no need to convert the columns
                         # containing the distribution data to class "numeric".
@@ -2621,23 +2622,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # 1+np+nf) have to be of class "factor" (because they
                         # are the columns containing our categorical
                         # data coming from OD).
-
+                        
                         # Transformation of the first columns
                         # (i.e. the categorical values) of CD (column 1 up to
                         # column 1+np+nf) into factor
                         CD[,(1:(1+0+nfi))] <- lapply(CD[,(1:(1+0+nfi))],factor, levels=c(1:k,NA), exclude=NULL)
-
-
+                        
+                        
                         # Dataframe for mlogit
                         NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
-
-
+                        
+                        
                         # Computation of the multinomial model
                         if(totVi==1){
                             # First case is evaluated aside
                             reglog_4 <- mlogit(V1~0, data=NCD, reflevel="1")
                         }
-
+                        
                         if(totVi>1){
                             # creation of "V2" ... "VtotVi" (to use them in the
                             # formula)
@@ -2651,30 +2652,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
                             reglog_4 <- mlogit(fmla, data=NCD, reflevel="1")
                         }
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                     } else if (regr == "lm") {
                         ## Case of LINEAR REGRESSION MODEL
-
+                        
                         # Since we are performing a linear regression, each
                         # element of CD are numbers and have then to remain as
                         # class "numeric" (we don't have to perform some class
                         # adjustment as for the case of the creation of a
                         # multinomial model).
-
+                        
                         # Computation of the linear regression model
                         if(totVi==1){
                             reglog_4 <- lm(V1~0, data=CD)
                             # first case is evaluated aside
                         }
-
+                        
                         if(totVi>1){
                             # creation of "V2" ... "VtotVi" (to use them in the
                             # formula)
@@ -2688,34 +2689,34 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                             reglog_4 <- lm(fmla, data=CD)
                         }
-
-
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                     } else { # meaning (regr == "lrm")
                         ## Case of ORDINAL REGRESSION MODEL
-
+                        
                         # Linking to the package rms to use the function "lrm"
-
+                        
                         # Since we are performing an ordinal regression, each
                         # element of CD are numbers and have then to remain as
                         # class "numeric" (we don't have to perform some
                         # class adjustment as for the case of the creation of a
                         # multinomial model).
-
+                        
                         # Computation of the ordinal model
                         if(totVi==1){
                             reglog_4 <- lrm(V1~0, data=CD)
                             # first case is evaluated aside
                         }
-
+                        
                         if(totVi>1){
                             # creation of "V2" ... "VtotVi" (to use them in the
                             # formula)
@@ -2729,27 +2730,27 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                             reglog_4 <- lrm(fmla, data=CD)
                         }
-
+                        
                     }
-
-
+                    
+                    
                     #*********************************************************************************
                     #*********************************************************************************
-
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute) ----------------------------------------------------
-
+                    
                     # Conversion of ODi from data.frame to matrix
                     ODi <- as.matrix(ODi)
-
+                    
                     # Only FUTURE VIs are useful
                     for (order in 1:MaxInitGapSize){
-
+                        
                         # Analysing the value of parameter available
                         if (available==TRUE){
                             # we take the previously imputed data
@@ -2760,8 +2761,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # the previously imputed data into account
                             LOOKUP <- OD
                         }
-
-
+                        
+                        
                         # Assigning the current "REFORDI_order" matrix to the
                         # variable matrix REFORDI
                         # (according to the current value of "order")
@@ -2771,7 +2772,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             REFORDI <- t(REFORDI)
                         }
                         nr_REFORDI <- nrow(REFORDI)
-
+                        
                         for (u in 1:nr_REFORDI) {
                             i <- REFORDI[u,1]
                             # taking out the first coordinate (row
@@ -2779,29 +2780,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             j <- REFORDI[u,2]
                             # taking out the second coordinate
                             # (column number in ORDER) from REFORDI
-
+                            
                             CDi <- matrix(NA,nrow=k,ncol=1)
-
+                            
                             # Matrix for future values
                             vect <- LOOKUP[i,(j+1):(j+nfi)]
                             CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                            
                             # Matrix for future distribution
                             if (futureDistrib) {
                                 dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
                                 CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                             }
-
+                            
                             # Concatenating CDi
                             CDi <- cbind(CDi, CDfi)
-
+                            
                             if (futureDistrib) {
                                 CDi <- cbind(CDi, CDdai)
                             }
-
+                            
                             # Conversion of CDi into a data frame
                             CDi <- as.data.frame(CDi)
-
+                            
                             # Type transformation of the columns of CDi
                             # The first values of CDi must be of type factor
                             # (categorical values)
@@ -2826,7 +2827,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # Else, in case CO is empty (i.e. we don't consider
                             # any covariate) simply continue with the current
                             # CDi
-
+                            
                             # Eventually concatenating CDi with COtselected_i
                             # (the matrix containing the current time-dependent
                             # covariates)
@@ -2843,20 +2844,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # CDi (called V1, V2, ..., "VtotV")
                                 colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                             }
-
-
+                            
+                            
                             # Check for missing-values among predictors
                             if (max(is.na(CDi[1,2:totVi]))==0){
-
-
+                                
+                                
                                 #*******************************************************************
                                 # Initially "imputeValue.R"
                                 #*******************************************************************
-
+                                
                                 if (regr == "mlogit") {
                                     ## Case of MULTINOMIAL REGRESSION MODEL
-
-
+                                    
+                                    
                                     pred <- predict(reglog_4,newdata=CDi)
                                     # Example of value returned by pred:
                                     # (Sytematically, the upper line represents
@@ -2891,30 +2892,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # 1 2
                                     # 1 2
                                     #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else if (regr == "lm") {
                                     ## Case of LINEAR REGRESSION MODEL
-
+                                    
                                     # Since we are performing a linear
                                     # regression, each element of CDi are
                                     # numbers and have to
                                     # be considered as class "numeric"
                                     CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                    
                                     pred <- predict(reglog_4, CDi)
                                     # Introducing a variance "noise"
                                     pred <- rnorm(length(pred),pred,noise)
@@ -2925,28 +2926,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # Restricting pred to its highest value: k
                                     pred <- ifelse(pred>k,k,pred)
                                     sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else { # meaning (regr == "lrm")
                                     ## Case of ORDINAL REGRESSION MODEL
-
+                                    
                                     # Since we are performing an ordinal
                                     # regression, each element of CDi are
                                     # numbers and have to
                                     # be considered as class "numeric"
                                     CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                    
                                     pred <- predict(reglog_4, CDi, type="fitted.ind")
                                     # Testing if we are in case where k=2
                                     # (if this is the case, we need to create
@@ -2976,49 +2977,49 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         alea <- pred[length(pred)]
                                     }
                                     sel <- which(pred>=alea)
-
-
-
+                                    
+                                    
+                                    
                                 }
-
+                                
                                 #*******************************************************************
                                 #*******************************************************************
-
-
+                                
+                                
                                 ODi[i,j] <- sel[1]
                             }
                         }
                     }
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
-
+                
                 if ((npt != 0) & (MaxTermGapSize != 0)) {
                     # we only impute the terminal
                     # gaps if npt > 0
-
-
-
+                    
+                    
+                    
                     # 5.1.-2. Creation of ORDERT ------------------------------------------------------------------------------------------------------------------
-
+                    
                     # Creation of matrix ORDERT
                     ORDERT <- matrix(0,nr,nc)
                     for (i in 1:nr) {
@@ -3028,14 +3029,14 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             next
                         }
                     }
-
+                    
                     # In a similar manner to part 2.4., we go here one single
                     # time through a reduced version of ORDERT and we create
                     # MaxTermGapSize REFORDT matrices collecting the coordinates
                     # of each corresponding values in ORDERT which are greater
                     # than 0
-
-
+                    
+                    
                     # Initialization of the REFORDT matrices
                     for(order in 1:MaxTermGapSize) {
                         assign(paste("REFORDT_",order,sep=''),matrix(nrow=0,ncol=2))
@@ -3044,27 +3045,27 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     for (i in 1:nr) {
                         for (j in (nc-MaxTermGapSize+1):nc) {
                             if (ORDERT[i,j] > 0) {
-
+                                
                                 coord <- t(matrix(c(i,j)))
-
+                                
                                 tempObject = get(paste0("REFORDT_",ORDERT[coord]))
                                 update <- rbind(tempObject,coord)
-
+                                
                                 assign( (paste("REFORDT_",ORDERT[coord],sep='')),update )
-
+                                
                             }
                         }
                     }
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
                     # 5.3. Imputation using a specific model ------------------------------------------------------------------------------------------------------
-
+                    
                     # 5.3.1 Building of the data matrix CD for the computation of the model -----------------------------------------------------------------------
-
+                    
                     # For Terminal Gaps
                     # we will impute single NA after single NA going from the
                     # center of OD towards its very right border
@@ -3075,17 +3076,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     # a "terminal gap"
                     frameSize <- npt+1
                     ud <- nc-frameSize+1
-
+                    
                     CD <- matrix(NA, nrow=nr*ud, ncol=1)
-
+                    
                     # initialisation of matrix CDp
                     CDp <- matrix(NA, nrow=nr*ud, ncol=npt)
-
+                    
                     if (ncot > 0) {
                         # initialisation of matrix COtselected
                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                     }
-
+                    
                     # initialisation of matrix CDdb
                     # (for past distribution analysis)
                     # (Distribution Before)
@@ -3096,21 +3097,21 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # composed of ud matrix db on
                         # top of each other
                     }
-
+                    
                     iter <- 1
-
+                    
                     for (j in frameSize:nc) {
-
+                        
                         t1 <- (nr*(iter-1)+1)
                         t2 <- nr*iter
-
+                        
                         # VD
                         CD[t1:t2,1] <- OD[,j]
                         # /!\ current pointer on column is thus: "j"
-
+                        
                         # Past VIs
                         CDp[t1:t2,] <- OD[,(j-npt):(j-1)]
-
+                        
                         # Eventually considering time-dependent covariates
                         if (ncot > 0) {
                             COttemp <- as.data.frame(matrix(nrow=nr,ncol=0))
@@ -3119,7 +3120,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             }
                             COtselected[t1:t2,] <- COttemp
                         }
-
+                        
                         # Past distribution (i.e. Before)
                         if (pastDistrib) {
                             ODt <- t(OD)
@@ -3129,20 +3130,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             db_matrix <- do.call(rbind,db_list)
                             CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
                         }
-
+                        
                         iter <- iter+1
                     }
-
+                    
                     # Concatening CD
                     CD <- cbind(CD, CDp)
-
+                    
                     if (pastDistrib) {
                         CD <- cbind(CD, CDdb)
                     }
-
+                    
                     # Conversion of CD into a data frame
                     CD <- as.data.frame(CD)
-
+                    
                     # Eventually concatenating CD with COs
                     # (the matrix containing the covariates)
                     if (all(is.na(CO))==FALSE) {
@@ -3154,7 +3155,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                     }
                     # Else, in case CO is empty (i.e. we don't consider any
                     # covariate) simply continue with the current CD
-
+                    
                     # Eventually concatenating CD with COtselected (the
                     # matrix containing the current time-dependent
                     # covariates)
@@ -3163,46 +3164,46 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # Concatenating CD and COtselected into CD
                         CD <- cbind(CD, as.data.frame(COtselected))
                     }
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
                     # 5.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) -------------------------------------------------------------------
-
-
-
+                    
+                    
+                    
                     #*********************************************************************************
                     # Initially "computeModel.R"
                     #*********************************************************************************
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
                     # ==>> Manipulation of parameters
-
+                    
                     # Conversion of CD in a data frame
                     CD <- as.data.frame(CD)
-
+                    
                     # Transformation of the names of the columns of CD
                     # (called V1, V2, ..., "VtotVt")
                     colnames(CD) <- paste("V", 1:ncol(CD), sep = "")
-
-
-
-
-
-
-
-
-
-
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     if (regr == "mlogit") {
                         ## Case of MULTINOMIAL REGRESSION MODEL
-
+                        
                         # Linking the package mlogit
-
+                        
                         # By default, every column of CD are of class "numeric".
                         # Thus, there is no need to convert the columns
                         # containing the distribution data to class "numeric".
@@ -3213,23 +3214,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                         # (1 up to 1+np+nf) have to be of class "factor"
                         # (because they are the columns containing our
                         # categorical data coming from OD).
-
+                        
                         # Transformation of the first columns (i.e. the
                         # categorical values) of CD (column 1 up to column
                         # 1+np+nf) into factor
                         CD[,(1:(1+npt+0))] <- lapply(CD[,(1:(1+npt+0))],factor, levels=c(1:k,NA), exclude=NULL)
-
-
+                        
+                        
                         # Dataframe for mlogit
                         NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
-
-
+                        
+                        
                         # Computation of the multinomial model
                         if(totVt==1){
                             # First case is evaluated aside
                             reglog_5 <- mlogit(V1~0, data=NCD, reflevel="1")
                         }
-
+                        
                         if(totVt>1){
                             # creation of "V2" ... "VtotVt" (to use them in the
                             # formula)
@@ -3243,30 +3244,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
                             reglog_5 <- mlogit(fmla, data=NCD, reflevel="1")
                         }
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                     } else if (regr == "lm") {
                         ## Case of LINEAR REGRESSION MODEL
-
+                        
                         # Since we are performing a linear regression, each
                         # element of CD are numbers and have then to remain as
                         # class "numeric" (we don't have to perform some class
                         # adjustment as for the case of the creation of a
                         # multinomial model).
-
+                        
                         # Computation of the linear regression model
                         if(totVt==1){
                             reglog_5 <- lm(V1~0, data=CD)
                             # first case is evaluated aside
                         }
-
+                        
                         if(totVt>1){
                             # creation of "V2" ... "VtotVt" (to use them in the
                             # formula)
@@ -3280,34 +3281,34 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                             reglog_5 <- lm(fmla, data=CD)
                         }
-
-
-
-
-
-
-
-
-
-
-
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                     } else { # meaning (regr == "lrm")
                         ## Case of ORDINAL REGRESSION MODEL
-
+                        
                         # Linking to the package rms to use the function "lrm"
-
+                        
                         # Since we are performing an ordinal regression, each
                         # element of CD are numbers and have then to remain as
                         # class "numeric" (we don't have to perform some class
                         # adjustment as for the case of the creation of a
                         # multinomial model).
-
+                        
                         # Computation of the ordinal model
                         if(totVt==1){
                             reglog_5 <- lrm(V1~0, data=CD)
                             # first case is evaluated aside
                         }
-
+                        
                         if(totVt>1){
                             # creation of "V2" ... "VtotVt" (to use them in the
                             # formula)
@@ -3321,23 +3322,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                             reglog_5 <- lrm(fmla, data=CD)
                         }
-
+                        
                     }
-
-
+                    
+                    
                     #*********************************************************************************
                     #*********************************************************************************
-
-
-
+                    
+                    
+                    
                     # 5.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute) ----------------------------------------------------
-
+                    
                     # Conversion of ODi from data.frame to matrix
                     ODi <- as.matrix(ODi)
-
+                    
                     # Only PAST VIs are useful
                     for (order in 1:MaxTermGapSize){
-
+                        
                         # Analysing the value of parameter available
                         if (available==TRUE){
                             # we take the previously
@@ -3348,8 +3349,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # data into account
                             LOOKUP <- OD
                         }
-
-
+                        
+                        
                         # Assigning the current "REFORDT_order" matrix to the
                         # variable matrix REFORDT
                         # (according to the current value of "order")
@@ -3359,35 +3360,35 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             REFORDT <- t(REFORDT)
                         }
                         nr_REFORDT <- nrow(REFORDT)
-
+                        
                         for (u in 1:nr_REFORDT) {
                             i <- REFORDT[u,1] # taking out the first coordinate
                             # (row number in ORDER) from REFORDT
                             j <- REFORDT[u,2] # taking out the second coordinate
                             # (column number in ORDER) from REFORDT
-
+                            
                             CDi <- matrix(NA,nrow=k,ncol=1)
-
+                            
                             # Matrix for past values
                             vect <- LOOKUP[i,(j-npt):(j-1)]
                             CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                            
                             # Matrix for past distribution
                             if (pastDistrib) {
                                 dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
                                 CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                             }
-
+                            
                             # Concatenating CDi
                             CDi <- cbind(CDi, CDpi)
-
+                            
                             if (pastDistrib) {
                                 CDi <- cbind(CDi, CDdbi)
                             }
-
+                            
                             # Conversion of CDi into a data frame
                             CDi <- as.data.frame(CDi)
-
+                            
                             # Type transformation of the columns of CDi
                             # The first values of CDi must be of type factor
                             # (categorical values)
@@ -3412,7 +3413,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # Else, in case CO is empty (i.e. we don't consider
                             # any covariate)
                             # simply continue with the current CDi
-
+                            
                             # Eventually concatenating CDi with COtselected_i
                             # (the matrix containing the current time-dependent
                             # covariates)
@@ -3429,20 +3430,20 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # CDi (called V1, V2, ..., "VtotV")
                                 colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                             }
-
-
+                            
+                            
                             # Check for missing-values among predictors
                             if (max(is.na(CDi[1,2:totVt]))==0){
-
-
+                                
+                                
                                 #*******************************************************************
                                 # Initially "imputeValue.R"
                                 #*******************************************************************
-
+                                
                                 if (regr == "mlogit") {
                                     ## Case of MULTINOMIAL REGRESSION MODEL
-
-
+                                    
+                                    
                                     pred <- predict(reglog_5,newdata=CDi)
                                     # Example of value returned by pred:
                                     # (Sytematically, the upper line represents
@@ -3477,30 +3478,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # 1 2
                                     # 1 2
                                     #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else if (regr == "lm") {
                                     ## Case of LINEAR REGRESSION MODEL
-
+                                    
                                     # Since we are performing a linear
                                     # regression, each element of CDi are
                                     # numbers and have to be considered as class
                                     # "numeric"
                                     CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                    
                                     pred <- predict(reglog_5, CDi)
                                     # Introducing a variance "noise"
                                     pred <- rnorm(length(pred),pred,noise)
@@ -3511,28 +3512,28 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # Restricting pred to its highest value: k
                                     pred <- ifelse(pred>k,k,pred)
                                     sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else { # meaning (regr == "lrm")
                                     ## Case of ORDINAL REGRESSION MODEL
-
+                                    
                                     # Since we are performing an ordinal
                                     # regression, each element of CDi are
                                     # numbers and have to
                                     # be considered as class "numeric"
                                     CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                    
                                     pred <- predict(reglog_5, CDi, type="fitted.ind")
                                     # Testing if we are in case where k=2 (if
                                     # this is the case, we need to create
@@ -3562,54 +3563,54 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         alea <- pred[length(pred)]
                                     }
                                     sel <- which(pred>=alea)
-
-
-
+                                    
+                                    
+                                    
                                 }
-
+                                
                                 #*******************************************************************
                                 #*******************************************************************
-
-
+                                
+                                
                                 ODi[i,j] <- sel[1]
                             }
                         }
                     }
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
-
+                
                 if (max(ORDERSLGLeft)!=0) {     # Checking if we have to impute
                     # left-hand side SLG
-
+                    
                     warning("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
-
+                    
                     # 6.2.LEFT Computation of the order of imputation of each MD ----------------------------------------------------------------------------------
-
+                    
                     # Creation of the temporary SLG matrices for the left-hand
                     # side of OD
                     for (h in 2:np) {
@@ -3621,18 +3622,18 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # the entire following procedure
                             # and we simply can go
                             # to the next column of ORDERSLGLeft
-
+                            
                             # initialization of a new temporary
                             # ORDERSLGLeft_temp matrix
                             ORDERSLGLeft_temp <- matrix(0,nrow=nr,ncol=nc)
-
+                            
                             for (i in 1:nr) { # going from top to bottom
                                 j <- h        # storing the current column
                                 # we are checking (and
                                 # reinitializing j)
-
+                                
                                 if (ORDERSLGLeft[i,j]>0 & ORDERSLGLeft[i,j-1]==0) {
-
+                                    
                                     while (ORDERSLGLeft[i,j]>0) {
                                         # going from left to right
                                         ORDERSLGLeft_temp[i,j] <- ORDERSLGLeft[i,j]
@@ -3640,12 +3641,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     }
                                 }
                             }
-
+                            
                             if (max(ORDERSLGLeft_temp)==0) {
                                 next
                             }
-
-
+                            
+                            
                             # Update of np and totV
                             np_temp <- h-1
                             totV_temp <- 1+np_temp+nf+nco+(ncot/nc)
@@ -3655,18 +3656,18 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             if (futureDistrib) {
                                 totV_temp <- totV_temp + k
                             }
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
                             # (i.e. updating matrix ORDERSLGLeft_temp with
                             # coherent value of "order"
                             # (going from 1 to MaxGapSLGLeft))
-
+                            
                             # Adjusting the matrix ORDERSLGLeft_temp and
                             # storing the coordinates of the NA to impute
-
+                            
                             # In a similar manner to part 2.4., we go here one
                             # single time through the reduced version
                             # ORDERSLGLeft_temp of ORDERSLG and we create
@@ -3674,62 +3675,62 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # collecting the coordinates of each corresponding
                             # values in ORDERSLGLeft_temp which are greater
                             # than 0
-
-
+                            
+                            
                             # REFORDSLGLeft matrices
                             # Initialization of the REFORDSLGLeft matrices
                             MaxGapSLGLeft <- max(ORDERSLGLeft_temp[ORDERSLGLeft_temp!=0])-(min(ORDERSLGLeft_temp[ORDERSLGLeft_temp!=0]) - 1)
-
+                            
                             for(order in 1:MaxGapSLGLeft) {
                                 assign(paste("REFORDSLGLeft_",order,sep=''),matrix(nrow=0,ncol=2))
                             }
-
+                            
                             ORDERSLGLeft_temp_init <- ORDERSLGLeft_temp
-
+                            
                             for (i in 1:nr) {
                                 for (j in 1:nc) {
                                     if (ORDERSLGLeft_temp[i,j] > 0) {
-
+                                        
                                         # Updating ORDERSLGLeft_temp so that it
                                         # becomes a matrix with positive values
                                         # going from 1 to MaxGapSLGLeft
                                         ORDERSLGLeft_temp[i,j] <- ORDERSLGLeft_temp[i,j] - (min(ORDERSLGLeft_temp_init[ORDERSLGLeft_temp_init!=0]) - 1)
-
+                                        
                                         # Collecting the coordinates for each
                                         # value of "order"
                                         coord <- t(matrix(c(i,j)))
-
+                                        
                                         tempObject = get(paste0("REFORDSLGLeft_",ORDERSLGLeft_temp[coord]))
                                         update <- rbind(tempObject,coord)
-
+                                        
                                         assign( (paste("REFORDSLGLeft_",ORDERSLGLeft_temp[coord],sep='')),update )
                                     }
                                 }
                             }
-
-
-
-
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                             # 6.3.LEFT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model -------------------
-
-
+                            
+                            
                             # 6.3.1.LEFT Building of the different data matrices CD -------------------------------------------------------------------------------
                             # for the computation of the model for every SLG
                             # on the left-hand side of OD
-
+                            
                             for (order in 1:MaxGapSLGLeft) { # /!\ "order"
                                 # corresponds to the values
                                 # of the components of
                                 # ORDERSLGLeft_temp
                                 # (i.e. the number of the iteration, the order
                                 # in which the values are going to be imputed)
-
-
+                                
+                                
                                 # Building of a data matrix for the computation
                                 # of the model
                                 ud <- nc-(MaxGapSLGLeft-order+np_temp+nf)
@@ -3760,14 +3761,14 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 #
                                 # We are then going to create a specific CD
                                 # according to the value of np_temp and nf
-
+                                
                                 # initialization of the current very left part
                                 # of the predictive model matrix ("matrice de
                                 # modele de prediction") with NA everywhere
                                 # (/!\ for each "order", we are going to build
                                 # such a CD)
                                 CD <- matrix(NA,nrow=nr*ud,ncol=1)
-
+                                
                                 # Dealing with the change of shape of the
                                 # prediction frame (according to whether the
                                 # imputed data is located at the beginning
@@ -3784,30 +3785,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # is needed for the case of model 2
                                     # (only past) and model 3 (only future))
                                 }
-
+                                
                                 iter <- 1
                                 # initialisation of the number of
                                 # iterations of the following for loops
-
-
+                                
+                                
                                 # For left SLG, naturally only the cases "only
                                 # PAST" and "PAST and FUTURE" are possible to
                                 # meet (because np_temp has to be greater than
                                 # 0, otherwise, it would mean that we are not
                                 # in the case of a SLG and that we
                                 # can impute it as a usual internal gap)
-
+                                
                                 # Only PAST
                                 if (np_temp>0 & nf==0) {
                                     # only PAST VIs do exist
                                     # initialisation of matrix CDp
                                     CDp <- matrix(NA, nrow=nr*ud, ncol=np_temp)
-
+                                    
                                     if (ncot > 0) {
                                         # initialisation of matrix COtselected
                                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                                     }
-
+                                    
                                     # initialisation of matrix CDdb (for past
                                     # distribution analysis)
                                     # (Distribution Before)
@@ -3817,7 +3818,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # of ud matrix db on top of each other
                                         db <- matrix(NA, nrow=nr, ncol=k)
                                     }
-
+                                    
                                     # initialisation of matrix CDda (for future
                                     # distribution analysis)
                                     # (Distribution After)
@@ -3827,7 +3828,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # da has same dimensions as db
                                         da <- matrix(NA, nrow=nr, ncol=k)
                                     }
-
+                                    
                                     for (j in frameSize:nc){
                                         # /!\ j is initialised at
                                         # the very end (utmost
@@ -3841,10 +3842,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         CD[t1:t2,1] <- OD[,j-frameSize+np_temp+1]
                                         # /!\ current pointer on column is thus:
                                         # "j-frameSize+np_temp+1"
-
+                                        
                                         # Past VIs
                                         CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np_temp)]
-
+                                        
                                         # Eventually considering time-dependent
                                         # covariates
                                         if (ncot > 0) {
@@ -3854,7 +3855,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             }
                                             COtselected[t1:t2,] <- COttemp
                                         }
-
+                                        
                                         # Past distribution (i.e. Before)
                                         if (pastDistrib) {
                                             ODt <- t(OD)
@@ -3863,12 +3864,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # because:
                                             # j-frameSize+np_temp+1 - 1 =
                                             # j-frameSize+np_temp
-
+                                            
                                             db_list <- lapply(tempOD,summary)
                                             db_matrix <- do.call(rbind,db_list)
                                             CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np_temp))
                                         }
-
+                                        
                                         # Future distribution (i.e. After)
                                         if (futureDistrib) {
                                             if ( (j-frameSize+np_temp+2) <= nc ) {
@@ -3878,7 +3879,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # because:
                                                 # j-frameSize+np_temp+1 + 1 =
                                                 # j-frameSize+np_temp+2
-
+                                                
                                                 da_list <- lapply(tempOD,summary)
                                                 da_matrix <- do.call(rbind,da_list)
                                                 CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np_temp+2):nc)
@@ -3891,24 +3892,24 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 CDda[t1:t2,] <- matrix(nrow=nr,ncol=k,0)
                                             }
                                         }
-
+                                        
                                         iter <- iter+1
                                     }
-
+                                    
                                     # Concatenating CD
                                     CD <- cbind(CD, CDp)
-
+                                    
                                     if (pastDistrib) {
                                         CD <- cbind(CD, CDdb)
                                     }
-
+                                    
                                     if (futureDistrib) {
                                         CD <- cbind(CD, CDda)
                                     }
-
+                                    
                                     # Conversion of CD into a data frame
                                     CD <- as.data.frame(CD)
-
+                                    
                                     # Eventually concatenating CD with COs
                                     # (the matrix containing the covariates)
                                     if (all(is.na(CO))==FALSE) {
@@ -3923,7 +3924,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # Else, in case CO is empty (i.e. we don't
                                     # consider any covariate)
                                     # simply continue with the current CD
-
+                                    
                                     # Eventually concatenating CD with
                                     # COtselected (the matrix containing the
                                     # current time-dependent covariates)
@@ -3933,8 +3934,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # CD
                                         CD <- cbind(CD, as.data.frame(COtselected))
                                     }
-
-
+                                    
+                                    
                                     # PAST and FUTURE
                                 } else {
                                     # meaning np_temp>0 and nf>0 and that,
@@ -3942,12 +3943,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # initialisation of matrices CDp and CDf
                                     CDp <- matrix(NA, nrow=nr*ud, ncol=np_temp)
                                     CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
-
+                                    
                                     if (ncot > 0) {
                                         # initialisation of matrix COtselected
                                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                                     }
-
+                                    
                                     # initialisation of matrix CDdb (for past
                                     # distribution analysis)
                                     # (Distribution Before)
@@ -3957,7 +3958,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # submatrix of CDdb: CDdb is composed
                                         # of ud matrix db on top of each other
                                     }
-
+                                    
                                     # initialisation of matrix CDda (for future
                                     # distribution analysis)
                                     # (Distribution After)
@@ -3967,8 +3968,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         da <- matrix(NA, nrow=nr, ncol=k)
                                         # da has same dimensions as db
                                     }
-
-
+                                    
+                                    
                                     for (j in frameSize:nc){
                                         t1 <- (nr*(iter-1)+1)
                                         t2 <- nr*iter
@@ -3976,12 +3977,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         CD[t1:t2,1] <- OD[,j-frameSize+np_temp+1+shift]
                                         # /!\ current pointer on column is thus:
                                         # "j-frameSize+np_temp+1+shift"
-
+                                        
                                         # Past VIs
                                         CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np_temp)]
                                         # Future VIs
                                         CDf[t1:t2,] <- OD[,(j-nf+1):j]
-
+                                        
                                         # Eventually considering time-dependent
                                         # covariates
                                         if (ncot > 0) {
@@ -3991,7 +3992,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             }
                                             COtselected[t1:t2,] <- COttemp
                                         }
-
+                                        
                                         # Past distribution (i.e. Before)
                                         if (pastDistrib) {
                                             ODt <- t(OD)
@@ -4000,12 +4001,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # because:
                                             # j-frameSize+np_temp+1+shift - 1 =
                                             # j-frameSize+np_temp+shift
-
+                                            
                                             db_list <- lapply(tempOD,summary)
                                             db_matrix <- do.call(rbind,db_list)
                                             CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np_temp+shift))
                                         }
-
+                                        
                                         # Future distribution (i.e. After)
                                         if (futureDistrib) {
                                             ODt <- t(OD)
@@ -4018,24 +4019,24 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             da_matrix <- do.call(rbind,da_list)
                                             CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np_temp+shift+2):nc)
                                         }
-
+                                        
                                         iter <- iter+1
                                     }
-
+                                    
                                     # Concatenating CD
                                     CD <- cbind(CD, CDp, CDf)
-
+                                    
                                     if (pastDistrib) {
                                         CD <- cbind(CD, CDdb)
                                     }
-
+                                    
                                     if (futureDistrib) {
                                         CD <- cbind(CD, CDda)
                                     }
-
+                                    
                                     # Conversion of CD into a data frame
                                     CD <- as.data.frame(CD)
-
+                                    
                                     # Eventually concatenating CD with COs
                                     # (the matrix containing the covariates)
                                     if (all(is.na(CO))==FALSE) {
@@ -4050,7 +4051,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # Else, in case CO is empty (i.e. we don't
                                     # consider any covariate)
                                     # simply continue with the current CD
-
+                                    
                                     # Eventually concatenating CD with
                                     # COtselected (the matrix containing the
                                     # current time-dependent covariates)
@@ -4060,50 +4061,50 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # CD
                                         CD <- cbind(CD, as.data.frame(COtselected))
                                     }
-
-
+                                    
+                                    
                                 }
-
-
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) --------------------------------------------------
-
-
-
+                                
+                                
+                                
                                 #*********************************************************************************
                                 # Initially "computeModel.R"
                                 #*********************************************************************************
-
-
-
-
+                                
+                                
+                                
+                                
                                 # ==>> Manipulation of parameters
-
+                                
                                 # Conversion of CD in a data frame
                                 CD <- as.data.frame(CD)
-
+                                
                                 # Transformation of the names of the columns
                                 # of CD (called V1, V2, ..., "VtotV_temp")
                                 colnames(CD) <- paste("V", 1:ncol(CD), sep = "")
-
-
-
-
-
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 if (regr == "mlogit") {
                                     ## Case of MULTINOMIAL REGRESSION MODEL
-
+                                    
                                     # Linking the package mlogit
-
+                                    
                                     # By default, every column of CD are of
                                     # class "numeric". Thus, there is no need to
                                     # convert the columns containing the
@@ -4117,23 +4118,23 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # class "factor" (because they are
                                     # the columns containing our categorical
                                     # data coming from OD).
-
+                                    
                                     # Transformation of the first columns (i.e.
                                     # the categorical values) of CD (column 1
                                     # up to column 1+np+nf) into factor
                                     CD[,(1:(1+np_temp+nf))] <- lapply(CD[,(1:(1+np_temp+nf))],factor, levels=c(1:k,NA), exclude=NULL)
-
-
+                                    
+                                    
                                     # Dataframe for mlogit
                                     NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
-
-
+                                    
+                                    
                                     # Computation of the multinomial model
                                     if(totV_temp==1){
                                         # First case is evaluated aside
                                         reglog_6_left <- mlogit(V1~0, data=NCD, reflevel="1")
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -4147,31 +4148,31 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
                                         reglog_6_left <- mlogit(fmla, data=NCD, reflevel="1")
                                     }
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else if (regr == "lm") {
                                     ## Case of LINEAR REGRESSION MODEL
-
+                                    
                                     # Since we are performing a linear
                                     # regression, each element of CD are numbers
                                     # and have then to remain as class
                                     # "numeric" (we don't have to perform
                                     # some class adjustment as for the case
                                     # of the creation of a multinomial model).
-
+                                    
                                     # Computation of the linear regression model
                                     if(totV_temp==1){
                                         reglog_6_left <- lm(V1~0, data=CD)
                                         # first case is evaluated aside
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -4185,36 +4186,36 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                         reglog_6_left <- lm(fmla, data=CD)
                                     }
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else { # meaning (regr == "lrm")
                                     ## Case of ORDINAL REGRESSION MODEL
-
+                                    
                                     # Linking to the package rms to use the
                                     # function "lrm"
-
+                                    
                                     # Since we are performing an ordinal
                                     # regression, each element of CD are numbers
                                     # and have then to remain as class "numeric"
                                     # (we don't have to perform some
                                     # class adjustment as for the case
                                     # of the creation of a multinomial model).
-
+                                    
                                     # Computation of the ordinal model
                                     if(totV_temp==1){
                                         reglog_6_left <- lrm(V1~0, data=CD)
                                         # first case is evaluated aside
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -4228,18 +4229,18 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                         reglog_6_left <- lrm(fmla, data=CD)
                                     }
-
+                                    
                                 }
-
-
+                                
+                                
                                 #*********************************************************************************
                                 #*********************************************************************************
-
-
-
-
+                                
+                                
+                                
+                                
                                 # 6.3.3.LEFT Imputation using the just created model (Dealing with the actual VALUES to impute) -----------------------------------
-
+                                
                                 # Structure and building of the data matrix CDi
                                 # The first column of CDi is the dependent
                                 # variable (VD, response variable) that we have
@@ -4272,11 +4273,11 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 #
                                 # We are then going to create a specific CDi
                                 # according to the value of np_temp and nf
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
                                 # Analysing the value of parameter available
                                 if (available==TRUE){
                                     # we take the previously imputed data
@@ -4288,9 +4289,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # into account
                                     LOOKUP <- OD
                                 }
-
-
-
+                                
+                                
+                                
                                 # Assigning the current "REFORDSLGLeft_order"
                                 # matrix to the variable matrix REFORDSLGLeft
                                 # (according to the current value of "order")
@@ -4300,9 +4301,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     REFORDSLGLeft <- t(REFORDSLGLeft)
                                 }
                                 nr_REFORD <- nrow(REFORDSLGLeft)
-
-
-
+                                
+                                
+                                
                                 if (np_temp>0 & nf==0){
                                     # only PAST VIs do exist
                                     for (u in 1:nr_REFORD) {
@@ -4316,42 +4317,42 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # coordinate (column
                                         # number in ORDER) from
                                         # REFORDSLGLeft
-
+                                        
                                         CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                        
                                         # Matrix for past values
                                         vect <- LOOKUP[q,(w-np_temp):(w-1)]
                                         # /!\ current pointer on column is
                                         # thus: "w"
-
+                                        
                                         CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for past distribution
                                         if (pastDistrib) {
                                             dbi <- summary(factor(LOOKUP[q,1:(w-1)], levels=c(1:k), exclude=NULL))/length(1:(w-1))
                                             CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Matrix for future distribution
                                         if (futureDistrib) {
                                             dai <- summary(factor(LOOKUP[q,(w+1):nc], levels=c(1:k), exclude=NULL))/length((w+1):nc)
                                             CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Concatenating CDi
                                         CDi <- cbind(CDi, CDpi)
-
+                                        
                                         if (pastDistrib) {
                                             CDi <- cbind(CDi, CDdbi)
                                         }
-
+                                        
                                         if (futureDistrib) {
                                             CDi <- cbind(CDi, CDdai)
                                         }
-
+                                        
                                         # Conversion of CDi into a data frame
                                         CDi <- as.data.frame(CDi)
-
+                                        
                                         # Type transformation of the columns of
                                         # CDi The first values of CDi must be
                                         # of type factor (categorical values)
@@ -4380,7 +4381,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # Else, in case CO is empty (i.e. we
                                         # don't consider any covariate)
                                         # simply continue with the current CDi
-
+                                        
                                         # Eventually concatenating CDi with
                                         # COtselected_i (the matrix containing
                                         # the current time-dependent covariates)
@@ -4400,22 +4401,22 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # (called V1, V2, ..., "VtotV")
                                             colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                         }
-
-
+                                        
+                                        
                                         # Check for missing-values among
                                         # predictors
                                         if (max(is.na(CDi[1,2:totV_temp]))==0){
-
-
+                                            
+                                            
                                             #*******************************************************************
                                             # Initially "imputeValue.R"
                                             #*******************************************************************
-
+                                            
                                             if (regr == "mlogit") {
                                                 ## Case of MULTINOMIAL
                                                 ## REGRESSION MODEL
-
-
+                                                
+                                                
                                                 pred <- predict(reglog_6_left,newdata=CDi)
                                                 # Example of value returned by
                                                 # pred:
@@ -4457,32 +4458,32 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # 1 2
                                                 # 1 2
                                                 #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else if (regr == "lm") {
                                                 ## Case of LINEAR REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing a
                                                 # linear regression, each
                                                 # element of CDi are
                                                 # numbers and have to be
                                                 # considered as class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_left, CDi)
                                                 # Introducing a variance "noise"
                                                 pred <- rnorm(length(pred),pred,noise)
@@ -4496,30 +4497,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # highest value: k
                                                 pred <- ifelse(pred>k,k,pred)
                                                 sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else { # meaning (regr == "lrm")
                                                 ## Case of ORDINAL REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing an
                                                 # ordinal regression, each
                                                 # element of CDi are numbers and
                                                 # have to be considered as
                                                 # class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_left, CDi, type="fitted.ind")
                                                 # Testing if we are in case
                                                 # where k=2 (if this is the
@@ -4554,21 +4555,21 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                     alea <- pred[length(pred)]
                                                 }
                                                 sel <- which(pred>=alea)
-
-
-
+                                                
+                                                
+                                                
                                             }
-
+                                            
                                             #*******************************************************************
                                             #*******************************************************************
-
-
+                                            
+                                            
                                             ODi[q,w] <- sel[1]
                                         }
-
+                                        
                                     }
-
-
+                                    
+                                    
                                 } else {
                                     # meaning np_temp>0 and nf>0 and that, thus,
                                     # PAST as well as FUTURE VIs do exist
@@ -4583,43 +4584,43 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # coordinate (column
                                         # number in ORDER) from
                                         # REFORDSLGLeft
-
+                                        
                                         CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                        
                                         # Matrix for past values
                                         vect <- LOOKUP[q,(w-shift-np_temp):(w-shift-1)]
                                         CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for future values
                                         vect <- LOOKUP[q,(w-shift+MaxGapSLGLeft-order+1):(w-shift+MaxGapSLGLeft-order+nf)]
                                         CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for past distribution
                                         if (pastDistrib) {
                                             dbi <- summary(factor(LOOKUP[q,1:(w-1)], levels=c(1:k), exclude=NULL))/length(1:(w-1))
                                             CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Matrix for future distribution
                                         if (futureDistrib) {
                                             dai <- summary(factor(LOOKUP[q,(w+1):nc], levels=c(1:k), exclude=NULL))/length((w+1):nc)
                                             CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Concatenating CDi
                                         CDi <- cbind(CDi, CDpi, CDfi)
-
+                                        
                                         if (pastDistrib) {
                                             CDi <- cbind(CDi, CDdbi)
                                         }
-
+                                        
                                         if (futureDistrib) {
                                             CDi <- cbind(CDi, CDdai)
                                         }
-
+                                        
                                         # Conversion of CDi into a data frame
                                         CDi <- as.data.frame(CDi)
-
+                                        
                                         # Type transformation of the columns of
                                         # CDi
                                         # The first values of CDi must be of
@@ -4649,7 +4650,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # Else, in case CO is empty (i.e. we
                                         # don't consider any covariate)
                                         # simply continue with the current CDi
-
+                                        
                                         # Eventually concatenating CDi with
                                         # COtselected_i (the matrix containing
                                         # the current time-dependent covariates)
@@ -4669,8 +4670,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # (called V1, V2, ..., "VtotV")
                                             colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                         }
-
-
+                                        
+                                        
                                         # Check for missing-values among
                                         # predictors (i.e. we won't impute any
                                         # value on the current MD if there is
@@ -4680,17 +4681,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # the current VI (otherwise no data
                                             # will be imputed for the current
                                             # NA)
-
-
+                                            
+                                            
                                             #*******************************************************************
                                             # Initially "imputeValue.R"
                                             #*******************************************************************
-
+                                            
                                             if (regr == "mlogit") {
                                                 ## Case of MULTINOMIAL
                                                 ## REGRESSION MODEL
-
-
+                                                
+                                                
                                                 pred <- predict(reglog_6_left,newdata=CDi)
                                                 # Example of value returned by
                                                 # pred:
@@ -4732,32 +4733,32 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # 1 2
                                                 # 1 2
                                                 #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else if (regr == "lm") {
                                                 ## Case of LINEAR REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing a
                                                 # linear regression, each
                                                 # element of CDi
                                                 # are numbers and have to be
                                                 # considered as class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_left, CDi)
                                                 # Introducing a variance "noise"
                                                 pred <- rnorm(length(pred),pred,noise)
@@ -4771,30 +4772,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # its highest value: k
                                                 pred <- ifelse(pred>k,k,pred)
                                                 sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else { # meaning (regr == "lrm")
                                                 ## Case of ORDINAL REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing an
                                                 # ordinal regression, each
                                                 # element of CDi
                                                 # are numbers and have to be
                                                 # considered as class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_left, CDi, type="fitted.ind")
                                                 # Testing if we are in case
                                                 # where k=2 (if this is the
@@ -4829,47 +4830,47 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                     alea <- pred[length(pred)]
                                                 }
                                                 sel <- which(pred>=alea)
-
-
-
+                                                
+                                                
+                                                
                                             }
-
+                                            
                                             #*******************************************************************
                                             #*******************************************************************
-
-
+                                            
+                                            
                                             ODi[q,w] <- sel[1]
                                         }
                                     }
-
+                                    
                                 }
-
+                                
                             }
-
+                            
                         }
-
+                        
                     }
-
+                    
                 }
-
-
-
-
-
-
-
-
-
-
-
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 if (max(ORDERSLGRight)!=0) {
                     # Checking if we have to impute right-hand
                     # side SLG
-
+                    
                     warning("/!\\ Specially Located Gaps (SLG) have been detected on the right-hand side of OD.","\n","For certain missing data groups close to the border of OD, nf may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for nf.")
-
+                    
                     # 6.2.RIGHT Computation of the order of imputation of each MD ---------------------------------------------------------------------------------
-
+                    
                     # Creation of the temporary SLG matrices for the right-hand
                     # side of OD
                     for (h in (nc-1):(nc-nf+1)) {
@@ -4880,29 +4881,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # If that is not the case, there is no need to
                             # perform the entire following procedure and we
                             # simply can go to the next column of ORDERSLGRight
-
+                            
                             # initialization of a new temporary
                             # ORDERSLGRight_temp matrix
                             ORDERSLGRight_temp <- matrix(0,nrow=nr,ncol=nc)
-
+                            
                             for (i in 1:nr) {
                                 j <- h      # storing the current column we are
                                 # checking (and reinitializing j)
-
+                                
                                 if (ORDERSLGRight[i,j]>0 & ORDERSLGRight[i,j+1]==0) {
-
+                                    
                                     while (ORDERSLGRight[i,j]>0) {
                                         ORDERSLGRight_temp[i,j] <- ORDERSLGRight[i,j]
                                         j <- j-1
                                     }
                                 }
                             }
-
+                            
                             if (max(ORDERSLGRight_temp)==0) {
                                 next
                             }
-
-
+                            
+                            
                             # Update of nf and totV
                             nf_temp <- nc-h
                             totV_temp <- 1+np+nf_temp+nco+(ncot/nc)
@@ -4912,18 +4913,18 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             if (futureDistrib) {
                                 totV_temp <- totV_temp + k
                             }
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
                             # (i.e. updating matrix ORDERSLGRight_temp with
                             # coherent value of "order" (going from 1 to
                             # MaxGapSLGRight))
-
+                            
                             # Adjusting the matrix ORDERSLGRight_temp and
                             # storing the coordinates of the NA to impute
-
+                            
                             # In a similar manner to part 2.4., we go here one
                             # single time through the reduced version
                             # ORDERSLGRight_temp of ORDERSLG and we create
@@ -4932,53 +4933,53 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             # each corresponding values in
                             # ORDERSLGRight_temp which are
                             # greater than 0
-
-
+                            
+                            
                             # REFORDSLGRight matrices
                             # Initialization of the REFORDSLGRight matrices
                             MaxGapSLGRight <- max(ORDERSLGRight_temp[ORDERSLGRight_temp!=0])-(min(ORDERSLGRight_temp[ORDERSLGRight_temp!=0]) - 1)
-
+                            
                             for(order in 1:MaxGapSLGRight) {
                                 assign(paste("REFORDSLGRight_",order,sep=''),matrix(nrow=0,ncol=2))
                             }
-
+                            
                             ORDERSLGRight_temp_init <- ORDERSLGRight_temp
-
+                            
                             for (i in 1:nr) {
                                 for (j in 1:nc) {
                                     if (ORDERSLGRight_temp[i,j] > 0) {
-
+                                        
                                         # Updating ORDERSLGRight_temp so that it
                                         # becomes a matrix with positive values
                                         # going from 1 to MaxGapSLGRight
                                         ORDERSLGRight_temp[i,j] <- ORDERSLGRight_temp[i,j] - (min(ORDERSLGRight_temp_init[ORDERSLGRight_temp_init!=0]) - 1)
-
+                                        
                                         # Collecting the coordinates for each
                                         # value of "order"
                                         coord <- t(matrix(c(i,j)))
-
+                                        
                                         tempObject = get(paste0("REFORDSLGRight_",ORDERSLGRight_temp[coord]))
                                         update <- rbind(tempObject,coord)
-
+                                        
                                         assign( (paste("REFORDSLGRight_",ORDERSLGRight_temp[coord],sep='')),update )
                                     }
                                 }
                             }
-
-
-
-
-
-
-
-
-
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                             # 6.3.RIGHT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model ------------------
-
+                            
                             # 6.3.1.RIGHT Building of the different data matrices CD ------------------------------------------------------------------------------
                             # for the computation of the model for every SLG
                             # on the right-hand side of OD
-
+                            
                             for (order in 1:MaxGapSLGRight) {
                                 # /!\ "order" corresponds
                                 # to the values of the
@@ -4987,19 +4988,19 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # (i.e. the number of the iteration,
                                 # the order in which
                                 # the values are going to be imputed)
-
-
+                                
+                                
                                 # Building of a data matrix for the computation
                                 # of the model
-
+                                
                                 # number of usable data for each row of OD
                                 ud <- nc-(MaxGapSLGRight-order+np+nf_temp)
-
+                                
                                 # size of the current mobile caracteristic frame
                                 # (that changes according to "order") which is
                                 # equal to nc-ud+1
                                 frameSize <- MaxGapSLGRight-order+np+nf_temp+1
-
+                                
                                 # Structure and building of the data matrix CD
                                 # The first column of CD is the dependent
                                 # variable (VD, response variable)
@@ -5022,14 +5023,14 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 #
                                 # We are then going to create a specific CD
                                 # according to the value of np and nf_temp
-
+                                
                                 # initialization of the current very left part
                                 # of the predictive model matrix ("matrice de
                                 # modele de prediction") with NA everywhere
                                 # (/!\ for each "order", we are going to build
                                 # such a CD)
                                 CD <- matrix(NA,nrow=nr*ud,ncol=1)
-
+                                
                                 # Dealing with the change of shape of the
                                 # prediction frame (according to whether the
                                 # imputed data is located at the beginning
@@ -5047,29 +5048,29 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # is needed for the case of model 2 (only
                                     # past) and model 3 (only future))
                                 }
-
+                                
                                 iter <- 1      # initialisation of the number of
                                 # iterations of the following for loops
-
-
+                                
+                                
                                 # For right SLG, naturally only the cases
                                 # "only FUTURE" and "PAST and FUTURE" are
                                 # possible to meet (because nf_temp has to be
                                 # greater than 0, otherwise, it would mean that
                                 # we are not in the case of a SLG and that we
                                 # can impute it as a usual internal gap)
-
+                                
                                 # Only FUTURE
                                 if (np==0 & nf_temp>0) {
                                     # only FUTURE VIs do exist
                                     # initialisation of matrix CDf
                                     CDf <- matrix(NA, nrow=nr*ud, ncol=nf_temp)
-
+                                    
                                     if (ncot > 0) {
                                         # initialisation of matrix COtselected
                                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                                     }
-
+                                    
                                     # initialisation of matrix CDdb (for past
                                     # distribution analysis)
                                     # (Distribution Before)
@@ -5079,19 +5080,19 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # submatrix of CDdb: CDdb is composed
                                         # of ud matrix db on top of each other
                                     }
-
+                                    
                                     # initialisation of matrix CDda (for future
                                     # distribution analysis)
                                     # (Distribution After)
                                     if (futureDistrib) {
                                         # CDda has same dimensions as CDdb
                                         CDda <- matrix(NA, nrow=nr*ud, ncol=k)
-
+                                        
                                         # da has same dimensions as db
                                         da <- matrix(NA, nrow=nr, ncol=k)
                                     }
-
-
+                                    
+                                    
                                     for (j in frameSize:nc){
                                         t1 <- (nr*(iter-1)+1)
                                         t2 <- nr*iter
@@ -5099,10 +5100,10 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         CD[t1:t2,1] <- OD[,j-frameSize+np+1]
                                         # /!\ current pointer on column is thus:
                                         # "j-frameSize+np+1"
-
+                                        
                                         # Future VIs
                                         CDf[t1:t2,] <- OD[,(j-nf_temp+1):j]
-
+                                        
                                         # Eventually considering time-dependent
                                         # covariates
                                         if (ncot > 0) {
@@ -5112,7 +5113,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             }
                                             COtselected[t1:t2,] <- COttemp
                                         }
-
+                                        
                                         # Past distribution (i.e. Before)
                                         if (pastDistrib) {
                                             ODt <- t(OD)
@@ -5124,7 +5125,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             db_matrix <- do.call(rbind,db_list)
                                             CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
                                         }
-
+                                        
                                         # Future distribution (i.e. After)
                                         if (futureDistrib) {
                                             ODt <- t(OD)
@@ -5136,24 +5137,24 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             da_matrix <- do.call(rbind,da_list)
                                             CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
                                         }
-
+                                        
                                         iter <- iter+1
                                     }
-
+                                    
                                     # Concatenating CD
                                     CD <- cbind(CD, CDf)
-
+                                    
                                     if (pastDistrib) {
                                         CD <- cbind(CD, CDdb)
                                     }
-
+                                    
                                     if (futureDistrib) {
                                         CD <- cbind(CD, CDda)
                                     }
-
+                                    
                                     # Conversion of CD into a data frame
                                     CD <- as.data.frame(CD)
-
+                                    
                                     # Eventually concatenating CD with COs
                                     # (the matrix containing the covariates)
                                     if (all(is.na(CO))==FALSE) {
@@ -5169,7 +5170,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # (i.e. we don't consider
                                     # any covariate)
                                     # simply continue with the current CD
-
+                                    
                                     # Eventually concatenating CD with
                                     # COtselected (the matrix containing the
                                     # current time-dependent covariates)
@@ -5179,8 +5180,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # CD
                                         CD <- cbind(CD, as.data.frame(COtselected))
                                     }
-
-
+                                    
+                                    
                                     # PAST and FUTURE
                                 } else {
                                     # meaning np>0 and nf_temp>0 and that, thus,
@@ -5188,12 +5189,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # initialisation of matrices CDp and CDf
                                     CDp <- matrix(NA, nrow=nr*ud, ncol=np)
                                     CDf <- matrix(NA, nrow=nr*ud, ncol=nf_temp)
-
+                                    
                                     if (ncot > 0) {
                                         # initialisation of matrix COtselected
                                         COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
                                     }
-
+                                    
                                     # initialisation of matrix CDdb (for past
                                     # distribution analysis)
                                     # (Distribution Before)
@@ -5203,19 +5204,19 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # submatrix of CDdb: CDdb is composed
                                         # of ud matrix db on top of each other
                                     }
-
+                                    
                                     # initialisation of matrix CDda (for future
                                     # distribution analysis)
                                     # (Distribution After)
                                     if (futureDistrib) {
                                         # CDda has same dimensions as CDdb
                                         CDda <- matrix(NA, nrow=nr*ud, ncol=k)
-
+                                        
                                         # da has same dimensions as db
                                         da <- matrix(NA, nrow=nr, ncol=k)
                                     }
-
-
+                                    
+                                    
                                     for (j in frameSize:nc){
                                         t1 <- (nr*(iter-1)+1)
                                         t2 <- nr*iter
@@ -5223,12 +5224,12 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         CD[t1:t2,1] <- OD[,j-frameSize+np+1+shift]
                                         # /!\ current pointer on column is thus:
                                         # "j-frameSize+np+1+shift"
-
+                                        
                                         # Past VIs
                                         CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)]
                                         # Future VIs
                                         CDf[t1:t2,] <- OD[,(j-nf_temp+1):j]
-
+                                        
                                         # Eventually considering time-dependent
                                         # covariates
                                         if (ncot > 0) {
@@ -5238,7 +5239,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             }
                                             COtselected[t1:t2,] <- COttemp
                                         }
-
+                                        
                                         # Past distribution (i.e. Before)
                                         if (pastDistrib) {
                                             ODt <- t(OD)
@@ -5251,7 +5252,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             db_matrix <- do.call(rbind,db_list)
                                             CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np+shift))
                                         }
-
+                                        
                                         # Future distribution (i.e. After)
                                         if (futureDistrib) {
                                             ODt <- t(OD)
@@ -5264,25 +5265,25 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             da_matrix <- do.call(rbind,da_list)
                                             CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+shift+2):nc)
                                         }
-
+                                        
                                         iter <- iter+1
                                     }
-
-
+                                    
+                                    
                                     # Concatenating CD
                                     CD <- cbind(CD, CDp, CDf)
-
+                                    
                                     if (pastDistrib) {
                                         CD <- cbind(CD, CDdb)
                                     }
-
+                                    
                                     if (futureDistrib) {
                                         CD <- cbind(CD, CDda)
                                     }
-
+                                    
                                     # Conversion of CD into a data frame
                                     CD <- as.data.frame(CD)
-
+                                    
                                     # Eventually concatenating CD with
                                     # COs (the matrix containing the covariates)
                                     if (all(is.na(CO))==FALSE) {
@@ -5298,7 +5299,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # (i.e. we don't consider
                                     # any covariate)
                                     # simply continue with the current CD
-
+                                    
                                     # Eventually concatenating CD with
                                     # COtselected (the matrix containing the
                                     # current time-dependent covariates)
@@ -5308,49 +5309,49 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # CD
                                         CD <- cbind(CD, as.data.frame(COtselected))
                                     }
-
-
+                                    
+                                    
                                 }
-
-
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 # 6.3.2.RIGHT Computation of the model (Dealing with the LOCATIONS of imputation) -------------------------------------------------
-
-
+                                
+                                
                                 #*********************************************************************************
                                 # Initially "computeModel.R"
                                 #*********************************************************************************
-
-
-
-
+                                
+                                
+                                
+                                
                                 # ==>> Manipulation of parameters
-
+                                
                                 # Conversion of CD in a data frame
                                 CD <- as.data.frame(CD)
-
+                                
                                 # Transformation of the names of the columns
                                 # of CD (called V1, V2, ..., "VtotV_temp")
                                 colnames(CD) <- paste("V", 1:ncol(CD), sep = "")
-
-
-
-
-
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 if (regr == "mlogit") {
                                     ## Case of MULTINOMIAL REGRESSION MODEL
-
+                                    
                                     # Linking the package mlogit
-
+                                    
                                     # By default, every column of CD are of
                                     # class "numeric".
                                     # Thus, there is no need to convert the
@@ -5365,24 +5366,24 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # class "factor" (because they are the
                                     # columns containing our categorical
                                     # data coming from OD).
-
+                                    
                                     # Transformation of the first columns
                                     # (i.e. the categorical values) of CD
                                     # (column 1 up to column 1+np+nf) into
                                     # factor
                                     CD[,(1:(1+np+nf_temp))] <- lapply(CD[,(1:(1+np+nf_temp))],factor, levels=c(1:k,NA), exclude=NULL)
-
-
+                                    
+                                    
                                     # Dataframe for mlogit
                                     NCD <- dfidx(CD, varying=NULL, choice="V1", shape="wide")
-
-
+                                    
+                                    
                                     # Computation of the multinomial model
                                     if(totV_temp==1){
                                         # First case is evaluated aside
                                         reglog_6_right <- mlogit(V1~0, data=NCD, reflevel="1")
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -5396,31 +5397,31 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
                                         reglog_6_right <- mlogit(fmla, data=NCD, reflevel="1")
                                     }
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else if (regr == "lm") {
                                     ## Case of LINEAR REGRESSION MODEL
-
+                                    
                                     # Since we are performing a linear
                                     # regression, each element of CD are numbers
                                     # and have then to remain as class
                                     # "numeric" (we don't have to perform some
                                     # class adjustment as for the case
                                     # of the creation of a multinomial model).
-
+                                    
                                     # Computation of the linear regression model
                                     if(totV_temp==1){
                                         reglog_6_right <- lm(V1~0, data=CD)
                                         # first case is evaluated aside
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -5434,36 +5435,36 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                         reglog_6_right <- lm(fmla, data=CD)
                                     }
-
-
-
-
-
-
-
-
-
-
-
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                 } else { # meaning (regr == "lrm")
                                     ## Case of ORDINAL REGRESSION MODEL
-
+                                    
                                     # Linking to the package rms to use the
                                     # function "lrm"
-
+                                    
                                     # Since we are performing an ordinal
                                     # regression, each element of CD are numbers
                                     # and have then to remain as class "numeric"
                                     # (we don't have to perform some
                                     # class adjustment as for the case of the
                                     # creation of a multinomial model).
-
+                                    
                                     # Computation of the ordinal model
                                     if(totV_temp==1){
                                         reglog_6_right <- lrm(V1~0, data=CD)
                                         # first case is evaluated aside
                                     }
-
+                                    
                                     if(totV_temp>1){
                                         # creation of "V2" ... "VtotV_temp"
                                         # (to use them in the formula)
@@ -5477,17 +5478,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         fmla <- as.formula(paste("V1~0+", paste(factors, collapse="+")))
                                         reglog_6_right <- lrm(fmla, data=CD)
                                     }
-
+                                    
                                 }
-
-
+                                
+                                
                                 #*********************************************************************************
                                 #*********************************************************************************
-
-
-
+                                
+                                
+                                
                                 # 6.3.3.RIGHT Imputation using the just created model (Dealing with the actual VALUES to impute) ----------------------------------
-
+                                
                                 # Structure and building of the data matrix CDi
                                 # The first column of CDi is the dependent
                                 # variable (VD, response variable) that we have
@@ -5520,11 +5521,11 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                 # We are then going to create a
                                 # specific CDi according
                                 # to the value of np and nf_temp
-
-
-
-
-
+                                
+                                
+                                
+                                
+                                
                                 # Analysing the value of parameter available
                                 if (available==TRUE){
                                     # we take the previously imputed
@@ -5536,9 +5537,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     # data into account
                                     LOOKUP <- OD
                                 }
-
-
-
+                                
+                                
+                                
                                 # Assigning the current "REFORDSLGRight_order"
                                 # matrix to the variable matrix REFORDSLGRight
                                 # (according to the current value of "order")
@@ -5548,9 +5549,9 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                     REFORDSLGRight <- t(REFORDSLGRight)
                                 }
                                 nr_REFORD <- nrow(REFORDSLGRight)
-
-
-
+                                
+                                
+                                
                                 if (np==0 & nf_temp>0){
                                     # only FUTURE VIs do exist
                                     for (u in 1:nr_REFORD) {
@@ -5564,39 +5565,39 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # coordinate (column
                                         # number in ORDER) from
                                         # REFORDSLGLeft
-
+                                        
                                         CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                        
                                         # Matrix for future values
                                         vect <- LOOKUP[q,(w+1):(w+nf_temp)]
                                         CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for past distribution
                                         if (pastDistrib) {
                                             dbi <- summary(factor(LOOKUP[q,1:(w-1)], levels=c(1:k), exclude=NULL))/length(1:(w-1))
                                             CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Matrix for future distribution
                                         if (futureDistrib) {
                                             dai <- summary(factor(LOOKUP[q,(w+1):nc], levels=c(1:k), exclude=NULL))/length((w+1):nc)
                                             CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Concatenating CDi
                                         CDi <- cbind(CDi, CDfi)
-
+                                        
                                         if (pastDistrib) {
                                             CDi <- cbind(CDi, CDdbi)
                                         }
-
+                                        
                                         if (futureDistrib) {
                                             CDi <- cbind(CDi, CDdai)
                                         }
-
+                                        
                                         # Conversion of CDi into a data frame
                                         CDi <- as.data.frame(CDi)
-
+                                        
                                         # Type transformation of the columns
                                         # of CDi
                                         # The first values of CDi
@@ -5628,7 +5629,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # Else, in case CO is empty
                                         # (i.e. we don't consider any covariate)
                                         # simply continue with the current CDi
-
+                                        
                                         # Eventually concatenating CDi with
                                         # COtselected_i (the matrix containing
                                         # the current time-dependent covariates)
@@ -5648,22 +5649,22 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # (called V1, V2, ..., "VtotV")
                                             colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                         }
-
-
+                                        
+                                        
                                         # Check for missing-values among
                                         # predictors
                                         if (max(is.na(CDi[1,2:totV_temp]))==0){
-
-
+                                            
+                                            
                                             #*******************************************************************
                                             # Initially "imputeValue.R"
                                             #*******************************************************************
-
+                                            
                                             if (regr == "mlogit") {
                                                 ## Case of MULTINOMIAL
                                                 ## REGRESSION MODEL
-
-
+                                                
+                                                
                                                 pred <- predict(reglog_6_right,newdata=CDi)
                                                 # Example of value returned by
                                                 # pred:
@@ -5705,32 +5706,32 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # 1 2
                                                 # 1 2
                                                 #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else if (regr == "lm") {
                                                 ## Case of LINEAR REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing a
                                                 # linear regression, each
                                                 # element of CDi are numbers and
                                                 # have to be considered as class
                                                 # "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_right, CDi)
                                                 # Introducing a variance "noise"
                                                 pred <- rnorm(length(pred),pred,noise)
@@ -5744,30 +5745,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # highest value: k
                                                 pred <- ifelse(pred>k,k,pred)
                                                 sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else { # meaning (regr == "lrm")
                                                 ## Case of ORDINAL REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing an
                                                 # ordinal regression, each
                                                 # element of CDi
                                                 # are numbers and have to be
                                                 # considered as class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_right, CDi, type="fitted.ind")
                                                 # Testing if we are in case
                                                 # where k=2 (if this is the
@@ -5802,22 +5803,22 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                     alea <- pred[length(pred)]
                                                 }
                                                 sel <- which(pred>=alea)
-
-
-
+                                                
+                                                
+                                                
                                             }
-
+                                            
                                             #*******************************************************************
                                             #*******************************************************************
-
-
+                                            
+                                            
                                             ODi[q,w] <- sel[1]
                                         }
-
-
+                                        
+                                        
                                     }
-
-
+                                    
+                                    
                                 } else {
                                     # meaning np>0 and nf_temp>0 and that, thus,
                                     # PAST as well as FUTURE VIs do exist
@@ -5832,43 +5833,43 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # coordinate (column
                                         # number in ORDER) from
                                         # REFORDSLGLeft
-
+                                        
                                         CDi <- matrix(NA, nrow=k, ncol=1)
-
+                                        
                                         # Matrix for past values
                                         vect <- LOOKUP[q,(w-shift-np):(w-shift-1)]
                                         CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for future values
                                         vect <- LOOKUP[q,(w-shift+MaxGapSLGRight-order+1):(w-shift+MaxGapSLGRight-order+nf_temp)]
                                         CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-
+                                        
                                         # Matrix for past distribution
                                         if (pastDistrib) {
                                             dbi <- summary(factor(LOOKUP[q,1:(w-1)], levels=c(1:k), exclude=NULL))/length(1:(w-1))
                                             CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Matrix for future distribution
                                         if (futureDistrib) {
                                             dai <- summary(factor(LOOKUP[q,(w+1):nc], levels=c(1:k), exclude=NULL))/length((w+1):nc)
                                             CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
                                         }
-
+                                        
                                         # Concatenating CDi
                                         CDi <- cbind(CDi, CDpi, CDfi)
-
+                                        
                                         if (pastDistrib) {
                                             CDi <- cbind(CDi, CDdbi)
                                         }
-
+                                        
                                         if (futureDistrib) {
                                             CDi <- cbind(CDi, CDdai)
                                         }
-
+                                        
                                         # Conversion of CDi into a data frame
                                         CDi <- as.data.frame(CDi)
-
+                                        
                                         # Type transformation of the columns of
                                         # CDi
                                         # The first values of CDi must
@@ -5900,7 +5901,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                         # Else, in case CO is empty (i.e. we
                                         # don't consider any covariate)
                                         # simply continue with the current CDi
-
+                                        
                                         # Eventually concatenating CDi with
                                         # COtselected_i (the matrix containing
                                         # the current time-dependent covariates)
@@ -5920,8 +5921,8 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # (called V1, V2, ..., "VtotV")
                                             colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
                                         }
-
-
+                                        
+                                        
                                         # Check for missing-values among
                                         # predictors (i.e. we won't impute any
                                         # value on the current MD if there is
@@ -5931,17 +5932,17 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                             # the current VI (otherwise no data
                                             # will be imputed for the current
                                             # NA)
-
-
+                                            
+                                            
                                             #*******************************************************************
                                             # Initially "imputeValue.R"
                                             #*******************************************************************
-
+                                            
                                             if (regr == "mlogit") {
                                                 ## Case of MULTINOMIAL
                                                 ## REGRESSION MODEL
-
-
+                                                
+                                                
                                                 pred <- predict(reglog_6_right,newdata=CDi)
                                                 # Example of value returned by
                                                 # pred:
@@ -5984,32 +5985,32 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # 1 2
                                                 # 1 2
                                                 #
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else if (regr == "lm") {
                                                 ## Case of LINEAR REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing a
                                                 # linear regression, each
                                                 # element of CDi are numbers and
                                                 # have to be considered as class
                                                 # "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_right, CDi)
                                                 # Introducing a variance "noise"
                                                 pred <- rnorm(length(pred),pred,noise)
@@ -6023,30 +6024,30 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                 # highest value: k
                                                 pred <- ifelse(pred>k,k,pred)
                                                 sel <- pred
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                             } else { # meaning (regr == "lrm")
                                                 ## Case of ORDINAL REGRESSION
                                                 ## MODEL
-
+                                                
                                                 # Since we are performing an
                                                 # ordinal regression, each
                                                 # element of CDi
                                                 # are numbers and have to be
                                                 # considered as class "numeric"
                                                 CDi <- as.data.frame(lapply(CDi[,1:ncol(CDi)],as.numeric))
-
+                                                
                                                 pred <- predict(reglog_6_right, CDi, type="fitted.ind")
                                                 # Testing if we are in case
                                                 # where k=2 (if this is the
@@ -6082,46 +6083,46 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                                                     alea <- pred[length(pred)]
                                                 }
                                                 sel <- which(pred>=alea)
-
-
-
+                                                
+                                                
+                                                
                                             }
-
+                                            
                                             #*******************************************************************
                                             #*******************************************************************
-
-
+                                            
+                                            
                                             ODi[q,w] <- sel[1]
                                         }
                                     }
-
+                                    
                                 }
-
+                                
                             }
-
+                            
                         }
-
+                        
                     }
-
+                    
                 }
-
-
-
-
-
-
-
-
-
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 # Trying to catch the potential singularity error (part 2/2)
                 # (comment this part of code to debug more easily and see the
                 # full message of any occuring error)
                 #********************************************************************************************************************************
             },
-
-
-
-
+            
+            
+            
+            
             error=function(error_message) {
                 # Catching the error that we want...
                 if ( substr(error_message[1],1,14) == "Lapack routine" | substr(error_message[1],1,34) == "system is computationally singular" ) {
@@ -6134,65 +6135,65 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                             "to complete the prediction))","\n\n",
                             "Below is the error message from R:")
                     message(error_message)
-
+                    
                     # ... or simply displays the other error types
                 } else {
                     message(error_message)
                 }
-
+                
             }
-
-
-
+            
+            
+            
         )
         #****************************************************************************************************************************************
-
-
-
-
-
+        
+        
+        
+        
+        
         # Updating the matrix RESULT used to store the multiple imputations
         RESULT <- rbind(RESULT,cbind(replicate(nr,o),ODi))
-
-
-
-
-
-
-
-
-
-
-
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     ## Adjustment of the rendered form of RESULT
     if (mi.return == 1) {    # case mi.return == 1 (not including initial data
         # set OD)
@@ -6207,40 +6208,40 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
             # (and we keep the variables numbering the imputations aside)
             RESULT <- RESULT[(nr+1):((mi+1)*nr),]
         }
-
+        
     }
     # Else (meaning that we are in the case mi.return == 2 (including initial
     # dataset OD)), we simply don't do any change in the form of RESULT (which
     # has already been constructed to fit the shape option '2')
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
     # Transformation of the columns of RESULT into numeric
     # So that it originally could fit the file "Simulation_Ascona_3"
     # of Andre
     RESULT <- apply(RESULT,2,as.numeric)
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
     # Transforming RESULT in a data frame
     RESULT <- as.data.frame(RESULT)
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # In case of a factor dataset OD:
     # RE-RECODING RESULT to go from "1", "2", etc. to "words"
     #*************************************
@@ -6260,23 +6261,63 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
         }
     }
     #*************************************
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    #### We put again the rows having only NA's discarder at the beginning
+    if(length(rowsNA)>0){
+        if (mi.return == 1) {
+            if (mi == 1) {
+                for(i in 1:length(rowsNA)){
+                    if(rowsNA[i]==1){
+                        RESULT <- rbind(rep(NA,ncol(RESULT)),RESULT)
+                    }else if(rowsNA[i]==nrowsDataset){
+                        RESULT <- rbind(RESULT,rep(NA,ncol(RESULT)))
+                    }else{
+                        RESULT <- rbind(RESULT[1:(rowsNA[i]-1),],rep(NA,ncol(RESULT)),RESULT[rowsNA[i]:nrow(RESULT),])
+                    }
+                }
+            }else{
+                for(j in 1:mi){
+                    for(i in 1:length(rowsNA)){
+                        if(j==1 & rowsNA[i]==1){
+                            RESULT <- rbind(c(j,rep(NA,ncol(RESULT))),RESULT)
+                        }else if(j==mi & rowsNA[length(rowsNA)]==nrowsDataset){
+                            RESULT <- rbind(RESULT,c(mi,rep(NA,ncol(RESULT))))
+                        }else{
+                            RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j,rep(NA,ncol(RESULT))),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
+                        }
+                    }
+                }
+            }
+        }else{
+            for(j in 1:(mi+1)){
+                for(i in 1:length(rowsNA)){
+                    if(j==1 & rowsNA[i]==1){
+                        RESULT <- rbind(c(j-1,rep(NA,ncol(RESULT))),RESULT)
+                    }else if(j==(mi+1) & rowsNA[length(rowsNA)]==nrowsDataset){
+                        RESULT <- rbind(RESULT,c(mi-1,rep(NA,ncol(RESULT))))
+                    }else{
+                        RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j-1,rep(NA,ncol(RESULT))),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     # Returning the matrix composed of every imputations
     return(RESULT)
-
-
-
-
-
+    
+    
+    
+    
+    
 }
