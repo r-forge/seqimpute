@@ -97,10 +97,11 @@ Order of imputation of the gaps types:
     5. Right-hand side SLG
 }
 \examples{
+\dontrun{
 data(OD, CO, COt)
 
 RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=1)
-
+}
 }
 \references{
 HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and terminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
