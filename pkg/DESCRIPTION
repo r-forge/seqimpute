@@ -10,6 +10,7 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+Depends: doParallel, dplyr, pbapply,
 Imports: 
     Amelia,
     mlogit (>= 1.1),
@@ -19,6 +20,14 @@ Imports:
     cluster,
     swfscMisc,
     plyr,
+    dplyr,
     mlbench,
     dfidx,
-    mice
+    mice,
+    foreach,
+    parallel,
+    doParallel,
+    future,
+    pbapply,
+    doRNG,
+

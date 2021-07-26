@@ -56,6 +56,12 @@
 #' @importFrom rms lrm
 #' 
 #' @importFrom mice as.mids
+#' 
+#' @importFrom randomForest randomForest
+#' 
+#' @importFrom mlr makeClassifTask
+#' 
+#' @importFrom ranger ranger
 #'
 #' @export
 

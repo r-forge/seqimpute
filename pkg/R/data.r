@@ -56,4 +56,20 @@
 
 
 
+#' Dataset specifically designed to test specially located gap imputation
+#'
+#'
+#' \itemize{
+#'   \item 1001 sequences
+#'   \item 25 columns
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name SLGData
+#' @usage data(SLGData)
+#' @formatA data frame of factor variables with 500 sequences and 25 columns.
+"SLGData"
+
+
 NULL

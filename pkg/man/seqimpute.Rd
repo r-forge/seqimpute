@@ -7,7 +7,6 @@
 seqimpute(
   OD,
   regr = "mlogit",
-  k,
   np = 1,
   nf = 0,
   nfi = 1,
@@ -20,15 +19,18 @@ seqimpute(
   mi = 1,
   mice.return = FALSE,
   include = FALSE,
-  noise = 0
+  noise = 0,
+  SetRNGSeed = FALSE,
+  ParExec = FALSE,
+  num.trees = 10,
+  min.node.size = NULL,
+  max.depth = NULL
 )
 }
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
-\item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}" or ordinal with "\code{lrm}") (default \code{mlogit}).}
-
-\item{k}{\code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.}
+\item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).}
 
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
@@ -56,6 +58,16 @@ seqimpute(
 dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
 
 \item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).}
+
+\item{SetRNGSeed}{\code{numeric} This parameter allows for setting RNG seed. Putting a \code{set.seed()} alone before SequImpute function won't work if it is using parallel computation.}
+
+\item{ParExec}{\code{logical} Execute the mi imputation using multicore processing if \code{ParExec=TRUE}. This allows faster run time depending of how many core the processor has. Set \code{ParExec=FALSE} if the processor has 2 or less core.}
+
+\item{num.trees}{\code{integer} Random forest parameter setting the number of trees of each random forest model.}
+
+\item{min.node.size}{\code{interger} Random forest parameter setting the minimum node size for each random forest model.}
+
+\item{max.depth}{\code{interger} Random forest parameter setting the maximal depth tree for each random forest model.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
@@ -98,16 +110,15 @@ Order of imputation of the gaps types:
 }
 \examples{
 \dontrun{
-data(OD, CO, COt)
 
-RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=1)
+
 }
 }
 \references{
-HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and terminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
+HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and t1???1 ??+?1w?11q1?erminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
 }
 \author{
-Andre Berchtold <andre.berchtold@unil.ch> Kevin Emery
+Andre Berchtold <andre.berchtold@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 }
 \keyword{data,}
 \keyword{logistic}
