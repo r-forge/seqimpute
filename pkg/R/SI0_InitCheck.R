@@ -33,7 +33,7 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
 
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
   
-  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf")) {
+  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf") &(regr!="glmnet")) {
     stop("/!\\ regr defines the type of regression model you want to use.
                It has to be either assigned to character 'mlogit' (for multinomial
                regression),'lm' (for linear regression) or 'lrm' (for ordinal
@@ -52,21 +52,21 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   
   
   
-  # The following part is not necessary anymore since the updated version of seqimpute compute directly "k" instead of being given by the user.
-  # # 0.3 Testing effectively exactly k possible categories of the variable (in case we consider categorical variables) -------------------------------------------
-  # if (ODClass == "factor") {
-  #   for (i in 1:nr) {
-  #     for (j in 1:nc) {
-  #       if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
-  #         stop("/!\\ Your Original dataset doesn't contain the right
-  #                      number of k categories of the variable")
-  #       } else {
-  #         next
-  #       }
-  #     }
-  #   }
-  # }
-  # 
+  
+  # 0.3 Testing effectively exactly k possible categories of the variable (in case we consider categorical variables) -------------------------------------------
+  if (ODClass == "factor") {
+    for (i in 1:nr) {
+      for (j in 1:nc) {
+        if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
+          stop("/!\\ Your Original dataset doesn't contain the right
+                       number of k categories of the variable")
+        } else {
+          next
+        }
+      }
+    }
+  }
+  
   
   
   
@@ -110,11 +110,11 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   
   
   # 0.6 Testing np and nf are not chosen too large --------------------------------------------------------------------------------------------------------------
-  if (np+1+nf>nc)
-    stop("/!\\ You have to choose lower value for np and nf. Your selected
-               np and nf are too large to fit the dimensions of your data matrix")
-  
-  
+  # if (np+1+nf>nc)
+  #   stop("/!\\ You have to choose lower value for np and nf. Your selected
+  #              np and nf are too large to fit the dimensions of your data matrix")
+  # 
+  # 
   
   
   
@@ -171,8 +171,12 @@ emptyColUpdate <- function(x) {
 #'
 #' @export
 deleteNaRows <- function(OD, CO, COt) {
-  
-  rowsNA <- which(rowSums(is.na(OD)) == ncol(OD))
+  rowsNA <- c()
+  for(i in 1:nrow(OD)) {
+    if (all(is.na(OD[i,]))) {
+      rowsNA <- c(rowsNA,i)
+    }
+  }
   
   if(length(rowsNA)>0){
     OD <- OD[-rowsNA,]
@@ -209,8 +213,10 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
     # some correct corresponding classes on each column!) in the
     # parts 3.1)
     COtsample <- as.data.frame(matrix(nrow=nr,ncol=0))
-    COtsample <- COt[,1 + ((1:(ncot/nc))-1)*nc]
     
+    for (d in 1:(ncot/nc)) {
+      COtsample <- cbind(COtsample,COt[,1 + (d-1)*nc])
+    }
   }
   
   # Total number of variables in the imputation model

@@ -32,7 +32,7 @@
 #'
 #' @param OD \code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).
 #' @param regr \code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).
-#  @param k \code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}. (THIS PARAMETER IS NOW DIRECTLY COMPUTED BY SEQIMPUTE)
+#' @param k \code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
 #' @param nfi \code{numeric} object corresponding to the number of future observations in the imputation model of the initial gaps (default \code{1}).
@@ -72,11 +72,11 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
+seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=FALSE
-                      ,num.trees=10,min.node.size=NULL,max.depth=NULL) {
+                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE
+                      ,num.trees=10,min.node.size=NULL,max.depth=NULL,timing=FALSE) {
   
   # test
   # Selecting the columns of CO the user finally wants to use in his model
@@ -120,9 +120,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
   #
   # CO has to remain as a data frame!
   #***************************************************************************
-
-  # Count the number of unique "k" categories
-  k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
+  
   
   rownamesDataset <- rownames(OD)
   nrowsDataset <- nrow(OD)
@@ -136,154 +134,171 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
   dataOD <- preliminaryChecks(OD, CO, COt, np, nf, nfi, npt, k, pastDistrib, futureDistrib)
   dataOD[c("pastDistrib", "futureDistrib", "totV", "totVi", "totVt", "noise")] <- InitCorectControl(regr, dataOD$ODClass, dataOD$OD, dataOD$nr, dataOD$nc, k, np, nf, dataOD$nco, dataOD$ncot, nfi, npt,  pastDistrib, futureDistrib, dataOD$totV, dataOD$totVi, dataOD$totVt, noise)
   
+  
   # 1. Analysis of OD and creation of matrices ORDER, ORDER2 and ORDER3 -----------------------------------------------------------------------------------------
   dataOD[c("MaxInitGapSize", "InitGapSize",  "MaxTermGapSize", "TermGapSize", "MaxGap", "ORDER", "ORDER2", "ORDER3")] <- OrderCreation(dataOD$OD, dataOD$nr, dataOD$nc)
+  
+  
   
   # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
   if (max(dataOD$ORDER)!=0) {
     dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, dataOD$nr, dataOD$nc)
   }
   
-  # Initialization of the matrix in which we are going to store the results of
-  # the multiple imputations
-  RESULT <- cbind(replicate(dataOD$nr,0),dataOD$OD)
+  
   #Setting parallel or sequential backend and  random seed
   if (ParExec & (parallel::detectCores() > 2 & mi>1)){
-    
     Ncpus <- parallel::detectCores() - 1
-    
     cl <- parallel::makeCluster(Ncpus)
-    doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl) #registerDoParallel doesn't have compatibility with ProgressBar
+    if(SetRNGSeed){
+      doRNG::registerDoRNG(SetRNGSeed)
+    }
+    # set progress bar for parallel processing
+    pb <- txtProgressBar(max = mi, style = 3)
+    progress <- function(n) setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)
     
-    RESULT <- pblapply(X = 1:mi, function(x){
-      MI_impute(x, mi, dataOD, regr, nfi, npt, np , nf , k , available, num.trees, min.node.size, max.depth, SetRNGSeed) 
-    }, cl = cl)
-    
-    parallel::stopCluster(cl)
-    
-  }
-  else{
+    # condition used to run code part needed for parallel processing
+    ParParams = TRUE
+  }else{ 
     if (ParExec & mi==1){
       warning(paste("/!\\ The number of mi iteration is 1, parallel processing is only available for mi > 1."))
     } else if (ParExec){
       warning(paste("/!\\ The number of cores of your processor does not allow paralell processing, at least 3 cores are needed."))
-    } else if (parallel::detectCores() > 2 & mi>1){
-      warning(paste("/!\\ The number of cores of your processor allow paralell processing, set ParExec = TRUE for faster execution time"))
-    } 
-    
+    }
     if(SetRNGSeed){
       set.seed(SetRNGSeed)
     }
     
+    foreach::registerDoSEQ()
+    opts = NULL
+    
     # condition used to run code part needed for sequential processing
-    RESULT <- pblapply(X = 1:mi, function(x){
-      MI_impute(x, mi, dataOD, regr, nfi, npt, np , nf , k , available, num.trees, min.node.size, max.depth)
-    })
+    ParParams  = FALSE 
   }
-
-  # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
-  RESULT <- FinalResultConvert(RESULT, dataOD$OD, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, mi, mice.return)
-
-  return(RESULT)
-}
-
-
-################################################################################
-#' Impute the datatest using different methods.
-#'
-#' @export
-MI_impute <- function(o, mi, dataOD, regr, nfi, npt, np, nf, k, available, num.trees, min.node.size, max.depth, SetRNGSeed = 0) {
   
-  # Trying to catch the potential singularity error (part 1/2)
-  # (comment this part of code (as well as the one at the very end of
-  # seqimpute.R) to debug more easily and see the full message of any
-  # occuring error)
-  #********************************************************************************************************************************
-  # Set a seed specific to each imputation. As for parallel computation setting a seed before MI_imputate function won't work.
-  if(SetRNGSeed){
-    set.seed(o*SetRNGSeed)
-  }
-  tryCatch( # Trying to catch the potential singularity error
-    # in order to display a more accurate comment on it
-    
-    {
-      #************************************************************************************************************************
-      # 3. Imputation using a specific model --------------------------------------------------------------------------------------------------------
-      if (max(dataOD$ORDER)!=0) {
-        # Otherwise if there is only 0 in ORDER,
-        # there is no need to impute internal gaps
-        # and we directly jump to the imputation of
-        # external gaps (i.e. points 4. and 5.)
-        dataOD[["ODi"]]  <- ModelImputation(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, k, available, dataOD$REFORD_L, dataOD$noise,num.trees,min.node.size,max.depth)
-      }
-      
-      # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
-      if ((nfi != 0) & (dataOD$MaxInitGapSize != 0)) {
-        # # we only impute the initial gaps if nfi > 0
-        dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$ncot, nfi, regr, k, available, dataOD$noise,num.trees,min.node.size,max.depth)
-      }
-      
-      # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
-      if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
-        # we only impute the terminal
-        # gaps if npt > 0
-        dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, k, dataOD$noise,num.trees,min.node.size,max.depth)
-      }
-      
-      # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
-      # left-hand side SLG
-      if (max(dataOD$ORDERSLGLeft)!=0) {
-        # Checking if we have to impute
-        # left-hand side SLG
-        dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth)
-        
-      }
-      
-      # right-hand side SLG
-      if (max(dataOD$ORDERSLGRight)!=0) {
-        # Checking if we have to impute right-hand
-        # side SLG
-        dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth)
-      }
-      
-      # Checking if we have to impute
-      # Both-hand side SLG
-      if (dataOD$LongGap) {  
-        nfix <- 1
-        dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGBoth, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nfix, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth)
-      }
-      
-      # Trying to catch the potential singularity error (part 2/2)
-      # (comment this part of code to debug more easily and see the
-      # full message of any occuring error)
-      #********************************************************************************************************************************
-    },
-    
-    error=function(error_message) {
-      # Catching the error that we want...
-      if ( substr(error_message[1],1,14) == "Lapack routine" | substr(error_message[1],1,34) == "system is computationally singular" ) {
-        message("/!\\ Our model is too specified! It consists of too many independant variables and","\n",
-                "is thus 100% predictable. By inversing the data matrix, R finds a determinant very","\n",
-                "close to 0 and we meet a singularity.","\n",
-                "In order to avoid this error, you need to lower the value of np and/or nf.","\n",
-                "(By the way, you can also try to relaunch the program with the same settings and it","\n",
-                "might work on a second or third run... (this is due to randomly generated numbers","\n",
-                "to complete the prediction))","\n\n",
-                "Below is the error message from R:")
-        message(error_message)
-        
-        # ... or simply displays the other error types
-      } else {
-        message(error_message)
-      }
-      
+  
+  #Beginning of the multiple imputation (imputing "mi" times)
+  RESULT <- foreach(o=1:mi, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
+    if (!ParParams){
+      # Parallel and sequential execution of foreach don't use the same casting mechanism, this one is used for sequential execution.
+      cat("iteration :",o,"/",mi,"\n")
     }
+    # Trying to catch the potential singularity error (part 1/2)
+    # (comment this part of code (as well as the one at the very end of
+    # seqimpute.R) to debug more easily and see the full message of any
+    # occuring error)
+    #********************************************************************************************************************************
+    tryCatch( # Trying to catch the potential singularity error
+      # in order to display a more accurate comment on it
+      
+      {
+        #************************************************************************************************************************
+        # 3. Imputation using a specific model --------------------------------------------------------------------------------------------------------
+        if (max(dataOD$ORDER)!=0) {
+          # Otherwise if there is only 0 in ORDER,
+          # there is no need to impute internal gaps
+          # and we directly jump to the imputation of
+          # external gaps (i.e. points 4. and 5.)
+          dataOD[["ODi"]]  <- ModelImputation(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, k, available, dataOD$REFORD_L, dataOD$noise,num.trees,min.node.size,max.depth,timing)
+          
+        }
+        print("zz")
+        # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
+        if ((nfi != 0) & (dataOD$MaxInitGapSize != 0)) {
+          # # we only impute the initial gaps if nfi > 0
+          dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$ncot, nfi, regr, k, available, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
+        }
+        print("zzz")
+        # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
+        if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
+          # we only impute the terminal
+          # gaps if npt > 0
+          dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, k, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
+        }
+        print("zzzz")
+        # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
+        # left-hand side SLG
+        if (max(dataOD$ORDERSLGLeft)!=0) {
+          # Checking if we have to impute
+          # left-hand side SLG
+          dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+          
+        }
+        print("zzzzz")
+        # right-hand side SLG
+        if (max(dataOD$ORDERSLGRight)!=0) {
+          # Checking if we have to impute right-hand
+          # side SLG
+          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+          
+        }
+        print("zzzzzz")
+        # Checking if we have to impute
+        # Both-hand side SLG
+        if (dataOD$LongGap) { 
+          for(h in 2:np){
+            print(h)
+            if(sum(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)>0){
+              tt <- which(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)
+              tmpORDER <- matrix(0,nrow(dataOD$ORDERSLGBoth),ncol(dataOD$ORDERSLGBoth))
+              tmpORDER[tt,h:ncol(dataOD$ORDERSLGBoth)] <- dataOD$ORDERSLGBoth[tt,h:ncol(dataOD$ORDERSLGBoth)]
+              dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+              
+            }
+          }
+          #nfix <- 1
+          #dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGBoth, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nfix, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+        }
+        
+        # Trying to catch the potential singularity error (part 2/2)
+        # (comment this part of code to debug more easily and see the
+        # full message of any occuring error)
+        #********************************************************************************************************************************
+      },
+      
+      error=function(error_message) {
+        # Catching the error that we want...
+        if ( substr(error_message[1],1,14) == "Lapack routine" | substr(error_message[1],1,34) == "system is computationally singular" ) {
+          message("/!\\ Our model is too specified! It consists of too many independant variables and","\n",
+                  "is thus 100% predictable. By inversing the data matrix, R finds a determinant very","\n",
+                  "close to 0 and we meet a singularity.","\n",
+                  "In order to avoid this error, you need to lower the value of np and/or nf.","\n",
+                  "(By the way, you can also try to relaunch the program with the same settings and it","\n",
+                  "might work on a second or third run... (this is due to randomly generated numbers","\n",
+                  "to complete the prediction))","\n\n",
+                  "Below is the error message from R:")
+          message(error_message)
+          
+          # ... or simply displays the other error types
+        } else {
+          message(error_message)
+        }
+        
+      }
+      
+    )
+    #****************************************************************************************************************************************
     
+    # Updating the matrix RESULT used to store the multiple imputations
+    return(cbind(replicate(dataOD$nr,o), dataOD$ODi))
     
-  )
-  #****************************************************************************************************************************************
+  }
   
-  # Updating the matrix RESULT used to store the multiple imputations
-  return(cbind(replicate(dataOD$nr,o), dataOD$ODi))
+  if (ParParams){
+    parallel::stopCluster(cl)
+  }
+  RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
   
+  # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
+  RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, mi, mice.return)
+  
+  
+  # Rearrange dataframe by order of the mi imputation as parallel computation may not return the values in sequential order.
+  # if (ParParams){
+  #   RESULT <- RESULT[order(RESULT$.imp),]
+  # }
+  
+  return(RESULT)
 }

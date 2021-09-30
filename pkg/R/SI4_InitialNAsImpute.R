@@ -5,7 +5,7 @@
 #' Impute initial NAs
 #'
 #' @export
-ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth){
+ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth,timing){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
   
@@ -16,7 +16,7 @@ ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib
  
   # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
-  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, nfi, k,num.trees,min.node.size,max.depth)
+  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,num.trees,min.node.size,max.depth,timing = F)
   
   # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
   ODi <- Init_NA_CreatedModelImputation(OD, ODi, CO, log_CD$CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, log_CD$reglog, noise, available)

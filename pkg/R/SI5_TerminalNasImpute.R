@@ -5,7 +5,7 @@
 #' Impute terminal NAs
 #'
 #' @export
-ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, ncot, totVt, nr, nc, ud, available, k, noise,num.trees,min.node.size,max.depth) {
+ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, ncot, totVt, nr, nc, ud, available, k, noise,num.trees,min.node.size,max.depth,timing) {
 
   # 5.1.-2. Creation of ORDERT -------------------------------------------------
   REFORDT_L <- REFORDTCreation(nr, nc, TermGapSize, MaxTermGapSize)
@@ -17,7 +17,7 @@ ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, Ter
   
   # 5.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
-  log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, npt, k, num.trees, min.node.size, max.depth)
+  log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, npt,0, k,num.trees,min.node.size,max.depth,timing)
   
   # 5.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
   ODi <- TerminalCreatedModelImputation(CO, OD, log_CD$CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, npt, noise)

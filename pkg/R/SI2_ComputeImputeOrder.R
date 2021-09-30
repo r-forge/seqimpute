@@ -37,8 +37,11 @@ ImputeOrderComputation <- function(ORDER, ORDER3, MaxGap, np, nf, nr, nc){
   ORDER <- ORDER - ORDList$ORDERSLGLeft - ORDList$ORDERSLGRight - ORDList$ORDERSLGBoth
   
   # 2.4. Creation of matrices REFORD -------------------------------------------
-
-  ORDList[c("MaxGap", "REFORD_L","ORDER")] <- REFORDInit(ORDER, nr, nc)
+  if (max(ORDER)!=0) {
+    ORDList[c("MaxGap", "REFORD_L","ORDER")] <- REFORDInit(ORDER, nr, nc)
+  }else{
+    ORDList[c("MaxGap", "REFORD_L","ORDER")] <- list(MaxGap,list(),ORDER)
+  }
   
   return(ORDList)
   

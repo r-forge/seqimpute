@@ -6,11 +6,10 @@
 #'
 #' @export
 COtselection <- function(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted){
-  
   COttemp <- as.data.frame(matrix(nrow=nr,ncol=0))
-  
-  COtselected <- COt[, (j+shifted) + ((1:(ncot/nc))-1)*nc]
-
+  for (d in 1:(ncot/nc)) {
+    COttemp <- cbind(COttemp, COt[,(j+shifted) + (d-1)*nc])
+  }
   COtselected[t1:t2,] <- COttemp
   
   return(COtselected)
@@ -25,8 +24,9 @@ COtselection <- function(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted){
 COtselectionSpe <- function(CDi, COt, ncot, nc, i, j, k){
   if (ncot > 0) {
     COtselected_i <- as.data.frame(matrix(nrow=1,ncol=0))
-    COtselected_i <- COt[i,(j) + ((1:(ncot/nc))-1)*nc]
-    
+    for (d in 1:(ncot/nc)) {
+      COtselected_i <- cbind(COtselected_i, COt[i,(j) + (d-1)*nc])
+    }
     COtselected_i <- do.call(rbind, replicate(k, as.data.frame(COtselected_i[1,]), simplify=FALSE))
     # Concatenating CDi and COtselected_i
     # into CDi
@@ -55,15 +55,15 @@ REFORDInit <- function(ORDER, nr, nc){
   # to directly pinpoint the NA that have to be currently imputed
   # according to the value of the variable "order"
   # Updating MaxGap
-
+  
   MaxGap <- max(ORDER[ORDER!=0])-(min(ORDER[ORDER!=0]) - 1)
   
   # Initialization of the REFORD matrices
   REFORD_L <- lapply(1:MaxGap, matrix, data = NA, nrow=0, ncol=2)
   
   # Return the matrix of coordinates of value of ORDER bigger than 0
-  non_zero <- which(ORDER[1:nr,1:nc] > 0, arr.ind = TRUE)
-  
+  non_zero <- which(ORDER > 0, arr.ind = TRUE)
+  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2] <= nc),]
   # Updating ORDER so that it becomes a matrix with positive
   # values going from 1 to MaxGap
   ORDER[non_zero] <- ORDER[non_zero] - (min(ORDER[ORDER!=0]) - 1)
@@ -71,14 +71,13 @@ REFORDInit <- function(ORDER, nr, nc){
   # Collecting the coordinates for each value of "order"
   non_zero <- non_zero[order(non_zero[,1]),]
   ord_cord <- ORDER[non_zero]
-
+  
   for (i in 1:MaxGap) {
-      REFORD_L[[i]] <- non_zero[which(ord_cord == i),]
+    REFORD_L[[i]] <- non_zero[which(ord_cord == i),]
   }
-
+  
   return(list(MaxGap, REFORD_L, ORDER))
 }
-
 
 ################################################################################
 #' Creation of matrices REFORD with GapSize
@@ -86,29 +85,30 @@ REFORDInit <- function(ORDER, nr, nc){
 #' @export
 REFORDInit_TI <- function(GapSize, nr, ORDER, GapSizelist){
   
-
+  # Initialization of the REFORD matrices
   REFORD_L <- lapply(1:GapSize, matrix, data = NA, nrow = 0, ncol=2)
-
+  
+  # Return the matrix of coordinates of value of ORDER bigger than 0
+  non_zero <- which(ORDER > 0, arr.ind = TRUE)
+  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2]  %in% GapSizelist),]
+  
   # Collecting the coordinates for each value of "order"
-  for (i in 1:nr) {
-    for (j in GapSizelist) {
-      if (ORDER[i,j] > 0) {
-
-        coord <- t(matrix(c(i,j)))
-
-        REFORD_L[[ORDER[coord]]] <- rbind(REFORD_L[[ORDER[coord]]],coord)
-      }
-    }
+  ord_cord <- ORDER[non_zero]
+  
+  for (i in 1:GapSize) {
+    REFORD_L[[i]] <- non_zero[which(ord_cord == i),]
   }
+  
   return(REFORD_L)
 }
+
 
 
 ################################################################################
 #' Past VI computation
 #'
 #' @export
-PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k){
+PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,timing){
   
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
 
@@ -147,6 +147,9 @@ PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COt
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j-frameSize+np+1]
+    if(timing==T){
+      CD[t1:t2,2]<-j-frameSize+np+1
+    }
     
     # past VIs
     CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)] 
@@ -244,7 +247,7 @@ PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COt
 #' Future VI computation
 #'
 #' @export
-FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf){
+FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,timing){
   
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
 
@@ -283,6 +286,10 @@ FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, C
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j-frameSize+np+1]
+    
+    if(timing==T){
+      CD[t1:t2,2]<-j-frameSize+np+1
+    }
     
     # future VIs
     CDf[t1:t2,] <- OD[,(j-nf+1):j]
@@ -369,7 +376,7 @@ FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, C
 #' Past or future VI computation
 #'
 #' @export
-PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift){
+PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,timing){
                               
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
@@ -409,6 +416,9 @@ PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j-frameSize+np+1+shift]
+    if(timing==T){
+      CD[t1:t2,2] <- j-frameSize+np+1+shift
+    }
     
     # past VIs
     CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)] 
@@ -499,7 +509,7 @@ PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
 #' Imputation where only PAST VIs  exist
 #'
 #' @export
-ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
+ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing){
   for (u in 1:nr_REFORD) {
     i <- REFORD[u,1]
     # taking out the first coordinate
@@ -508,7 +518,12 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
     
-    CDi <- matrix(NA, nrow=k, ncol=1)
+    if(timing==F){
+      CDi <- matrix(NA, nrow=k, ncol=1)
+    }else{
+      CDi <- matrix(NA,nrow=k,ncol=2)
+      CDi[,2]<-j
+    }
     
     # Matrix for past values
     vect <- LOOKUP[i,(j-np):(j-1)]
@@ -549,22 +564,40 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
     
-    if(regr!="rf"){
-      for(v in 1:(1+np+nf)){
-        CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+    if(timing==FALSE){
+      if(regr!="rf"){
+        for(v in 1:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
+      }else{
+        for(v in 2:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
+          CDi[,v][is.na(CDi[,v])]<-k+1
+        }
+        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }
+      # The last values of CDi must be of type numeric
+      # (distributions)
+      if (pastDistrib | futureDistrib) {
+        CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
       }
     }else{
-      for(v in 2:(1+np+nf)){
-        CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
-        CDi[,v][is.na(CDi[,v])]<-k+1
+      if(regr!="rf"){
+        for(v in c(1,3:(2+np+nf))){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
+      }else{
+        for(v in c(3:(2+np+nf))){
+          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
+          CDi[,v][is.na(CDi[,v])]<-k+1
+        }
+        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
-    }
-    
-    # The last values of CDi must be of type numeric
-    # (distributions)
-    if (pastDistrib | futureDistrib) {
-      CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
+      # The last values of CDi must be of type numeric
+      # (distributions)
+      if (pastDistrib | futureDistrib) {
+        CDi[,(2+np+nf+1):ncol(CDi)] <- lapply(CDi[,(2+np+nf+1):ncol(CDi)],as.numeric)
+      }
     }
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
@@ -587,7 +620,19 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
     # COtselected_i (the matrix containing the
     # current time-dependent covariates)
     # Checking if COt is NOT completely empty
-    CDi <- COtselectionSpe(CDi, COt, ncot, nc, i, j, k)
+    if (ncot > 0) {
+      COtselected_i <- as.data.frame(matrix(nrow=1,ncol=0))
+      for (d in 1:(ncot/nc)) {
+        COtselected_i <- cbind(COtselected_i, COt[i,(j) + (d-1)*nc])
+      }
+      COtselected_i <- do.call(rbind, replicate(k, as.data.frame(COtselected_i[1,]), simplify=FALSE))
+      # Concatenating CDi and COtselected_i
+      # into CDi
+      CDi <- cbind(CDi, COtselected_i)
+      # Transformation of the names of the columns
+      # of CDi (called V1, V2, ..., "VtotV")
+      colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
+    }
     
     
     # Check for missing-values among predictors
@@ -605,7 +650,7 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
 #' Imputation where past and future VIs exist
 #'
 #' @export
-ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order){
+ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order,timing){
   for (u in 1:nr_REFORD) {
     i <- REFORD[u,1]
     # taking out the first coordinate
@@ -613,8 +658,12 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     j <- REFORD[u,2]
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
-    CDi <- matrix(NA, nrow=k, ncol=1)
-    
+    if(timing==F){
+      CDi <- matrix(NA,nrow=k, ncol=1)
+    }else{
+      CDi <- matrix(NA,nrow=k,ncol=2)
+      CDi[,2]<-j
+    }    
     # Matrix for past values
     shift <- as.numeric(shift)
     vect <- LOOKUP[i,(j-shift-np):(j-shift-1)]
@@ -655,21 +704,52 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     # We also account for the fact that levels that do not appear at
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
-    if(regr!="rf"){
-      for(v in 1:(1+np+nf)){
-        CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+    if(timing==FALSE){
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
+        for(v in 1:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
+      }else if(regr=="rf"){
+        for(v in 2:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
+          CDi[,v][is.na(CDi[,v])]<-k+1
+        }
+        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #glmnet
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 2:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
+      }
+      # The last values of CDi must be of type numeric
+      # (distributions)
+      if (pastDistrib | futureDistrib) {
+        CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
       }
     }else{
-      for(v in 2:(1+np+nf)){
-        CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
-        CDi[,v][is.na(CDi[,v])]<-k+1
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
+        for(v in c(1,3:(2+np+nf))){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
+      }else if(regr=="rf"){
+        for(v in c(3:(2+np+nf))){
+          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
+          CDi[,v][is.na(CDi[,v])]<-k+1
+        }
+        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #glmnet
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 3:(2+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
-    }
-    # The last values of CDi must be of type numeric
-    # (distributions)
-    if (pastDistrib | futureDistrib) {
-      CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
+      # The last values of CDi must be of type numeric
+      # (distributions)
+      if (pastDistrib | futureDistrib) {
+        CDi[,(2+np+nf+1):ncol(CDi)] <- lapply(CDi[,(2+np+nf+1):ncol(CDi)],as.numeric)
+      }
     }
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
@@ -694,9 +774,9 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     # Checking if COt is NOT completely empty
     if (ncot > 0) {
       COtselected_i <- as.data.frame(matrix(nrow=1,ncol=0))
-      
-      COtselected_i <- COt[i,(j) + ((1:(ncot/nc))-1)*nc]
-
+      for (d in 1:(ncot/nc)) {
+        COtselected_i <- cbind(COtselected_i, COt[i,(j) + (d-1)*nc])
+      }
       COtselected_i <- do.call(rbind, replicate(k, as.data.frame(COtselected_i[1,]), simplify=FALSE))
       # Concatenating CDi and COtselected_i into
       # CDi
@@ -732,10 +812,14 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
 #'
 #' @export
 RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
-  
-  if (regr == "mlogit") {
+  if(regr=="glmnet"){
+    pred <- predict(reglog,newx=CDi,type="response")
+  }else if (regr == "mlogit") {
     ## Case of MULTINOMIAL REGRESSION MODEL
     
+    if(nrow(CDi)!=length(reglog$freq)){
+      CDi <- CDi[1:length(reglog$freq),]
+    }
     
     pred <- predict(reglog,newdata=CDi)
     # Example of value returned by pred:
@@ -749,6 +833,11 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     #
     # Cumulative pred
     pred <- cumsum(pred)
+    
+    # We save the potential values of the variable because it
+    # could happen that they have the form 1 2 4 5. This way,
+    # we are sure to have the real values
+    names_saved <- names(pred)
     # Corresponding example value returned
     # by the "cumulative pred":
     # 1 2
@@ -766,7 +855,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     # Example value returned in "alea":
     # [1] 0.2610005
     #
-    sel <- which(pred>=alea)
+    sel <- as.numeric(names_saved[which(pred>=alea)])
     # Corresponding example value returned
     # in sel:
     # 1 2
@@ -775,7 +864,6 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     
     
   } else if (regr == "lm") {
-    ## Case of LINEAR REGRESSION MODEL
     
     # Since we are performing a linear
     # regression, each element of CDi are
@@ -897,7 +985,8 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
 #' Compute model with the chosen regression model
 #'
 #' @export
-ComputeModel <- function(CD, regr, tot_VI, npfi, k,num.trees,min.node.size,max.depth){
+ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max.depth,timing){
+  npfi <- np+nf
   # ==>> Manipulation of parameters
   
   # Conversion of CD in a data frame
@@ -928,14 +1017,26 @@ ComputeModel <- function(CD, regr, tot_VI, npfi, k,num.trees,min.node.size,max.d
     # Transformation of the first columns
     # (i.e. the categorical values) of CD (column 1 up to
     # column 1+np+nf) into factor
-    CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
-    
-    
-    # We drop the levels of the variables that do not appear. Not doing
-    # so create an error later on when the mlogit model is computed
-    # (due to the inversion of a matrix having only zeros in a given row)
-    for(n in 1:(1+npfi)){
-      CD[,n]<-droplevels(CD[,n])
+    if(timing==FALSE){
+      CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+      
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+      for(n in 1:(1+npfi)){
+        CD[,n]<-droplevels(CD[,n])
+      }
+    }else{
+      CD[,c(1,3:(2+npfi))] <- lapply(CD[,c(1,3:(2+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+      
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+      for(n in c(1,3:(2+npfi))){
+        CD[,n]<-droplevels(CD[,n])
+      }
     }
     
     # Dataframe for mlogit
@@ -960,13 +1061,29 @@ ComputeModel <- function(CD, regr, tot_VI, npfi, k,num.trees,min.node.size,max.d
       # value of tot_VI
       fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
       #reglog <- mlogit(fmla, data=NCD, reflevel="1")
-      
       reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
       if (class(reglog) == "try-error"){
         warning(paste("/!\\ A simpler model was used at some point."))
-
-        fmla <- as.formula("V1~0|V2")
-        reglog <- mlogit(fmla, data=NCD, reflevel="1")
+        if(timing==F){
+          if(np>0){
+            fmla <- as.formula(paste0("V1~0|V",1+np))
+          }else{
+            fmla <- as.formula("V1~0|V2")
+                               
+          }
+        }else{
+          if(np>0){
+            fmla <- as.formula(paste0("V1~0|V",2+np))
+          }else{
+            fmla <- as.formula("V1~0|V3")
+          }
+        }
+        print(fmla)
+        reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
+        if(class(reglog)=="try-error"){
+          fmla <- as.formula("V1~1")
+          reglog <- mlogit(fmla,data=NCD,reflevel="1")
+        }
       }
     }
     
@@ -1035,14 +1152,25 @@ ComputeModel <- function(CD, regr, tot_VI, npfi, k,num.trees,min.node.size,max.d
     }
     
   }else if(regr=="rf"){ # Case regr=="rf" random forest
-    CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k))
-    for(v in 2:(1+npfi)){
-      CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
-      CD[,v][is.na(CD[,v])]<-k+1
+    if(timing==FALSE){
+      CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k))
+      for(v in 2:(1+npfi)){
+        CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
+        CD[,v][is.na(CD[,v])]<-k+1
+      }
+      CD[,1]<-factor(CD[,1],levels=c(1:k))
+      CD[,1]<-droplevels(CD[,1])
+      CD<-CD[!is.na(CD[,1]),]
+    }else{
+      CD[,c(1,3:(2+npfi))] <- lapply(CD[,c(1,3:(2+npfi))],factor, levels=c(1:k))
+      for(v in 3:(2+npfi)){
+        CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
+        CD[,v][is.na(CD[,v])]<-k+1
+      }
+      CD[,1]<-factor(CD[,1],levels=c(1:k))
+      CD[,1]<-droplevels(CD[,1])
+      CD<-CD[!is.na(CD[,1]),]
     }
-    CD[,1]<-factor(CD[,1],levels=c(1:k))
-    CD[,1]<-droplevels(CD[,1])
-    CD<-CD[!is.na(CD[,1]),]
     
     factors_character <- paste("V", 2:tot_VI, sep = "")
     # Transformation of this object from character to
@@ -1056,35 +1184,87 @@ ComputeModel <- function(CD, regr, tot_VI, npfi, k,num.trees,min.node.size,max.d
     reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
                    max.depth=max.depth)
     
-  }else{# random forest proba fed to a multinomial model
-    # CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k))
-    # for(v in 2:(1+npfi)){
-    #   CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
-    #   CD[,v][is.na(CD[,v])]<-k+1
-    # }
-    # CD[,1]<-factor(CD[,1],levels=c(1:k))
-    # CD[,1]<-droplevels(CD[,1])
-    # CD<-CD[!is.na(CD[,1]),]
-    # 
-    # factors_character <- paste("V", 2:tot_VI, sep = "")
-    # # Transformation of this object from character to
-    # # vector (in order to be able
-    # # to access its components)
-    # factors <- as.vector(factors_character)
-    # # Creation of a specific formula according to the
-    # # value of tot_VI
-    # fmla <- as.formula(paste("V1~", paste(factors, collapse="+")))
-    # #reglog <- randomForest(fmla, data=CD,ntree=100)
-    # reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
-    #                max.depth=max.depth)
-    # 
-    # pred<-predict(reglog,data=CD,predict.all=T)$predictions[1,]
-    # pred<-factor(pred,levels=c(1:k))
-    # tab <- table(pred)
-    # tab <- tab/sum(tab)
+  }else if(regr=="glmnet"){# random forest proba fed to a multinomial model
+    
+    # Linking the package mlogit
+    
+    # By default, every column of CD are of class "numeric".
+    # Thus, there is no need to convert the columns
+    # containing the distribution data to class "numeric".
+    # Moreover the class of the covariates columns at the
+    # very end are ALREADY set correctly and we don't need
+    # to update them.
+    # On the other hand, the first columns of CD (1 up to
+    # 1+np+nf) have to be of class "factor" (because they
+    # are the columns containing our categorical
+    # data coming from OD).
+    
+    # Transformation of the first columns
+    # (i.e. the categorical values) of CD (column 1 up to
+    # column 1+np+nf) into factor
+    
+    CD <- CD[!is.na(CD$V1),]
+    if(timing==FALSE){
+      CD[,1] <- factor(CD[,1],levels=c(1:k))
+      CD[,(2:(1+npfi))] <- lapply(CD[,(2:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
       
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+      for(n in 2:(1+npfi)){
+        CD[,n]<-droplevels(CD[,n])
+      }
+    }else{
+      CD[,1] <- factor(CD[,1],levels=c(1:k))
+      CD[,c(3:(2+npfi))] <- lapply(CD[,c(3:(2+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+      
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+      for(n in c(3:(2+npfi))){
+        CD[,n]<-droplevels(CD[,n])
+      }
     }
-  
+    
+    # Computation of the multinomial model
+    if(tot_VI==1){
+      # First case is evaluated aside
+      reglog <- mlogit(V1~0, data=NCD, reflevel="1")
+    }
+    
+    if(tot_VI>1){
+      # creation of "V2" ... "Vtot_VI" (to use them in the
+      # formula)
+      y <- CD[,1]
+      x <- model.matrix(V1~.,CD)[,-1]
+      #reglog <- mlogit(fmla, data=NCD, reflevel="1")
+      reglog <- try(glmnet(x=x,y=y,lambda=0,family="multinomial"))
+      if (class(reglog) == "try-error"){
+        warning(paste("/!\\ A simpler model was used at some point."))
+        if(timing==F){
+          if(np>0){
+            x<- CD[,1+np]
+          }else{
+            x <- CD[,2]
+            
+          }
+        }else{
+          if(np>0){
+            x <- CD[,2+np]
+          }else{
+            x <- CD[,3]
+          }
+        }
+        reglog <- try(glmnet(x=x,y=y,lambda=0))
+        if(class(reglog)=="try-error"){
+          fmla <- as.formula("V1~1")
+          reglog <- mlogit(fmla,data=NCD,reflevel="1")
+        }
+      }
+    }
+  }
   
   return(list(reglog, CD))
 }

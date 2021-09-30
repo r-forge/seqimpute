@@ -5,7 +5,7 @@
 #' Left-hand side SLG imputation
 #'
 #' @export
-LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth){     # Checking if we have to impute
+LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){     # Checking if we have to impute
   # left-hand side SLG
   
   warning("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
@@ -17,7 +17,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
   # Creation of the temporary SLG matrices for the left-hand
   # side of OD
   
- 
+  print("k")
   for (h in 2:np) {
     if (max(ORDERSLG[,h])>0) {
       # Checking if a gap begins
@@ -28,7 +28,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
       # and we simply can go
       # to the next column of ORDERSLGLeft
       
-      ParamList[c("ORDERSLG_temp","totV_temp","np_temp")] <- SLGMatrixLeft_temp(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, futureDistrib, k)
+      ParamList[c("ORDERSLG_temp","totV_temp","np_temp")] <- SLGMatrix_temp(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, futureDistrib, k)
       
       if (max(ParamList$ORDERSLG_temp)==0) {
         next
@@ -47,20 +47,24 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
       # Initialization of the REFORDSLGLeft matrices
       ParamList[c("MaxGap","REFORD_L","ORDERSLG_temp")]  <- REFORDInit(ParamList$ORDERSLG_temp, nr, nc)
       
+      # MaxGapSLGLeft <- REFORDOD[[1]]   
+      # REFORDSLG_L <- REFORDOD[[2]]
+      
       # 6.3.LEFT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model ----
       
       # 6.3.1.LEFT Building of the different data matrices CD ----
       # for the computation of the model for every SLG
       # on the left-hand side of OD
       for (order in 1:ParamList$MaxGap) {
-        ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k)
-                        
+        ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing)
+        print("kk")                
         # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) ----
-        
-        ParamList[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp+nf, k,num.trees,min.node.size,max.depth)
-          
+        print("kkk")
+        log_CD <- list()
+        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,num.trees,min.node.size,max.depth,timing)
+        print("kkkk")  
         # 6.3.3.LEFT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
-        ODi <- SLGCreatedModelImpute(CO, OD, ParamList$CD,  ODi, COt, ncot, nf, nc, regr, k, ParamList$totV_temp, ParamList$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
+        ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD,  ODi, COt, ncot, nf, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift,timing)
       }
      
     }
@@ -75,7 +79,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
 #' Right-hand side SLG imputation
 #'
 #' @export
-RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth){
+RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){
   # Checking if we have to impute right-hand
   # side SLG
   
@@ -124,18 +128,18 @@ RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, fu
       # 6.3.RIGHT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model ----
       
       for (order in 1:ParamList$MaxGap) {
-        
         # 6.3.1.RIGHT Building of the different data matrices CD ---------------
         # for the computation of the model for every SLG
         # on the right-hand side of OD
-        ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k)
+        ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k,timing)
 
         # 6.3.2.RIGHT Computation of the model (Dealing with the LOCATIONS of imputation) ----
-        ParamList[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, np+ParamList$nf_temp, k,num.trees,min.node.size,max.depth)
+        log_CD <- list()
+        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, np,ParamList$nf_temp, k,num.trees,min.node.size,max.depth,timing)
         
 
         # 6.3.3.RIGHT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
-        ODi <- SLGCreatedModelImpute(CO, OD, ParamList$CD, ODi, COt, ncot, ParamList$nf_temp, nc, regr, k, ParamList$totV_temp, ParamList$reglog, noise, available, ParamList$REFORD_L, np, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
+        ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD, ODi, COt, ncot, ParamList$nf_temp, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, np, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift,timing)
  
         }
     
@@ -148,11 +152,8 @@ RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, fu
 
 
 
-################################################################################
-#' Compute the ORDER matrix for Left SLG
-#'
-#' @export
-SLGMatrixLeft_temp <- function(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, futureDistrib, k ){
+
+SLGMatrix_temp <- function(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, futureDistrib, k ){
   # Creation of the temporary SLG matrices for the left-hand
   # side of OD
   
@@ -199,10 +200,7 @@ SLGMatrixLeft_temp <- function(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, 
     
     
 
-################################################################################
-#' Compute the ORDER matrix for Right SLG
-#'
-#' @export
+
 SLGMatrixRight_temp <- function(nr, nc, np, h, ORDERSLGRight, nco, ncot, pastDistrib, futureDistrib, k ){
   # initialization of a new temporary
   # ORDERSLGRight_temp matrix
@@ -247,12 +245,12 @@ SLGMatrixRight_temp <- function(nr, nc, np, h, ORDERSLGRight, nco, ncot, pastDis
 #' Compute the CD matrix for SLG
 #'
 #' @export
-SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k){
+SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing){
   # Building of a data matrix for the computation
   # of the model
 
   ud <- nc-(MaxGapSLGLeft-order+np+nf)
-
+  print(ud)
   # number of usable data for each row of OD
   # size of the current mobile caracteristic frame
   # (that changes according to "order") which is
@@ -319,10 +317,10 @@ SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, n
   
   # Only PAST
   if (np>0 & nf==0) {
-    CD <- PastVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k)
+    CD <- PastVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,timing)
     # PAST and FUTURE
   } else {
-    CD <- PastFutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift)
+    CD <- PastFutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,timing)
   }
  
   return(list(CD, shift))
@@ -334,7 +332,7 @@ SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, n
 #' Impute SLG using created model
 #'
 #' @export
-SLGCreatedModelImpute <- function(CO, OD, CD, ODi, COt, ncot, nf, nc, regr, k, totV_temp, reglog_6, noise, available, REFORDSLG_L, np, pastDistrib, futureDistrib, order, MaxGap, shift){
+SLGCreatedModelImpute <- function(CO, OD, CD, ODi, COt, ncot, nf, nc, regr, k, totV_temp, reglog_6, noise, available, REFORDSLG_L, np, pastDistrib, futureDistrib, order, MaxGap, shift,timing){
     
     # Structure and building of the data matrix CDi
     # The first column of CDi is the dependent
@@ -401,15 +399,95 @@ SLGCreatedModelImpute <- function(CO, OD, CD, ODi, COt, ncot, nf, nc, regr, k, t
     
     if (np>0 & nf==0){
       # only PAST VIs do existe)
-      ODi <- ODiImputePAST(CO, ODi, CD, COt, REFORDSLGLeft, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV_temp, reglog_6, LOOKUP, regr, noise)
+      ODi <- ODiImputePAST(CO, ODi, CD, COt, REFORDSLGLeft, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV_temp, reglog_6, LOOKUP, regr, noise,timing)
         
   
     } else {
       # meaning np>0 and nf>0 and that, thus,
       # PAST as well as FUTURE VIs do exist
-      ODi <- ODiImputePF(CO, ODi, CD, COt, REFORDSLGLeft, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV_temp, reglog_6, LOOKUP, regr, noise, shift, MaxGap, order)
-        
+      ODi <- ODiImputePF(CO, ODi, CD, COt, REFORDSLGLeft, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV_temp, reglog_6, LOOKUP, regr, noise, shift, MaxGap, order,timing)
     }
     return(ODi)
 }
 
+
+
+
+
+
+
+
+#' 
+#' 
+#' ################################################################################
+#' #' Long Gap imputation
+#' #'
+#' #' @export
+#' LongGapImpute <- function(OD, ODi, CO, COtsample, ORDERSLGBoth, pastDistrib, futureDistrib, regr, np, nr, nc, ud, ncot, nco, k, noise, available){
+#'   
+#'   nfix<-1
+#'   # 6.2.Both Computation of the order of imputation of each MD ----------------------------------------------------------------------------------
+#'   
+#'   # Creation of the temporary SLG matrices for the Both-hand
+#'   # side of OD
+#'   for (h in 2:np) {
+#'     if (max(ORDERSLGBoth[,h])>0) {
+#'       # Checking if a gap begins
+#'       # somewhere on the current column
+#'       # If that is not the case, there is
+#'       # no need to perform
+#'       # the entire following procedure
+#'       # and we simply can go
+#'       # to the next column of ORDERSLGBoth
+#'       
+#'       ParamList[c("ORDERSLGBoth_temp","totV_temp","np_temp")] <- SLGMatrix_temp(nr, nc, nfix, h, ORDERSLGBoth, nco, ncot, pastDistrib, futureDistrib, k)
+#'       
+#'      
+#'       
+#'       # In a similar manner to part 2.4., we go here one
+#'       # single time through the reduced version
+#'       # ORDERSLGBoth_temp of ORDERSLG and we create
+#'       # MaxGapSLGBoth "REFORDSLGRBoth_" matrices
+#'       # collecting the coordinates of each corresponding
+#'       # values in ORDERSLGBoth_temp which are greater
+#'       # than 0
+#'       
+#'       
+#'       # REFORDSLGBoth matrices
+#' 
+#'       ParamList[c("MaxGap","REFORD_L", "ORDERSLGBoth_temp")] <- REFORDInit(ParamList$ORDERSLGBoth_temp, nr, nc)
+#'       
+#'       
+#'       
+#'       # 6.3.Both Imputation of the missing data listed by ORDERSLGBoth_temp and ORDERSLGRight_temp using a specific model -------------------
+#'       
+#'       
+#'       # 6.3.1.Both Building of the different data matrices CD -------------------------------------------------------------------------------
+#'       # for the computation of the model for every SLG
+#'       # on the Both-hand side of OD
+#'       
+#'       for (order in 1:ParamList$MaxGap) { # /!\ "order"
+#'         # corresponds to the values
+#'         # of the components of
+#'         # ORDERSLGBoth_temp
+#'         # (i.e. the number of the iteration, the order
+#'         # in which the values are going to be imputed)
+#'         ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, ParamList$np, ncot, nr, nc, nfix, COtsample, pastDistrib, futureDistrib, k)
+#'         
+#'         # 6.3.2. Both Computation of the model (Dealing with the LOCATIONS of imputation) 
+#'         reglog_6_both <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp+nfix, k)
+#' 
+#'         # 6.3.3. lEFT and RIGHT  Imputation using the just created model (Dealing with the actual VALUES to impute)
+#'         ODi <- SLGCreatedModelImpute(CO, OD, ODi, COt, ncot, nfix, nc, regr, k, ParamList$totV_temp, reglog_6_both, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
+#'         
+#'        
+#'         
+#'         
+#'         
+#'             }
+#'           }
+#'           
+#'         }
+#'         
+#'       }
+#'    

@@ -7,6 +7,7 @@
 seqimpute(
   OD,
   regr = "mlogit",
+  k,
   np = 1,
   nf = 0,
   nfi = 1,
@@ -21,7 +22,7 @@ seqimpute(
   include = FALSE,
   noise = 0,
   SetRNGSeed = FALSE,
-  ParExec = FALSE,
+  ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
   max.depth = NULL
@@ -31,6 +32,8 @@ seqimpute(
 \item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
 \item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).}
+
+\item{k}{\code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.}
 
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 

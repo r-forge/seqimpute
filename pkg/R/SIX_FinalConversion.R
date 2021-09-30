@@ -4,11 +4,9 @@
 # X - Final conversions
 ################################################################################
 #' @export
-FinalResultConvert <- function(RESULT, OD, ODClass, ODlevels, rownamesDataset, nrowsDataset, nr, nc, rowsNA, include, mi, mice.return){
+FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrowsDataset, nr, nc, rowsNA, include, mi, mice.return){
 
-  # Bind the Results of the multiple imputations as a single dataframe
-  RESULT <- do.call("rbind", RESULT)
-  RESULT <- rbind(cbind(replicate(nr,0),OD), RESULT)
+ 
   # ## Adjustment of the rendered form of RESULT
   if (include == FALSE) {    # case include == 1 (not including initial data
     # set OD)
