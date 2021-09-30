@@ -2,8 +2,8 @@
 #
 #
 ################################################################################
-#' Left-hand side SLG imputation
-#'
+# Left-hand side SLG imputation
+
 LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){     # Checking if we have to impute
   # left-hand side SLG
   
@@ -74,9 +74,9 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
   
 
 
-################################################################################
-#' Right-hand side SLG imputation
-#'
+##############################################################################
+#Right-hand side SLG imputation
+
 RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){
   # Checking if we have to impute right-hand
   # side SLG
@@ -240,8 +240,8 @@ SLGMatrixRight_temp <- function(nr, nc, np, h, ORDERSLGRight, nco, ncot, pastDis
 
 
 ################################################################################
-#' Compute the CD matrix for SLG
-#'
+# Compute the CD matrix for SLG
+
 SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing){
   # Building of a data matrix for the computation
   # of the model
@@ -326,8 +326,8 @@ SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, n
 
 
 ################################################################################
-#' Impute SLG using created model
-#'
+# Impute SLG using created model
+
 SLGCreatedModelImpute <- function(CO, OD, CD, ODi, COt, ncot, nf, nc, regr, k, totV_temp, reglog_6, noise, available, REFORDSLG_L, np, pastDistrib, futureDistrib, order, MaxGap, shift,timing){
     
     # Structure and building of the data matrix CDi

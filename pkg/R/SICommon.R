@@ -2,8 +2,8 @@
 #
 #
 ################################################################################
-#' Consider time-dependent covariates
-#'
+# Consider time-dependent covariates
+
 COtselection <- function(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted){
   COttemp <- as.data.frame(matrix(nrow=nr,ncol=0))
   for (d in 1:(ncot/nc)) {
@@ -16,9 +16,9 @@ COtselection <- function(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted){
 
 
 ################################################################################
-#' Concatenating CDi with COtselected_i (the matrix containing the current 
-#' time-dependent covariates) Checking if COt is NOT completely empty
-#'
+# Concatenating CDi with COtselected_i (the matrix containing the current
+# time-dependent covariates) Checking if COt is NOT completely empty
+
 COtselectionSpe <- function(CDi, COt, ncot, nc, i, j, k){
   if (ncot > 0) {
     COtselected_i <- as.data.frame(matrix(nrow=1,ncol=0))
@@ -38,8 +38,8 @@ COtselectionSpe <- function(CDi, COt, ncot, nc, i, j, k){
 
 
 ################################################################################
-#' Creation of matrices REFORD with ORDER
-#'
+# Creation of matrices REFORD with ORDER
+
 REFORDInit <- function(ORDER, nr, nc){
   # The purpose of this function is to accelerate part 3.3 in which we
   # initially (i.e. with the first versions of seqimpute3.R) go "order"
@@ -77,8 +77,8 @@ REFORDInit <- function(ORDER, nr, nc){
 }
 
 ################################################################################
-#' Creation of matrices REFORD with GapSize
-#'
+# Creation of matrices REFORD with GapSize
+
 REFORDInit_TI <- function(GapSize, nr, ORDER, GapSizelist){
   
   # Initialization of the REFORD matrices
@@ -101,8 +101,8 @@ REFORDInit_TI <- function(GapSize, nr, ORDER, GapSizelist){
 
 
 ################################################################################
-#' Past VI computation
-#'
+# Past VI computation
+
 PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,timing){
   
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
@@ -239,8 +239,8 @@ PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COt
 
 
 ################################################################################
-#' Future VI computation
-#'
+# Future VI computation
+
 FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,timing){
   
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
@@ -367,8 +367,8 @@ FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, C
 
 
 ################################################################################
-#' Past or future VI computation
-#'
+# Past or future VI computation
+
 PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,timing){
                               
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
@@ -499,8 +499,8 @@ PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
 
 
 ################################################################################
-#' Imputation where only PAST VIs  exist
-#'
+# Imputation where only PAST VIs  exist
+
 ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing){
   for (u in 1:nr_REFORD) {
     i <- REFORD[u,1]
@@ -639,8 +639,8 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
 
 
 ################################################################################
-#' Imputation where past and future VIs exist
-#'
+# Imputation where past and future VIs exist
+
 ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order,timing){
   for (u in 1:nr_REFORD) {
     i <- REFORD[u,1]
@@ -799,8 +799,8 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
 
 
 ################################################################################
-#' Impute value with the chosen regression model
-#'
+# Impute value with the chosen regression model
+
 RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
   if(regr=="glmnet"){
     pred <- predict(reglog,newx=CDi,type="response")
@@ -972,8 +972,8 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
 
 
 ################################################################################
-#' Compute model with the chosen regression model
-#'
+# Compute model with the chosen regression model
+
 ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max.depth,timing){
   npfi <- np+nf
   # ==>> Manipulation of parameters

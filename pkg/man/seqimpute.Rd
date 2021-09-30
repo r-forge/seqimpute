@@ -116,8 +116,11 @@ Order of imputation of the gaps types:
 }
 \examples{
 \dontrun{
+# Run seqimpute without parallelisation
+RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 
-
+# Run seqimpute with parallelisation
+RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2,parExec=TRUE)
 }
 }
 \references{

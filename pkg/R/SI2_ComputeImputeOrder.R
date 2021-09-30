@@ -1,12 +1,11 @@
 # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER)
 #
 #
-################################################################################
-#' Compute the order of imputation
-#'    
-#' In case of a factor dataset OD:
-#' RECODING of OD with numbers "1", "2", etc. instead of its "words"
-#'
+# ################################################################################Compute the order of imputation
+# 
+# In case of a factor dataset OD:
+# RECODING of OD with numbers "1", "2", etc. instead of its "words"
+
 ImputeOrderComputation <- function(ORDER, ORDER3, MaxGap, np, nf, nr, nc){
   
   # 2.1. Model 1: use of previous and future observations ----------------------
@@ -49,8 +48,8 @@ ImputeOrderComputation <- function(ORDER, ORDER3, MaxGap, np, nf, nr, nc){
 
 
 ################################################################################
-#' Model 1: use of previous and future observations
-#'
+# Model 1: use of previous and future observations
+
 PrevAndFutCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap) {
   if (np>0 & nf>0){
     
@@ -106,8 +105,8 @@ PrevAndFutCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap) {
 
 
 ################################################################################
-#' Model 2: use of previous observations only
-#'
+# Model 2: use of previous observations only
+
 PrevObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
   if (np>0 & nf==0){            # Verifying that we are in case of model 2
     for (i in 1:nr){          # Beginning from row 1, we will go row by
@@ -161,8 +160,8 @@ PrevObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
 
 
 ################################################################################
-#' Model 3: use of future observations only
-#'
+# Model 3: use of future observations only
+
 FutObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
   if (np==0 & nf>0){                  # Verifying that we are effectively
     # in case of model 3
@@ -224,14 +223,14 @@ FutObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
 
 
 ################################################################################
-#' Creation of ORDERSLG (ORDERSLGLeft and ORDERSLGRight)
-#' 
-#' Updating ORDER with "0" on every NAs belonging to a Specially Located Gap 
-#' (SLG) (The purpose of this modification of ORDER is that we don't take into
-#' account SLG NAs at this moment of the program.
-#' We will first impute internal gaps, external gaps and consider SLG at the 
-#' very end (as far as some SLG have been detected)
-#'
+# Creation of ORDERSLG (ORDERSLGLeft and ORDERSLGRight)
+# 
+# Updating ORDER with "0" on every NAs belonging to a Specially Located Gap
+# (SLG) (The purpose of this modification of ORDER is that we don't take into
+# account SLG NAs at this moment of the program.
+# We will first impute internal gaps, external gaps and consider SLG at the
+# very end (as far as some SLG have been detected)
+
 ORDERSLGCreation <- function(ORDER, nr, nc, np, nf){
   # Initialization of matrix in which we will store the SLG
   ORDERSLG <- matrix(0,nrow=nr,ncol=nc)
@@ -301,14 +300,14 @@ ORDERSLGCreation <- function(ORDER, nr, nc, np, nf){
 
 
 ################################################################################
-#' Computation of ORDERSLG (ORDERSLGLeft and ORDERSLGRight)
-#' 
-#' Extracting extrema from tempMinGapLeft, tempMaxGapLeft,
-#' tempMinGapRight and tempMaxGapRight
-#' And creation of ORDERSLGLeft and ORDERSLGRight (matrices for both
-#' groups of SLG (i.e. one on the left- and the other one on the right-
-#' hand side of the matrix ORDERSLG)
-#'
+# Computation of ORDERSLG (ORDERSLGLeft and ORDERSLGRight)
+# 
+# Extracting extrema from tempMinGapLeft, tempMaxGapLeft,
+# tempMinGapRight and tempMaxGapRight
+# And creation of ORDERSLGLeft and ORDERSLGRight (matrices for both
+# groups of SLG (i.e. one on the left- and the other one on the right-
+# hand side of the matrix ORDERSLG)
+
 ORDERSLGLRCompute <- function(nr, nc, ORDERSLG, tempMinGapLeft, tempMinGapRight, tempMaxGapLeft, tempMaxGapRight){
   ORDERSLGLeft <- matrix(nrow=nr,ncol=nc,0)
   ORDERSLGRight <- matrix(nrow=nr,ncol=nc,0)

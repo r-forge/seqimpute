@@ -67,8 +67,6 @@
 #' @importFrom utils txtProgressBar
 #'
 #' @export
-
-
 seqTrans <- function(OD, k, trans){
   
   impTrans <- trans

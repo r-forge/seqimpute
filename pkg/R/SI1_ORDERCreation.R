@@ -1,18 +1,17 @@
 # 1. File containing  functions used for analysis of OD and creation of the three ORDER matrices 
 # 
 #
-################################################################################
-#' Creation of matrix ORDER
-#'
-#' Coding of missing data in function of the length of the gap
-#' ORDER: matrix of the same size of OD giving the imputation order of each
-#' MD (0 for observed data and 1 for MD) --> there will be 1 everywhere there
-#' is MD and 0 everywhere else
-#' ORDER2: matrix of the same size of OD numbering MD into each gap (for
-#' example from 1 to 3 for a gap of length 3)
-#' ORDER3: matrix of the same size of OD replacing each MD by the length of
-#' the gap it belongs to.
-#'
+# ################################################################################Creation of matrix ORDER
+# 
+# Coding of missing data in function of the length of the gap
+# ORDER: matrix of the same size of OD giving the imputation order of each
+# MD (0 for observed data and 1 for MD) --> there will be 1 everywhere there
+# is MD and 0 everywhere else
+# ORDER2: matrix of the same size of OD numbering MD into each gap (for
+# example from 1 to 3 for a gap of length 3)
+# ORDER3: matrix of the same size of OD replacing each MD by the length of
+# the gap it belongs to.
+
 OrderCreation <- function(OD, nr, nc){
   # Creation of matrix ORDER
   ORDER <- matrix(0,nr,nc) # initialization of matrix ORDER with 0 everywhere
@@ -89,13 +88,12 @@ OrderCreation <- function(OD, nr, nc){
 }
 
 
+# 
+# ################################################################################Creation of Gapsize
+# 
+# Creation of vector InitGapSize (i.e. a vector containing the size of the
+# initial gaps of each line)
 
-################################################################################
-#' Creation of Gapsize
-#' 
-#' Creation of vector InitGapSize (i.e. a vector containing the size of the
-#' initial gaps of each line)
-#' 
 GapSizeCreation <- function(ORDER, nr, OrderWidth, OrderList){
   GapSize <- vector()
   for (i in 1:nr) {

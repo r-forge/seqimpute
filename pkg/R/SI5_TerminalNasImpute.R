@@ -2,8 +2,8 @@
 # 
 #
 ################################################################################
-#' Impute terminal NAs
-#'
+# Impute terminal NAs
+
 ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, ncot, totVt, nr, nc, ud, available, k, noise,num.trees,min.node.size,max.depth,timing) {
 
   # 5.1.-2. Creation of ORDERT -------------------------------------------------
@@ -28,8 +28,8 @@ ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, Ter
 
 
 ################################################################################
-#' Create EFORDT matrix
-#'
+# Create EFORDT matrix
+
 REFORDTCreation <- function(nr, nc, TermGapSize, MaxTermGapSize){
   # Creation of matrix ORDERT
   ORDERT <- matrix(0,nr,nc)
@@ -54,8 +54,8 @@ REFORDTCreation <- function(nr, nc, TermGapSize, MaxTermGapSize){
 
 
 ################################################################################
-#' Building of the data matrix CD for the computation of the model
-#'
+# Building of the data matrix CD for the computation of the model
+
 TerminalCDMatCreate <- function(CO, OD, COt, COtsample, pastDistrib,  npt, nr, nc, ncot, k){
   # For Terminal Gaps
   # we will impute single NA after single NA going from the
@@ -156,8 +156,8 @@ TerminalCDMatCreate <- function(CO, OD, COt, COtsample, pastDistrib,  npt, nr, n
 
 
 ################################################################################
-#'  Imputation of the terminal created model
-#'
+ # Imputation of the terminal created model
+
 TerminalCreatedModelImputation <- function(CO, OD, CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, reglog, k, npt, noise){
   # Conversion of ODi from data.frame to matrix
   ODi <- as.matrix(ODi)
