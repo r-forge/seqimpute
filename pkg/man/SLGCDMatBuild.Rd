@@ -18,7 +18,8 @@ SLGCDMatBuild(
   COtsample,
   pastDistrib,
   futureDistrib,
-  k
+  k,
+  timing
 )
 }
 \description{

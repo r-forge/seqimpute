@@ -25,7 +25,8 @@ ODiImputePF(
   noise,
   shift,
   MaxGap,
-  order
+  order,
+  timing
 )
 }
 \description{

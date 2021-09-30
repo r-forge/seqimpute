@@ -25,7 +25,8 @@ ImputingInitialNAs(
   noise,
   num.trees,
   min.node.size,
-  max.depth
+  max.depth,
+  timing
 )
 }
 \description{

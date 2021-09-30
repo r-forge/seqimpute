@@ -4,7 +4,18 @@
 \alias{ComputeModel}
 \title{Compute model with the chosen regression model}
 \usage{
-ComputeModel(CD, regr, tot_VI, npfi, k, num.trees, min.node.size, max.depth)
+ComputeModel(
+  CD,
+  regr,
+  tot_VI,
+  np,
+  nf,
+  k,
+  num.trees,
+  min.node.size,
+  max.depth,
+  timing
+)
 }
 \description{
 Compute model with the chosen regression model

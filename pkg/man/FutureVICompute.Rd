@@ -20,7 +20,8 @@ FutureVICompute(
   pastDistrib,
   futureDistrib,
   k,
-  nf
+  nf,
+  timing
 )
 }
 \description{

@@ -25,7 +25,8 @@ CreatedModelImputation(
   reglog,
   noise,
   shift,
-  MaxGap
+  MaxGap,
+  timing
 )
 }
 \description{

@@ -25,7 +25,8 @@ SLGCreatedModelImpute(
   futureDistrib,
   order,
   MaxGap,
-  shift
+  shift,
+  timing
 )
 }
 \description{

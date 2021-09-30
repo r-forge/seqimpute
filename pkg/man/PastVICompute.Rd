@@ -19,7 +19,8 @@ PastVICompute(
   COt,
   pastDistrib,
   futureDistrib,
-  k
+  k,
+  timing
 )
 }
 \description{

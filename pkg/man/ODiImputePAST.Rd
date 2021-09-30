@@ -22,7 +22,8 @@ ODiImputePAST(
   reglog,
   LOOKUP,
   regr,
-  noise
+  noise,
+  timing
 )
 }
 \description{

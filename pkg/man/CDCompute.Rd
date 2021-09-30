@@ -19,7 +19,8 @@ CDCompute(
   futureDistrib,
   ncot,
   nco,
-  k
+  k,
+  timing
 )
 }
 \description{

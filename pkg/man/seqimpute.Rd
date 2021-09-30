@@ -25,7 +25,8 @@ seqimpute(
   ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
-  max.depth = NULL
+  max.depth = NULL,
+  timing = FALSE
 )
 }
 \arguments{

@@ -21,7 +21,8 @@ PastFutureVICompute(
   futureDistrib,
   k,
   nf,
-  shift
+  shift,
+  timing
 )
 }
 \description{

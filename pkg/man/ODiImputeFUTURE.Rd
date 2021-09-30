@@ -22,7 +22,8 @@ ODiImputeFUTURE(
   reglog,
   LOOKUP,
   regr,
-  noise
+  noise,
+  timing
 )
 }
 \description{
