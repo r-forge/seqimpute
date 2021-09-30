@@ -14,7 +14,7 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
     # values are going to be imputed)
     print("j")
     # 3.1. Building of the data matrix CD for the computation of the model ----------------------------
-    CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, nco, k,timing)
+    CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing)
     print("jj")
     # 3.2. Computation of the model (Dealing with the LOCATIONS of imputation)-------------------------
     print("jjj")
@@ -35,7 +35,7 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
 ################################################################################
 # Building of the data matrix CD for the computation of the model
 
-CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, nco, k,timing){
+CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing){
   # Building of a data matrix for the computation of the
   # model
   ud <- nc-(MaxGap-order+np+nf)    # number of usable data

@@ -7,7 +7,6 @@
 seqimpute(
   OD,
   regr = "mlogit",
-  k,
   np = 1,
   nf = 0,
   nfi = 1,
@@ -33,8 +32,6 @@ seqimpute(
 \item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
 \item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).}
-
-\item{k}{\code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.}
 
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
@@ -120,7 +117,7 @@ Order of imputation of the gaps types:
 RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 
 # Run seqimpute with parallelisation
-RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2,parExec=TRUE)
+RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 }
 }
 \references{

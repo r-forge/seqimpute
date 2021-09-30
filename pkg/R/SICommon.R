@@ -1173,87 +1173,89 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
     reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
                    max.depth=max.depth)
     
-  }else if(regr=="glmnet"){# random forest proba fed to a multinomial model
-    
-    # Linking the package mlogit
-    
-    # By default, every column of CD are of class "numeric".
-    # Thus, there is no need to convert the columns
-    # containing the distribution data to class "numeric".
-    # Moreover the class of the covariates columns at the
-    # very end are ALREADY set correctly and we don't need
-    # to update them.
-    # On the other hand, the first columns of CD (1 up to
-    # 1+np+nf) have to be of class "factor" (because they
-    # are the columns containing our categorical
-    # data coming from OD).
-    
-    # Transformation of the first columns
-    # (i.e. the categorical values) of CD (column 1 up to
-    # column 1+np+nf) into factor
-    
-    CD <- CD[!is.na(CD$V1),]
-    if(timing==FALSE){
-      CD[,1] <- factor(CD[,1],levels=c(1:k))
-      CD[,(2:(1+npfi))] <- lapply(CD[,(2:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
-      
-      
-      # We drop the levels of the variables that do not appear. Not doing
-      # so create an error later on when the mlogit model is computed
-      # (due to the inversion of a matrix having only zeros in a given row)
-      for(n in 2:(1+npfi)){
-        CD[,n]<-droplevels(CD[,n])
-      }
-    }else{
-      CD[,1] <- factor(CD[,1],levels=c(1:k))
-      CD[,c(3:(2+npfi))] <- lapply(CD[,c(3:(2+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
-      
-      
-      # We drop the levels of the variables that do not appear. Not doing
-      # so create an error later on when the mlogit model is computed
-      # (due to the inversion of a matrix having only zeros in a given row)
-      for(n in c(3:(2+npfi))){
-        CD[,n]<-droplevels(CD[,n])
-      }
+  }else{
     }
-    
-    # Computation of the multinomial model
-    if(tot_VI==1){
-      # First case is evaluated aside
-      reglog <- mlogit(V1~0, data=NCD, reflevel="1")
-    }
-    
-    if(tot_VI>1){
-      # creation of "V2" ... "Vtot_VI" (to use them in the
-      # formula)
-      y <- CD[,1]
-      x <- model.matrix(V1~.,CD)[,-1]
-      #reglog <- mlogit(fmla, data=NCD, reflevel="1")
-      reglog <- try(glmnet(x=x,y=y,lambda=0,family="multinomial"))
-      if (class(reglog) == "try-error"){
-        warning(paste("/!\\ A simpler model was used at some point."))
-        if(timing==F){
-          if(np>0){
-            x<- CD[,1+np]
-          }else{
-            x <- CD[,2]
-            
-          }
-        }else{
-          if(np>0){
-            x <- CD[,2+np]
-          }else{
-            x <- CD[,3]
-          }
-        }
-        reglog <- try(glmnet(x=x,y=y,lambda=0))
-        if(class(reglog)=="try-error"){
-          fmla <- as.formula("V1~1")
-          reglog <- mlogit(fmla,data=NCD,reflevel="1")
-        }
-      }
-    }
-  }
+  # else if(regr=="glmnet"){# random forest proba fed to a multinomial model
+  #   
+  #   # Linking the package mlogit
+  #   
+  #   # By default, every column of CD are of class "numeric".
+  #   # Thus, there is no need to convert the columns
+  #   # containing the distribution data to class "numeric".
+  #   # Moreover the class of the covariates columns at the
+  #   # very end are ALREADY set correctly and we don't need
+  #   # to update them.
+  #   # On the other hand, the first columns of CD (1 up to
+  #   # 1+np+nf) have to be of class "factor" (because they
+  #   # are the columns containing our categorical
+  #   # data coming from OD).
+  #   
+  #   # Transformation of the first columns
+  #   # (i.e. the categorical values) of CD (column 1 up to
+  #   # column 1+np+nf) into factor
+  #   
+  #   CD <- CD[!is.na(CD$V1),]
+  #   if(timing==FALSE){
+  #     CD[,1] <- factor(CD[,1],levels=c(1:k))
+  #     CD[,(2:(1+npfi))] <- lapply(CD[,(2:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+  #     
+  #     
+  #     # We drop the levels of the variables that do not appear. Not doing
+  #     # so create an error later on when the mlogit model is computed
+  #     # (due to the inversion of a matrix having only zeros in a given row)
+  #     for(n in 2:(1+npfi)){
+  #       CD[,n]<-droplevels(CD[,n])
+  #     }
+  #   }else{
+  #     CD[,1] <- factor(CD[,1],levels=c(1:k))
+  #     CD[,c(3:(2+npfi))] <- lapply(CD[,c(3:(2+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+  #     
+  #     
+  #     # We drop the levels of the variables that do not appear. Not doing
+  #     # so create an error later on when the mlogit model is computed
+  #     # (due to the inversion of a matrix having only zeros in a given row)
+  #     for(n in c(3:(2+npfi))){
+  #       CD[,n]<-droplevels(CD[,n])
+  #     }
+  #   }
+  #   
+  #   # Computation of the multinomial model
+  #   if(tot_VI==1){
+  #     # First case is evaluated aside
+  #     reglog <- mlogit(V1~0, data=NCD, reflevel="1")
+  #   }
+  #   
+  #   if(tot_VI>1){
+  #     # creation of "V2" ... "Vtot_VI" (to use them in the
+  #     # formula)
+  #     y <- CD[,1]
+  #     x <- model.matrix(V1~.,CD)[,-1]
+  #     #reglog <- mlogit(fmla, data=NCD, reflevel="1")
+  #     reglog <- try(glmnet(x=x,y=y,lambda=0,family="multinomial"))
+  #     if (class(reglog) == "try-error"){
+  #       warning(paste("/!\\ A simpler model was used at some point."))
+  #       if(timing==F){
+  #         if(np>0){
+  #           x<- CD[,1+np]
+  #         }else{
+  #           x <- CD[,2]
+  #           
+  #         }
+  #       }else{
+  #         if(np>0){
+  #           x <- CD[,2+np]
+  #         }else{
+  #           x <- CD[,3]
+  #         }
+  #       }
+  #       reglog <- try(glmnet(x=x,y=y,lambda=0))
+  #       if(class(reglog)=="try-error"){
+  #         fmla <- as.formula("V1~1")
+  #         reglog <- mlogit(fmla,data=NCD,reflevel="1")
+  #       }
+  #     }
+  #   }
+  # }
   
   return(list(reglog, CD))
 }

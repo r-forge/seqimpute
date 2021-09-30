@@ -31,7 +31,7 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
 
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
   
-  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf") &(regr!="glmnet")) {
+  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf")) {
     stop("/!\\ regr defines the type of regression model you want to use.
                It has to be either assigned to character 'mlogit' (for multinomial
                regression),'lm' (for linear regression) or 'lrm' (for ordinal

@@ -32,7 +32,6 @@
 #'
 #' @param OD \code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).
 #' @param regr \code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).
-#' @param k \code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
 #' @param nfi \code{numeric} object corresponding to the number of future observations in the imputation model of the initial gaps (default \code{1}).
@@ -68,7 +67,7 @@
 #' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 #' 
 #' # Run seqimpute with parallelisation
-#' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2,parExec=TRUE)
+#' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 #' }
 #' @references HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and t1???1 ??+?1w?11q1?erminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
 #'
@@ -76,7 +75,7 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
+seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                       futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE
@@ -124,6 +123,7 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
   #
   # CO has to remain as a data frame!
   #***************************************************************************
+  k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
   
   rownamesDataset <- rownames(OD)
   nrowsDataset <- nrow(OD)

@@ -65,6 +65,8 @@
 #' 
 #' @importFrom utils setTxtProgressBar
 #' @importFrom utils txtProgressBar
+#' 
+#' @importFrom dplyr n_distinct
 #'
 #' @export
 seqTrans <- function(OD, k, trans){
