@@ -7,7 +7,6 @@
 #' In case of a factor dataset OD:
 #' RECODING of OD with numbers "1", "2", etc. instead of its "words"
 #'
-#' @export
 ImputeOrderComputation <- function(ORDER, ORDER3, MaxGap, np, nf, nr, nc){
   
   # 2.1. Model 1: use of previous and future observations ----------------------
@@ -52,7 +51,6 @@ ImputeOrderComputation <- function(ORDER, ORDER3, MaxGap, np, nf, nr, nc){
 ################################################################################
 #' Model 1: use of previous and future observations
 #'
-#' @export
 PrevAndFutCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap) {
   if (np>0 & nf>0){
     
@@ -110,7 +108,6 @@ PrevAndFutCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap) {
 ################################################################################
 #' Model 2: use of previous observations only
 #'
-#' @export
 PrevObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
   if (np>0 & nf==0){            # Verifying that we are in case of model 2
     for (i in 1:nr){          # Beginning from row 1, we will go row by
@@ -166,7 +163,6 @@ PrevObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
 ################################################################################
 #' Model 3: use of future observations only
 #'
-#' @export
 FutObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
   if (np==0 & nf>0){                  # Verifying that we are effectively
     # in case of model 3
@@ -236,7 +232,6 @@ FutObsCompute <- function(ORDER, ORDER3, np, nf, nr, nc, MaxGap){
 #' We will first impute internal gaps, external gaps and consider SLG at the 
 #' very end (as far as some SLG have been detected)
 #'
-#' @export
 ORDERSLGCreation <- function(ORDER, nr, nc, np, nf){
   # Initialization of matrix in which we will store the SLG
   ORDERSLG <- matrix(0,nrow=nr,ncol=nc)
@@ -314,7 +309,6 @@ ORDERSLGCreation <- function(ORDER, nr, nc, np, nf){
 #' groups of SLG (i.e. one on the left- and the other one on the right-
 #' hand side of the matrix ORDERSLG)
 #'
-#' @export
 ORDERSLGLRCompute <- function(nr, nc, ORDERSLG, tempMinGapLeft, tempMinGapRight, tempMaxGapLeft, tempMaxGapRight){
   ORDERSLGLeft <- matrix(nrow=nr,ncol=nc,0)
   ORDERSLGRight <- matrix(nrow=nr,ncol=nc,0)

@@ -4,7 +4,6 @@
 ################################################################################
 #' Impute data using a specific model
 #'
-#' @export
 ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,num.trees,min.node.size,max.depth,timing){
   
   for (order in 1:MaxGap){ 
@@ -36,7 +35,6 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
 ################################################################################
 #' Building of the data matrix CD for the computation of the model
 #'
-#' @export
 CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, nco, k,timing){
   # Building of a data matrix for the computation of the
   # model
@@ -129,7 +127,6 @@ CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pas
 ################################################################################
 #' Imputation using the just created model (Dealing with the actual VALUES to impute) 
 #'
-#' @export
 CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, reglog, noise, shift, MaxGap,timing){
   # Structure and building of the data matrix CDi
   # The first column of CDi is the dependent variable (VD,
@@ -204,7 +201,6 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
 ################################################################################
 #' Imputation where only FUTURE VIs exist
 #'
-#' @export
 ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing){
   for (u in 1:nr_REFORD){
     i <- REFORD[u,1]

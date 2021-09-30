@@ -60,6 +60,11 @@
 #' @importFrom mlr makeClassifTask
 #' 
 #' @importFrom ranger ranger
+#' 
+#' @importFrom stats model.matrix
+#' 
+#' @importFrom utils setTxtProgressBar
+#' @importFrom utils txtProgressBar
 #'
 #' @export
 

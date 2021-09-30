@@ -5,7 +5,6 @@
 #' In case of a factor dataset OD:
 #' RECODING of OD with numbers "1", "2", etc. instead of its "words"
 #'
-#' @export
 preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, k, pastDistrib, futureDistrib){
   
   dataOD <- list()
@@ -28,7 +27,6 @@ preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, k, pastDistrib, fut
 ################################################################################
 #' Initial tests and manipulations on parameters
 #'
-#' @export
 InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, nfi, npt, pastDistrib, futureDistrib, totV, totVi, totVt, noise){
 
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
@@ -154,7 +152,6 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
 ################################################################################
 #' Update the number of columns of a matrix
 #'
-#' @export
 emptyColUpdate <- function(x) {
   if (all(is.na(x))==FALSE) { # if CO is NOT completely empty
     return(ncol(x))
@@ -169,7 +166,6 @@ emptyColUpdate <- function(x) {
 #' Deleting entire rows of OD filled only with NAs
 #' (and deleting corresponding lines in CO and COt)
 #'
-#' @export
 deleteNaRows <- function(OD, CO, COt) {
   rowsNA <- c()
   for(i in 1:nrow(OD)) {
@@ -199,7 +195,6 @@ deleteNaRows <- function(OD, CO, COt) {
 #' Definition of the number of rows and columns in OD
 #' (And eventually update of nr)
 #'
-#' @export
 defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistrib, futureDistrib) {
   
   nr <- nrow(OD)
@@ -239,7 +234,6 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
 #' In case of a factor dataset OD:
 #' RECODING of OD with numbers "1", "2", etc. instead of its "words"
 #'
-#' @export
 factorAndMatrixChecks <- function(OD, nc, k) { 
   ODClass <- class(OD[1,1])
   #*************************************

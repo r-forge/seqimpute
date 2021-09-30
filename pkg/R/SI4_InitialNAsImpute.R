@@ -4,7 +4,6 @@
 ################################################################################
 #' Impute initial NAs
 #'
-#' @export
 ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth,timing){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
@@ -27,7 +26,6 @@ ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib
 ################################################################################
 #' Create ORDERI matrix
 #'
-#' @export
 REFORDICreation <- function(nr, nc, InitGapSize, MaxInitGapSize){
   # Creation of matrix ORDERI
   ORDERI <- matrix(0,nr,nc)
@@ -54,7 +52,6 @@ REFORDICreation <- function(nr, nc, InitGapSize, MaxInitGapSize){
 ################################################################################
 #' Building of the data matrix CD for the computation of the model
 #'
-#' @export
 CDMatCreate <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureDistrib, k){
   # For Initial Gaps
   # we will impute single NA after single NA going from the
@@ -161,7 +158,6 @@ CDMatCreate <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureDistrib
 ################################################################################
 #' Imputation using the just created model (Dealing with the actual VALUES to impute)
 #'
-#' @export
 Init_NA_CreatedModelImputation <- function(OD, ODi, CO, CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, reglog, noise, available){
   # Conversion of ODi from data.frame to matrix
   ODi <- as.matrix(ODi)

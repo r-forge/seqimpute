@@ -3,7 +3,6 @@
 ################################################################################
 # X - Final conversions
 ################################################################################
-#' @export
 FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrowsDataset, nr, nc, rowsNA, include, mi, mice.return){
 
  

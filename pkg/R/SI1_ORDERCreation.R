@@ -13,7 +13,6 @@
 #' ORDER3: matrix of the same size of OD replacing each MD by the length of
 #' the gap it belongs to.
 #'
-#' @export
 OrderCreation <- function(OD, nr, nc){
   # Creation of matrix ORDER
   ORDER <- matrix(0,nr,nc) # initialization of matrix ORDER with 0 everywhere
@@ -97,7 +96,6 @@ OrderCreation <- function(OD, nr, nc){
 #' Creation of vector InitGapSize (i.e. a vector containing the size of the
 #' initial gaps of each line)
 #' 
-#' @export
 GapSizeCreation <- function(ORDER, nr, OrderWidth, OrderList){
   GapSize <- vector()
   for (i in 1:nr) {
