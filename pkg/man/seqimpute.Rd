@@ -72,6 +72,8 @@ dataset should be included or not. This parameter does not apply if \code{mice.r
 \item{min.node.size}{\code{interger} Random forest parameter setting the minimum node size for each random forest model.}
 
 \item{max.depth}{\code{interger} Random forest parameter setting the maximal depth tree for each random forest model.}
+
+\item{timing}{\code{logical} setting if the place of occurence of the missing data should be added or not in the imputation model.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}

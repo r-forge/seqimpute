@@ -52,6 +52,7 @@
 #' @param num.trees \code{integer} Random forest parameter setting the number of trees of each random forest model.
 #' @param min.node.size \code{interger} Random forest parameter setting the minimum node size for each random forest model.
 #' @param max.depth \code{interger} Random forest parameter setting the maximal depth tree for each random forest model.
+#' @param timing \code{logical} setting if the place of occurence of the missing data should be added or not in the imputation model.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 #'
@@ -120,7 +121,6 @@ seqimpute <- function(OD, regr="mlogit", k, np=1, nf=0, nfi=1, npt=1,
   #
   # CO has to remain as a data frame!
   #***************************************************************************
-  
   
   rownamesDataset <- rownames(OD)
   nrowsDataset <- nrow(OD)

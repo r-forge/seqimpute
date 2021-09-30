@@ -29,4 +29,6 @@ Imports:
     doParallel,
     future,
     doRNG,
-    doSNOW
+    doSNOW,
+    ranger,
+    mlr
