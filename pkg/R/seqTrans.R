@@ -18,7 +18,6 @@
 #'
 #' seqTransList <- seqTrans(OD=OD, k=2, trans=c("yes->no"))
 #'
-#' @keywords multinomial logistic regression, linear regression, ordinal regression, missing data, impossible transitions
 #' 
 #' @importFrom stringr str_count
 #' @importFrom stringr str_detect

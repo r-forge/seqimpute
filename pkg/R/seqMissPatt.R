@@ -25,7 +25,6 @@
 #'
 #' seqMissPatt(OD=OD, k=2, numbOfMostFreqSeq=5, pbarw=TRUE, clustNumb=3)
 #'
-#' @keywords multinomial logistic regression, linear regression, ordinal regression, missing data, missing patterns
 #'
 #' @export
 

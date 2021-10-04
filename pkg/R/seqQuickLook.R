@@ -22,8 +22,6 @@
 #'
 #' seqQuickLook(OD=OD, k=2, np=1, nf=0)
 #'
-#' @keywords multinomial logistic regression, linear regression, ordinal regression, missing data, missing patterns
-#'
 #' @export
 
 

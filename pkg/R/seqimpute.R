@@ -71,8 +71,6 @@
 #' }
 #' @references HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and t1???1 ??+?1w?11q1?erminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
 #'
-#' @keywords multinomial logistic regression, missing data, missing patterns
-#'
 #' 
 #' @export
 seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,

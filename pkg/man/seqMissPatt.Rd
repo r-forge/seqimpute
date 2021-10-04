@@ -36,15 +36,8 @@ data(OD)
 
 seqMissPatt(OD=OD, k=2, numbOfMostFreqSeq=5, pbarw=TRUE, clustNumb=3)
 
+
 }
 \author{
 Andre Berchtold <andre.berchtold@unil.ch>
 }
-\keyword{data,}
-\keyword{linear}
-\keyword{logistic}
-\keyword{missing}
-\keyword{multinomial}
-\keyword{ordinal}
-\keyword{patterns}
-\keyword{regression,}

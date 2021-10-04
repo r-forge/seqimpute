@@ -126,9 +126,8 @@ HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and 
 \author{
 Andre Berchtold <andre.berchtold@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 }
-\keyword{data,}
+\keyword{data,missing}
 \keyword{logistic}
-\keyword{missing}
 \keyword{multinomial}
 \keyword{patterns}
-\keyword{regression,}
+\keyword{regression,missing}
