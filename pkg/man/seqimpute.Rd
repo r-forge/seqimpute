@@ -24,8 +24,7 @@ seqimpute(
   ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
-  max.depth = NULL,
-  timing = FALSE
+  max.depth = NULL
 )
 }
 \arguments{
@@ -53,7 +52,7 @@ seqimpute(
 
 \item{mi}{\code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).}
 
-\item{mice.return}{If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice}, is returned.}
+\item{mice.return}{If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice} package, is returned.}
 
 \item{include}{\code{logical} object that determines, in the case where a \code{data.frame} is returnes, if the original
 dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}

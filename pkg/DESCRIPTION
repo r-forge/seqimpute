@@ -5,7 +5,7 @@ Version: 1.2.4
 Author: Andre Berchtold, Anthony Guinchard, Kevin Emery, Kamyar Taher
 Date: 2021-10-04
 Maintainer: Andre Berchtold <andre.berchtold@unil.ch>
-Description: Imputation of missing data present in a data set through the prediction based on either a multinomial, a random forest, a linear or an ordinal regression model. Covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the theory of Prof. Brendan Halpin.
+Description: Imputation of missing data present in a dataset through the prediction based on either a random forest or a multinomial, a linear or an ordinal regression model. Covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the theory of Prof. Brendan Halpin.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

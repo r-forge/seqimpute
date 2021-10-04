@@ -41,7 +41,7 @@
 #' @param pastDistrib \code{logical} object allowing to take account of the past distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param futureDistrib \code{logical} object allowing to take account of the future distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param mi \code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).
-#' @param mice.return If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice}, is returned. 
+#' @param mice.return If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice} package, is returned. 
 #' @param include \code{logical} object that determines, in the case where a \code{data.frame} is returnes, if the original
 #' dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.
 #' @param noise \code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).
@@ -76,7 +76,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                       futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE
-                      ,num.trees=10,min.node.size=NULL,max.depth=NULL,timing=FALSE) {
+                      ,num.trees=10,min.node.size=NULL,max.depth=NULL) {
   
   # test
   # Selecting the columns of CO the user finally wants to use in his model
