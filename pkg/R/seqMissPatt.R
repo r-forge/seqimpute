@@ -4,7 +4,6 @@
 #' patterns among the dataset especially thanks to the package \code{TraMineR}.
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
-#' @param k \code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.
 #' @param numbOfMostFreqSeq \code{numeric} object defining the number of most frequent sequences \code{TraMineR} plots are going to display (default \code{10}).
 #' @param pbarw \code{logical} object making the width of the bars of the \code{TraMineR} plots proportional to the sequence frequency in the dataset if \code{pbarw=TRUE} (default \code{FALSE}).
 #' @param clustNumb \code{numeric} object corresponding to the number of clusters used to characterize the original dataset \code{OD} (default \code{3}) (min value: \code{2}, max value: \code{9}).

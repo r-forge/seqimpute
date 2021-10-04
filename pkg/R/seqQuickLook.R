@@ -7,7 +7,6 @@
 #' for the values of \code{np} and \code{nf}.
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
-#' @param k \code{numeric} object corresponding to the number of categories of the variable numbered from \code{1} to \code{k}.
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
 #'

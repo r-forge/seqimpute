@@ -14,8 +14,6 @@ seqMissPatt(OD, numbOfMostFreqSeq = 10, pbarw = FALSE, clustNumb = 3)
 \item{pbarw}{\code{logical} object making the width of the bars of the \code{TraMineR} plots proportional to the sequence frequency in the dataset if \code{pbarw=TRUE} (default \code{FALSE}).}
 
 \item{clustNumb}{\code{numeric} object corresponding to the number of clusters used to characterize the original dataset \code{OD} (default \code{3}) (min value: \code{2}, max value: \code{9}).}
-
-\item{k}{\code{numeric} object corresponding to the number of categories of the multinomial variable numbered from \code{1} to \code{k}.}
 }
 \value{
 Various plots indexing the missing patterns among the binary matrix

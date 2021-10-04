@@ -4,7 +4,6 @@
 #' in a dataset. 
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
-#' @param k \code{numeric} object corresponding to the number of categories of the variable numbered from \code{1} to \code{k}.
 #' @param trans \code{character} vector gathering the desired transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")
 #'
 #' @author Andre Berchtold <andre.berchtold@@unil.ch>, Kevin Emery
