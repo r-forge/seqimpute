@@ -1,9 +1,8 @@
 #' Imputation of missing data in sequence analysis
 #'
 #' Imputation of missing data present in a dataset through the prediction based
-#' on either a multinomial, a linear or an ordinal regression model.
-#' In order to specify even more the prediction, fixed as well as time-dependant
-#' covariates be included in the model.
+#' on either a random forest or a multinomial, a linear or an ordinal regression model.
+#' Covariates and time-dependant covariates can be included in the model.
 #' The prediction of the missing values is based on the theory of Prof. Brendan
 #' Halpin. It considers a various amount of surrounding available information to
 #' perform the prediction process.
@@ -51,7 +50,6 @@
 #' @param num.trees \code{integer} Random forest parameter setting the number of trees of each random forest model.
 #' @param min.node.size \code{interger} Random forest parameter setting the minimum node size for each random forest model.
 #' @param max.depth \code{interger} Random forest parameter setting the maximal depth tree for each random forest model.
-#' @param timing \code{logical} setting if the place of occurence of the missing data should be added or not in the imputation model.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 #'
@@ -69,7 +67,8 @@
 #' # Run seqimpute with parallelisation
 #' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 #' }
-#' @references HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and t1???1 ??+?1w?11q1?erminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
+#' @references HALPIN, Brendan (2012). Multiple imputation for life-course sequence data. Working Paper WP2012-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3639.
+#' @references HALPIN, Brendan (2013). Imputing sequence data: Extensions to initial and terminal gaps, Stata's. Working Paper WP2013-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3620
 #'
 #' 
 #' @export
@@ -121,6 +120,9 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
   #
   # CO has to remain as a data frame!
   #***************************************************************************
+  
+  timing <- FALSE
+  
   k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
   
   rownamesDataset <- rownames(OD)
