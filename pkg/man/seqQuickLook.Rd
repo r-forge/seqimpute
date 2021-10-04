@@ -30,17 +30,9 @@ for the values of \code{np} and \code{nf}.
 \examples{
 data(OD)
 
-seqQuickLook(OD=OD, k=2, np=1, nf=0)
+seqQuickLook(OD=OD, np=1, nf=0)
 
 }
 \author{
 Andre Berchtold <andre.berchtold@unil.ch>
 }
-\keyword{data,}
-\keyword{linear}
-\keyword{logistic}
-\keyword{missing}
-\keyword{multinomial}
-\keyword{ordinal}
-\keyword{patterns}
-\keyword{regression,}

@@ -20,7 +20,7 @@
 #' @examples
 #' data(OD)
 #'
-#' seqQuickLook(OD=OD, k=2, np=1, nf=0)
+#' seqQuickLook(OD=OD, np=1, nf=0)
 #'
 #' @export
 

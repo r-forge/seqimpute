@@ -16,7 +16,7 @@
 #' @examples
 #' data(OD)
 #'
-#' seqTransList <- seqTrans(OD=OD, k=2, trans=c("yes->no"))
+#' seqTransList <- seqTrans(OD=OD, trans=c("yes->no"))
 #'
 #' 
 #' @importFrom stringr str_count
@@ -66,6 +66,9 @@
 #' @importFrom utils txtProgressBar
 #' 
 #' @importFrom dplyr n_distinct
+#' 
+#' @importFrom foreach foreach
+#' @importFrom foreach %dopar%
 #'
 #' @export
 seqTrans <- function(OD, k, trans){

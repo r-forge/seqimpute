@@ -114,10 +114,10 @@ Order of imputation of the gaps types:
 \examples{
 \dontrun{
 # Run seqimpute without parallelisation
-RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
+RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 
 # Run seqimpute with parallelisation
-RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
+RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 }
 }
 \references{
@@ -126,8 +126,3 @@ HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and 
 \author{
 Andre Berchtold <andre.berchtold@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 }
-\keyword{data,missing}
-\keyword{logistic}
-\keyword{multinomial}
-\keyword{patterns}
-\keyword{regression,missing}

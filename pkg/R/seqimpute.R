@@ -64,10 +64,10 @@
 #' @examples
 #' \dontrun{
 #' # Run seqimpute without parallelisation
-#' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 #' 
 #' # Run seqimpute with parallelisation
-#' RESULT <- seqimpute(OD=OD, k=2, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 #' }
 #' @references HALPIN, Brendan, March 2013. Imputing Sequence Data : Extensions to initial and t1???1 ??+?1w?11q1?erminal gaps, Stata's mi. Unviversity of Limerick Department of Sociology Working Paper Series. Working Paper WP2013-01, p.3. Available at : http://www.ul.ie/sociology/pubs/wp2013-01.pdf
 #'
@@ -224,7 +224,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
         if (max(dataOD$ORDERSLGLeft)!=0) {
           # Checking if we have to impute
           # left-hand side SLG
-          dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+          dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
           
         }
         print("zzzzz")
@@ -232,7 +232,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
         if (max(dataOD$ORDERSLGRight)!=0) {
           # Checking if we have to impute right-hand
           # side SLG
-          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
           
         }
         print("zzzzzz")

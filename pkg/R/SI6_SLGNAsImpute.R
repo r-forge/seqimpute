@@ -4,7 +4,7 @@
 ################################################################################
 # Left-hand side SLG imputation
 
-LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){     # Checking if we have to impute
+LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){     # Checking if we have to impute
   # left-hand side SLG
   
   warning("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
@@ -55,7 +55,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
       # for the computation of the model for every SLG
       # on the left-hand side of OD
       for (order in 1:ParamList$MaxGap) {
-        ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing)
+        ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing)
         print("kk")                
         # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         print("kkk")
@@ -77,7 +77,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLG, pastDistrib, futureD
 ##############################################################################
 #Right-hand side SLG imputation
 
-RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){
+RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth,timing){
   # Checking if we have to impute right-hand
   # side SLG
   
@@ -129,7 +129,7 @@ RSLGNAsImpute <- function(OD, ODi, CO, COtsample, ORDERSLGRight, pastDistrib, fu
         # 6.3.1.RIGHT Building of the different data matrices CD ---------------
         # for the computation of the model for every SLG
         # on the right-hand side of OD
-        ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, OD, ODt, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k,timing)
+        ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k,timing)
 
         # 6.3.2.RIGHT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         log_CD <- list()
@@ -242,7 +242,7 @@ SLGMatrixRight_temp <- function(nr, nc, np, h, ORDERSLGRight, nco, ncot, pastDis
 ################################################################################
 # Compute the CD matrix for SLG
 
-SLGCDMatBuild <- function(CO, OD, ODt, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing){
+SLGCDMatBuild <- function(CO,COt, OD, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing){
   # Building of a data matrix for the computation
   # of the model
 

@@ -27,18 +27,10 @@ in a dataset.
 \examples{
 data(OD)
 
-seqTransList <- seqTrans(OD=OD, k=2, trans=c("yes->no"))
+seqTransList <- seqTrans(OD=OD, trans=c("yes->no"))
+
 
 }
 \author{
 Andre Berchtold <andre.berchtold@unil.ch>, Kevin Emery
 }
-\keyword{data,}
-\keyword{impossible}
-\keyword{linear}
-\keyword{logistic}
-\keyword{missing}
-\keyword{multinomial}
-\keyword{ordinal}
-\keyword{regression,}
-\keyword{transitions}
