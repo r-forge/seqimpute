@@ -29,9 +29,11 @@
 #' @export
 
 
-seqMissPatt <- function(OD, k, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
+seqMissPatt <- function(OD, numbOfMostFreqSeq=10, pbarw=FALSE, clustNumb=3) {
 
-# test
+
+    k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
+    
 
     nr <- nrow(OD)
     nc <- ncol(OD)

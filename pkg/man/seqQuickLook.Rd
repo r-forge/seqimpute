@@ -4,16 +4,16 @@
 \alias{seqQuickLook}
 \title{Numbering NAs and types of gaps among a dataset}
 \usage{
-seqQuickLook(OD, k, np = 1, nf = 0)
+seqQuickLook(OD, np = 1, nf = 0)
 }
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).}
 
-\item{k}{\code{numeric} object corresponding to the number of categories of the variable numbered from \code{1} to \code{k}.}
-
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
 \item{nf}{\code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).}
+
+\item{k}{\code{numeric} object corresponding to the number of categories of the variable numbered from \code{1} to \code{k}.}
 }
 \value{
 It returns a message containing the MDGapsChart \code{data.frame} object that summarizes the number and the

@@ -71,7 +71,9 @@
 #' @importFrom foreach %dopar%
 #'
 #' @export
-seqTrans <- function(OD, k, trans){
+seqTrans <- function(OD, trans){
+  
+  k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
   
   impTrans <- trans
   # Naming the number of rows and columns of OD

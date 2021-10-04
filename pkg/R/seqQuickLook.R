@@ -25,9 +25,10 @@
 #' @export
 
 
-seqQuickLook <- function(OD, k, np=1, nf=0) {
+seqQuickLook <- function(OD, np=1, nf=0) {
 
-#test
+
+    k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
 
 
 
