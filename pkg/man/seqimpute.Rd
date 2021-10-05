@@ -30,7 +30,7 @@ seqimpute(
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
-\item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).}
+\item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).}
 
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
@@ -78,7 +78,7 @@ the rownames of the dataset to impute.
 }
 \description{
 Imputation of missing data present in a dataset through the prediction based
-on either a random forest or a multinomial, a linear or an ordinal regression model.
+on either a multinomial or a random forest regression model.
 Covariates and time-dependant covariates can be included in the model.
 The prediction of the missing values is based on the theory of Prof. Brendan
 Halpin. It considers a various amount of surrounding available information to
@@ -109,10 +109,10 @@ Order of imputation of the gaps types:
 }
 \examples{
 \dontrun{
-# Run seqimpute without parallelisation
+# Seqimpute used without parallelisation
 RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 
-# Run seqimpute with parallelisation
+# Seqimpute used with parallelisation
 RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 }
 }

@@ -1,7 +1,7 @@
 #' Imputation of missing data in sequence analysis
 #'
 #' Imputation of missing data present in a dataset through the prediction based
-#' on either a random forest or a multinomial, a linear or an ordinal regression model.
+#' on either a multinomial or a random forest regression model.
 #' Covariates and time-dependant covariates can be included in the model.
 #' The prediction of the missing values is based on the theory of Prof. Brendan
 #' Halpin. It considers a various amount of surrounding available information to
@@ -30,7 +30,7 @@
 #'     5. Right-hand side SLG
 #'
 #' @param OD \code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).
-#' @param regr \code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}", linear with "\code{lm}", ordinal with "\code{lrm}" or randomForest with "\code{rf}") (default \code{mlogit}).
+#' @param regr \code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
 #' @param nfi \code{numeric} object corresponding to the number of future observations in the imputation model of the initial gaps (default \code{1}).
@@ -61,10 +61,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Run seqimpute without parallelisation
+#' # Seqimpute used without parallelisation
 #' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
 #' 
-#' # Run seqimpute with parallelisation
+#' # Seqimpute used with parallelisation
 #' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
 #' }
 #' @references HALPIN, Brendan (2012). Multiple imputation for life-course sequence data. Working Paper WP2012-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3639.
