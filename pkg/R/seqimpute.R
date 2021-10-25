@@ -122,8 +122,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
   # CO has to remain as a data frame!
   #***************************************************************************
   
-  timing <- FALSE
-  
+
   k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
   
   rownamesDataset <- rownames(OD)
