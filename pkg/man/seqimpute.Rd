@@ -24,13 +24,14 @@ seqimpute(
   ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
-  max.depth = NULL
+  max.depth = NULL,
+  timing = F
 )
 }
 \arguments{
-\item{OD}{\code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
+\item{OD}{a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
-\item{regr}{\code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).}
+\item{regr}{a character corresponding to the type of regression model the user want to use for the imputation. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).}
 
 \item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
@@ -40,11 +41,11 @@ seqimpute(
 
 \item{npt}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the terminal gaps (default \code{1}).}
 
-\item{available}{\code{logical} object allowing the user to choose whether to consider the already imputed data in our predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).}
+\item{available}{a logical value allowing the user to choose whether to consider the already imputed data in our predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).}
 
-\item{CO}{\code{data.frame} object containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
+\item{CO}{a data frame containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
 
-\item{COt}{\code{data.frame} object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
+\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
 
 \item{pastDistrib}{\code{logical} object allowing to take account of the past distribution in the multinomial logistic regression model or not (default \code{FALSE}).}
 
@@ -68,6 +69,8 @@ dataset should be included or not. This parameter does not apply if \code{mice.r
 \item{min.node.size}{\code{interger} Random forest parameter setting the minimum node size for each random forest model.}
 
 \item{max.depth}{\code{interger} Random forest parameter setting the maximal depth tree for each random forest model.}
+
+\item{timing}{\code{logical} indicating whether the place of occurence of the missing data should be added in the imputation model.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
@@ -77,7 +80,7 @@ two columns are added: \code{.imp} integer that refers to the imputation number
 the rownames of the dataset to impute.
 }
 \description{
-Imputation of missing data present in a dataset through the prediction based
+Multiple imputation of missing data present in a dataset through the prediction based
 on either a multinomial or a random forest regression model.
 Covariates and time-dependant covariates can be included in the model.
 The prediction of the missing values is based on the theory of Prof. Brendan

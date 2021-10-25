@@ -1,6 +1,6 @@
 #' Imputation of missing data in sequence analysis
 #'
-#' Imputation of missing data present in a dataset through the prediction based
+#' Multiple imputation of missing data present in a dataset through the prediction based
 #' on either a multinomial or a random forest regression model.
 #' Covariates and time-dependant covariates can be included in the model.
 #' The prediction of the missing values is based on the theory of Prof. Brendan
@@ -29,15 +29,15 @@
 #'     4. Left-hand side SLG
 #'     5. Right-hand side SLG
 #'
-#' @param OD \code{matrix} object containing sequences of a multinomial variable with missing data (coded as \code{NA}).
-#' @param regr \code{character} object corresponding to the type of regression model the user want to use to compute. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).
+#' @param OD a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}).
+#' @param regr a character corresponding to the type of regression model the user want to use for the imputation. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
 #' @param nfi \code{numeric} object corresponding to the number of future observations in the imputation model of the initial gaps (default \code{1}).
 #' @param npt \code{numeric} object corresponding to the number of previous observations in the imputation model of the terminal gaps (default \code{1}).
-#' @param available \code{logical} object allowing the user to choose whether to consider the already imputed data in our predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).
-#' @param CO \code{data.frame} object containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).
-#' @param COt \code{data.frame} object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).
+#' @param available a logical value allowing the user to choose whether to consider the already imputed data in our predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).
+#' @param CO a data frame containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).
+#' @param COt a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).
 #' @param pastDistrib \code{logical} object allowing to take account of the past distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param futureDistrib \code{logical} object allowing to take account of the future distribution in the multinomial logistic regression model or not (default \code{FALSE}).
 #' @param mi \code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).
@@ -50,6 +50,7 @@
 #' @param num.trees \code{integer} Random forest parameter setting the number of trees of each random forest model.
 #' @param min.node.size \code{interger} Random forest parameter setting the minimum node size for each random forest model.
 #' @param max.depth \code{interger} Random forest parameter setting the maximal depth tree for each random forest model.
+#' @param timing \code{logical} indicating whether the place of occurence of the missing data should be added in the imputation model.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 #'
@@ -76,7 +77,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                       futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE
-                      ,num.trees=10,min.node.size=NULL,max.depth=NULL) {
+                      ,num.trees=10,min.node.size=NULL,max.depth=NULL,timing=F) {
   
   # test
   # Selecting the columns of CO the user finally wants to use in his model
@@ -247,7 +248,7 @@ seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
               tt <- which(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)
               tmpORDER <- matrix(0,nrow(dataOD$ORDERSLGBoth),ncol(dataOD$ORDERSLGBoth))
               tmpORDER[tt,h:ncol(dataOD$ORDERSLGBoth)] <- dataOD$ORDERSLGBoth[tt,h:ncol(dataOD$ORDERSLGBoth)]
-              dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
+              dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt,dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
               
             }
           }
