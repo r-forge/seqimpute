@@ -31,46 +31,50 @@ seqimpute(
 \arguments{
 \item{OD}{a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
 
-\item{regr}{a character corresponding to the type of regression model the user want to use for the imputation. The prediction (either multinomial with "\code{mlogit}" or randomForest with "\code{rf}") (default \code{mlogit}).}
+\item{regr}{a character specifying the imputation method. If \code{regr="mlogit"}, multinomial models are used,
+while if \code{regr="rf"}, random forest models are used.}
 
-\item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
+\item{np}{number of previous observations in the imputation model of the internal gaps (default \code{1}).}
 
-\item{nf}{\code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).}
+\item{nf}{number of future observations in the imputation model of the internal gaps (default \code{0}).}
 
-\item{nfi}{\code{numeric} object corresponding to the number of future observations in the imputation model of the initial gaps (default \code{1}).}
+\item{nfi}{number of future observations in the imputation model of the initial gaps (default \code{1}).}
 
-\item{npt}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the terminal gaps (default \code{1}).}
+\item{npt}{number of previous observations in the imputation model of the terminal gaps (default \code{1}).}
 
-\item{available}{a logical value allowing the user to choose whether to consider the already imputed data in our predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).}
+\item{available}{a logical value allowing the user to choose whether to consider the already imputed data in the predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).}
 
 \item{CO}{a data frame containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
 
 \item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
 
-\item{pastDistrib}{\code{logical} object allowing to take account of the past distribution in the multinomial logistic regression model or not (default \code{FALSE}).}
+\item{pastDistrib}{a logical indicating if the past distribution should be used as predictor in the imputation model (default \code{FALSE}).}
 
-\item{futureDistrib}{\code{logical} object allowing to take account of the future distribution in the multinomial logistic regression model or not (default \code{FALSE}).}
+\item{futureDistrib}{a logical indicating if the futur distribution should be used as predictor in the imputation model (default \code{FALSE}).}
 
-\item{mi}{\code{numeric} object corresponding to the number of imputations the program is going to perform (default: \code{1}).}
+\item{mi}{number of multiple imputations  (default: \code{1}).}
 
-\item{mice.return}{If \code{TRUE}, an object of class \code{mids}, that can be directly used by the \code{mice} package, is returned.}
+\item{mice.return}{a logical indicating whether an object of class \code{mids}, that can be directly used by the \code{mice} package, should be returned
+by the algorithm. By default, a data frame with the imputed datasets stacked vertically is returned.}
 
-\item{include}{\code{logical} object that determines, in the case where a \code{data.frame} is returnes, if the original
+\item{include}{logical. If a dataframe is returned (\code{mice.return = FALSE}), indicates if the original
 dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
 
-\item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).}
+\item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model 
+(by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).}
 
-\item{SetRNGSeed}{\code{numeric} This parameter allows for setting RNG seed. Putting a \code{set.seed()} alone before SequImpute function won't work if it is using parallel computation.}
+\item{SetRNGSeed}{an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
+of parallel computation.}
 
-\item{ParExec}{\code{logical} Execute the mi imputation using multicore processing if \code{ParExec=TRUE}. This allows faster run time depending of how many core the processor has. Set \code{ParExec=FALSE} if the processor has 2 or less core.}
+\item{ParExec}{logical. If \code{TRUE}, the algorithm is ran in parallel. This allows faster run time depending of how many core the processor has.}
 
-\item{num.trees}{\code{integer} Random forest parameter setting the number of trees of each random forest model.}
+\item{num.trees}{random forest parameter setting the number of trees of each random forest model.}
 
-\item{min.node.size}{\code{interger} Random forest parameter setting the minimum node size for each random forest model.}
+\item{min.node.size}{random forest parameter setting the minimum node size for each random forest model.}
 
-\item{max.depth}{\code{interger} Random forest parameter setting the maximal depth tree for each random forest model.}
+\item{max.depth}{random forest parameter setting the maximal depth tree for each random forest model.}
 
-\item{timing}{\code{logical} indicating whether the place of occurence of the missing data should be added in the imputation model.}
+\item{timing}{a logical indicating whether the place of occurrence of the missing data should be added in the imputation model.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
@@ -99,9 +103,14 @@ The imputation process is divided into several steps. According to the location 
 
 - Terminal Gaps (gaps situaed at the very end of a sequence)
 
-- Left-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]})
+- Left-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
+but the ending location is not included in the interval \code{[ncol(OD)-nf,ncol(OD)]})
 
-- Right-hand side SLG (Specially Located Gaps) (gaps of which the ending location is included in the interval \code{[ncol(OD)-nf,ncol(OD)]})
+- Right-hand side SLG (Specially Located Gaps) (gaps of which the ending location is included in the interval \code{[ncol(OD)-nf,ncol(OD)]} 
+but the beginning location is not included in the interval \code{[0,np]})
+
+- Both-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
+and the ending location is included in the interval \code{[ncol(OD)-nf,ncol(OD)]} )
 
 Order of imputation of the gaps types:
     1. Internal Gaps
@@ -109,14 +118,15 @@ Order of imputation of the gaps types:
     3. Terminal Gaps
     4. Left-hand side SLG
     5. Right-hand side SLG
+    6. Both-hand side SLG
 }
 \examples{
 \dontrun{
-# Seqimpute used without parallelisation
-RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2)
+# Default single imputation
+RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
 
 # Seqimpute used with parallelisation
-RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, CO=CO, COt=COt, mi=2, ParExec=TRUE)
+RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17)
 }
 }
 \references{

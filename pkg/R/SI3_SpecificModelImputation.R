@@ -12,20 +12,15 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
     # values of the components of ORDER (i.e. the number
     # of the iteration, the order in which the
     # values are going to be imputed)
-    print("j")
     # 3.1. Building of the data matrix CD for the computation of the model ----------------------------
     CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing)
-    print("jj")
     # 3.2. Computation of the model (Dealing with the LOCATIONS of imputation)-------------------------
-    print("jjj")
     log_CD <- list()
     log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,num.trees,min.node.size,max.depth,timing)
     
-    print("jjjj")
     # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
     ODi <- CreatedModelImputation(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap,timing)
-    print("jjjjj")
-  
+
   } 
   return(ODi)
 }
@@ -189,7 +184,6 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
   } else { # meaning np>0 and nf>0 and that,
     # thus, PAST as well as FUTURE VIs
     # do exist
-    print("h")
     ODi <- ODiImputePF(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order,timing)
     
   }

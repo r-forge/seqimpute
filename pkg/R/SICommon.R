@@ -60,17 +60,17 @@ REFORDInit <- function(ORDER, nr, nc){
   
   # Return the matrix of coordinates of value of ORDER bigger than 0
   non_zero <- which(ORDER > 0, arr.ind = TRUE)
-  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2] <= nc),]
+  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2] <= nc),,drop=F]
   # Updating ORDER so that it becomes a matrix with positive
   # values going from 1 to MaxGap
   ORDER[non_zero] <- ORDER[non_zero] - (min(ORDER[ORDER!=0]) - 1)
   
   # Collecting the coordinates for each value of "order"
-  non_zero <- non_zero[order(non_zero[,1]),]
+  non_zero <- non_zero[order(non_zero[,1]),,drop=F]
   ord_cord <- ORDER[non_zero]
   
   for (i in 1:MaxGap) {
-    REFORD_L[[i]] <- non_zero[which(ord_cord == i),]
+    REFORD_L[[i]] <- non_zero[which(ord_cord == i),,drop=F]
   }
   
   return(list(MaxGap, REFORD_L, ORDER))
@@ -86,10 +86,10 @@ REFORDInit_TI <- function(GapSize, nr, ORDER, GapSizelist){
   
   # Return the matrix of coordinates of value of ORDER bigger than 0
   non_zero <- which(ORDER > 0, arr.ind = TRUE)
-  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2]  %in% GapSizelist),]
+  non_zero <- non_zero[(non_zero[,1] <= nr) & (non_zero[,2]  %in% GapSizelist),,drop=F]
   
   # Collecting the coordinates for each value of "order"
-  ord_cord <- ORDER[non_zero]
+  ord_cord <- ORDER[non_zero,drop=F]
   
   for (i in 1:GapSize) {
     REFORD_L[[i]] <- non_zero[which(ord_cord == i),]
@@ -1033,9 +1033,14 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
     
     
     # Computation of the multinomial model
+    reflevel <- as.character(min(levels(CD[,1]),na.rm=T))
     if(tot_VI==1){
       # First case is evaluated aside
-      reglog <- mlogit(V1~0, data=NCD, reflevel="1")
+      if(reflevel=="1"){
+        reglog <- mlogit(V1~0, data=NCD, reflevel="1")
+      }else{
+        reglog <- mlogit(V1~0, data=NCD, reflevel="2")
+      }
     }
     
     if(tot_VI>1){
@@ -1049,8 +1054,11 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
       # Creation of a specific formula according to the
       # value of tot_VI
       fmla <- as.formula(paste("V1~0|", paste(factors, collapse="+")))
-      #reglog <- mlogit(fmla, data=NCD, reflevel="1")
-      reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
+      if(reflevel=="1"){
+        reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
+      }else{
+        reglog <- try(mlogit(fmla, data=NCD, reflevel="2"))
+      }
       if (class(reglog) == "try-error"){
         warning(paste("/!\\ A simpler model was used at some point."))
         if(timing==F){
@@ -1068,10 +1076,19 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
           }
         }
         print(fmla)
-        reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
+        if(reflevel=="1"){
+          reglog <- try(mlogit(fmla, data=NCD, reflevel="1"))
+        }else{
+          reglog <- try(mlogit(fmla, data=NCD, reflevel="2"))
+        }        
+        
         if(class(reglog)=="try-error"){
           fmla <- as.formula("V1~1")
-          reglog <- mlogit(fmla,data=NCD,reflevel="1")
+          if(reflevel=="1"){
+            reglog <- mlogit(fmla, data=NCD, reflevel="1")
+          }else{
+            reglog <- mlogit(fmla, data=NCD, reflevel="2")
+          }   
         }
       }
     }
