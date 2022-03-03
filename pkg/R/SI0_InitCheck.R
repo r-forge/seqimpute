@@ -5,7 +5,8 @@
 # In case of a factor dataset OD:
 # RECODING of OD with numbers "1", "2", etc. instead of its "words"
 
-preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, k, pastDistrib, futureDistrib){
+preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib){
+  
   
   dataOD <- list()
   # Updating the number of columns of CO
@@ -14,24 +15,34 @@ preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, k, pastDistrib, fut
   # Updating the number of columns of COt
   dataOD["ncot"] <- emptyColUpdate(COt)
   
+  # Sequence object: Recode to NA the missing code
+  if(inherits(OD,"stslist")){
+    valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
+    OD <- as.data.frame(OD)
+    OD[OD==attr(OD,"nr")|OD==attr(OD,"void")] <- NA
+  }
+  
+  
   # Deleting entire rows of OD filled only with NAs
   # (and deleting corresponding lines in CO and COt)
   dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)    
-  dataOD[c("nr", "nc", "COtsample", "totV", "totVt", "totVi")] <- defineNbVariables(dataOD$OD, dataOD$COt, dataOD$ncot, np, dataOD$nco, nf, nfi, npt, k, pastDistrib, futureDistrib)
-  dataOD[c("OD", "ODi", "ODClass", "ODlevels")] <- factorAndMatrixChecks(dataOD$OD, dataOD$nc, k)
+  dataOD[c("OD", "ODi", "ODClass", "ODlevels","k","nr","nc")] <- factorAndMatrixChecks(dataOD$OD)
+  dataOD[c("COtsample", "totV", "totVt", "totVi")] <- defineNbVariables(dataOD$OD, dataOD$COt, dataOD$ncot, np, dataOD$nco, nf, nfi, npt, dataOD$k, pastDistrib, futureDistrib, dataOD$nr, dataOD$nc)
   
   return(dataOD)
 }
+
+
 
 
 ################################################################################
 # Initial tests and manipulations on parameters
 
 InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, nfi, npt, pastDistrib, futureDistrib, totV, totVi, totVt, noise){
-
+  
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
   
-  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf")) {
+  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf") & (regr!="ranger") & (regr!="multinom")) {
     stop("/!\\ regr defines the type of regression model you want to use.
                It has to be either assigned to character 'mlogit' (for multinomial
                regression),'lm' (for linear regression) or 'lrm' (for ordinal
@@ -42,28 +53,24 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   
   
   
-  # 0.2 Testing the class of the variables of the original dataset OD -------------------------------------------------------------------------------------------
-  if ( (ODClass != "factor") & (ODClass != "numeric") ) {
-    stop("/!\\ The class of the variables contained in your original dataset
-           should be either 'factor' or 'numeric'")
-  }
+  
   
   
   
   
   # 0.3 Testing effectively exactly k possible categories of the variable (in case we consider categorical variables) -------------------------------------------
-  if (ODClass == "factor") {
-    for (i in 1:nr) {
-      for (j in 1:nc) {
-        if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
-          stop("/!\\ Your Original dataset doesn't contain the right
-                       number of k categories of the variable")
-        } else {
-          next
-        }
-      }
-    }
-  }
+  # if (ODClass == "factor") {
+  #   for (i in 1:nr) {
+  #     for (j in 1:nc) {
+  #       if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
+  #         stop("/!\\ Your Original dataset doesn't contain the right
+  #                      number of k categories of the variable")
+  #       } else {
+  #         next
+  #       }
+  #     }
+  #   }
+  # }
   
   
   
@@ -144,7 +151,7 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   # Since "noise" is the variance of the elements of the final vector pred, it
   # can't be negative
   noise <- abs(noise)
-
+  
   return(list(pastDistrib, futureDistrib, totV, totVi, totVt, noise))
 }
 
@@ -160,7 +167,7 @@ emptyColUpdate <- function(x) {
   # then, nco has to be set to "0"
   return(0)
 }
-  
+
 
 ################################################################################
 # Deleting entire rows of OD filled only with NAs
@@ -195,10 +202,7 @@ deleteNaRows <- function(OD, CO, COt) {
 # Definition of the number of rows and columns in OD
 # (And eventually update of nr)
 
-defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistrib, futureDistrib) {
-  
-  nr <- nrow(OD)
-  nc <- ncol(OD)
+defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistrib, futureDistrib, nr, nc) {
   
   COtsample <- vector()
   if (ncot > 0) {
@@ -226,7 +230,7 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
     totV <- totV + k
     totVi <- totVi + k
   }
-  return(list(nr, nc, COtsample, totV, totVt, totVi))
+  return(list(COtsample, totV, totVt, totVi))
 }
 
 
@@ -234,14 +238,27 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
 # In case of a factor dataset OD:
 # RECODING of OD with numbers "1", "2", etc. instead of its "words"
 
-factorAndMatrixChecks <- function(OD, nc, k) { 
+factorAndMatrixChecks <- function(OD) { 
+  
+  nc <- ncol(OD)
+  nr <- nrow(OD)
   ODClass <- class(OD[1,1])
+  
+  # 0.2 Testing the class of the variables of the original dataset OD -------------------------------------------------------------------------------------------
+  if ( (ODClass != "factor") & (ODClass != "numeric") ) {
+    stop("/!\\ The class of the variables contained in your original dataset
+           should be either 'factor' or 'numeric'")
+  }
+  
   #*************************************
   ODlevels <- vector()
   if (ODClass == "factor") {
-    ODlevels <- levels(OD[1,1])
+    ODlevels <- sort(unique(as.vector(as.matrix(OD))))
+    k <- length(ODlevels)
     OD <- as.data.frame( sapply(OD, mapvalues, from = ODlevels,
                                 to = as.character(as.vector(1:length(ODlevels)))) )
+  }else{
+    k <- max(OD)
   }
   #*************************************
   
@@ -285,7 +302,8 @@ factorAndMatrixChecks <- function(OD, nc, k) {
       ODi[,j] <- factor(x = OD[,j], levels = c(1:k))
     }
   }
-  return(list(OD, ODi, ODClass, ODlevels))
+  return(list(OD, ODi, ODClass, ODlevels, k, nr, nc))
   
 }
+
 

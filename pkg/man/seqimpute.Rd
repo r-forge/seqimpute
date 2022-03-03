@@ -24,12 +24,12 @@ seqimpute(
   ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
-  max.depth = NULL,
-  timing = F
+  max.depth = NULL
 )
 }
 \arguments{
-\item{OD}{a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}).}
+\item{OD}{either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
+a state sequence object built with the TraMineR package}
 
 \item{regr}{a character specifying the imputation method. If \code{regr="mlogit"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
@@ -73,8 +73,6 @@ of parallel computation.}
 \item{min.node.size}{random forest parameter setting the minimum node size for each random forest model.}
 
 \item{max.depth}{random forest parameter setting the maximal depth tree for each random forest model.}
-
-\item{timing}{a logical indicating whether the place of occurrence of the missing data should be added in the imputation model.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
