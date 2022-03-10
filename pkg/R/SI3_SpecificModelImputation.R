@@ -7,7 +7,7 @@
 ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,num.trees,min.node.size,max.depth,timing){
   
   for (order in 1:MaxGap){ 
-    print(order)
+    print(paste0("Step ",order,"/",MaxGap))
     # /!\ "order" corresponds to the
     # values of the components of ORDER (i.e. the number
     # of the iteration, the order in which the
@@ -247,33 +247,45 @@ ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, fu
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
     if(timing==FALSE){
-      if(regr!="rf"){
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
         for(v in 1:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else{
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in 2:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #multinom
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 2:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
       }
-    # The last values of CDi must be of type numeric
-    # (distributions)
+      # The last values of CDi must be of type numeric
+      # (distributions)
       if (pastDistrib | futureDistrib) {
         CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
       }
     }else{
-      if(regr!="rf"){
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
         for(v in c(1,3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else{
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in c(3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #multinom
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 3:(2+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
       }
       # The last values of CDi must be of type numeric
       # (distributions)

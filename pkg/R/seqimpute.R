@@ -37,7 +37,7 @@
 #'
 #' @param OD either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
 #' a state sequence object built with the TraMineR package
-#' @param regr a character specifying the imputation method. If \code{regr="mlogit"}, multinomial models are used,
+#' @param regr a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 #' while if \code{regr="rf"}, random forest models are used.
 #' @param np number of previous observations in the imputation model of the internal gaps (default \code{1}).
 #' @param nf number of future observations in the imputation model of the internal gaps (default \code{0}).
@@ -83,7 +83,7 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, regr="mlogit", np=1, nf=0, nfi=1, npt=1,
+seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                       futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE

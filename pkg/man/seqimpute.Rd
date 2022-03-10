@@ -6,7 +6,7 @@
 \usage{
 seqimpute(
   OD,
-  regr = "mlogit",
+  regr = "multinom",
   np = 1,
   nf = 0,
   nfi = 1,
@@ -31,7 +31,7 @@ seqimpute(
 \item{OD}{either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
 a state sequence object built with the TraMineR package}
 
-\item{regr}{a character specifying the imputation method. If \code{regr="mlogit"}, multinomial models are used,
+\item{regr}{a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
 
 \item{np}{number of previous observations in the imputation model of the internal gaps (default \code{1}).}

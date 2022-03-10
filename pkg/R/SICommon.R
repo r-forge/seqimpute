@@ -551,22 +551,28 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
-
+    
     # We also account for the fact that levels that do not appear at
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
     
     if(timing==FALSE){
-      if(regr!="rf"){
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
         for(v in 1:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else{
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in 2:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #multinom
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 2:(1+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
       }
       # The last values of CDi must be of type numeric
       # (distributions)
@@ -574,16 +580,22 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
         CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
       }
     }else{
-      if(regr!="rf"){
+      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
         for(v in c(1,3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else{
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in c(3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      }else{
+        #multinom
+        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+        for(v in 3:(2+np+nf)){
+          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
+        }
       }
       # The last values of CDi must be of type numeric
       # (distributions)
@@ -658,7 +670,7 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     # Matrix for past values
     shift <- as.numeric(shift)
     vect <- LOOKUP[i,(j-shift-np):(j-shift-1)]
-
+    
     CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
     
     
@@ -700,14 +712,14 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
         for(v in 1:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else if(regr=="rf"){
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in 2:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
       }else{
-        #glmnet
+        #multinom
         CDi[,1] <- factor(CDi[,1],levels=c(1:k))
         for(v in 2:(1+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
@@ -723,14 +735,14 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
         for(v in c(1,3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
         }
-      }else if(regr=="rf"){
+      }else if(regr=="rf"|regr=="ranger"){
         for(v in c(3:(2+np+nf))){
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
         CDi[,1]<-factor(CDi[,1],levels=c(1:k))
       }else{
-        #glmnet
+        #multinom
         CDi[,1] <- factor(CDi[,1],levels=c(1:k))
         for(v in 3:(2+np+nf)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
@@ -802,8 +814,17 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
 # Impute value with the chosen regression model
 
 RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
-  if(regr=="glmnet"){
-    pred <- predict(reglog,newx=CDi,type="response")
+  if(regr=="multinom"){
+    pred <- predict(reglog,CDi,type="probs")[1,]
+    pred <- cumsum(pred)
+    
+    alea <- runif(1)
+    # Example value returned in "alea":
+    # [1] 0.2610005
+    #
+    sel <- which(pred>=alea)
+    
+    
   }else if (regr == "mlogit") {
     ## Case of MULTINOMIAL REGRESSION MODEL
     
@@ -934,7 +955,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     # #
     # # Cumulative pred
     pred <- cumsum(tab)
-  
+    
     # Corresponding example value returned
     # by the "cumulative pred":
     # 1 2
@@ -958,6 +979,13 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     # 1 2
     # 1 2
     #
+  }else if(regr=="ranger"){
+    pred<-predict(reglog,data=CDi)$predictions[1,]
+    pred <- cumsum(pred)
+    
+    
+    alea <- runif(1)
+    sel <- which(pred>=alea)
     
   }else{ # random forest proba fed to a multinomial model
     
@@ -968,7 +996,6 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
   ODi[i,j] <- sel[1]
   return(ODi)
 }
-
 
 
 ################################################################################
@@ -1066,7 +1093,7 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
             fmla <- as.formula(paste0("V1~0|V",1+np))
           }else{
             fmla <- as.formula("V1~0|V2")
-                               
+            
           }
         }else{
           if(np>0){
@@ -1190,8 +1217,77 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
     reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
                    max.depth=max.depth)
     
-  }else{
+    
+  }else if(regr=="ranger"){
+    if(timing==FALSE){
+      CD[,(1:(1+npfi))] <- lapply(CD[,(1:(1+npfi))],factor, levels=c(1:k))
+      for(v in 2:(1+npfi)){
+        CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
+        CD[,v][is.na(CD[,v])]<-k+1
+      }
+      CD[,1]<-factor(CD[,1],levels=c(1:k))
+      CD[,1]<-droplevels(CD[,1])
+      CD<-CD[!is.na(CD[,1]),]
+    }else{
+      CD[,c(1,3:(2+npfi))] <- lapply(CD[,c(1,3:(2+npfi))],factor, levels=c(1:k))
+      for(v in 3:(2+npfi)){
+        CD[,v]<-factor(CD[,v],levels=c(1:(k+1)))
+        CD[,v][is.na(CD[,v])]<-k+1
+      }
+      CD[,1]<-factor(CD[,1],levels=c(1:k))
+      CD[,1]<-droplevels(CD[,1])
+      CD<-CD[!is.na(CD[,1]),]
     }
+    
+    factors_character <- paste("V", 2:tot_VI, sep = "")
+    # Transformation of this object from character to
+    # vector (in order to be able
+    # to access its components)
+    factors <- as.vector(factors_character)
+    # Creation of a specific formula according to the
+    # value of tot_VI
+    fmla <- as.formula(paste("V1~", paste(factors, collapse="+")))
+    #reglog <- randomForest(fmla, data=CD,ntree=100)
+    reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
+                   max.depth=max.depth,probability = T)
+    
+  }else if(regr=="multinom"){
+    
+    CD[,1] <- factor(CD[,1],levels=c(1:k))
+    
+    if(timing==FALSE){
+      if(npfi>1){
+        CD[,(2:(1+npfi))] <- lapply(CD[,(2:(1+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+      }else{
+        CD[,2] <- factor(CD[,2],levels=c(1:k,NA), exclude=NULL)
+      }
+      
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+    }else{
+      CD[,c(1,3:(2+npfi))] <- lapply(CD[,c(1,3:(2+npfi))],factor, levels=c(1:k,NA), exclude=NULL)
+      
+      
+      # We drop the levels of the variables that do not appear. Not doing
+      # so create an error later on when the mlogit model is computed
+      # (due to the inversion of a matrix having only zeros in a given row)
+    }
+    
+    factors_character <- paste("V", 2:tot_VI, sep = "")
+    # Transformation of this object from character to
+    # vector (in order to be able
+    # to access its components)
+    factors <- as.vector(factors_character)
+    # Creation of a specific formula according to the
+    # value of tot_VI
+    fmla <- as.formula(paste("V1~", paste(factors, collapse="+")))
+    
+    reglog <- nnet::multinom(CD,maxit=100, trace=FALSE, MaxNwts=1500)
+    
+  }else{
+  }
   # else if(regr=="glmnet"){# random forest proba fed to a multinomial model
   #   
   #   # Linking the package mlogit
@@ -1276,5 +1372,4 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
   
   return(list(reglog, CD))
 }
-
 

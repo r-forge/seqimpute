@@ -16,7 +16,6 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
   # Creation of the temporary SLG matrices for the left-hand
   # side of OD
   
-  print("k")
   for (h in 2:np) {
     if (max(ORDERSLG[,h])>0) {
       # Checking if a gap begins
@@ -56,12 +55,9 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
       # on the left-hand side of OD
       for (order in 1:ParamList$MaxGap) {
         ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing)
-        print("kk")                
         # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) ----
-        print("kkk")
         log_CD <- list()
         log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,num.trees,min.node.size,max.depth,timing)
-        print("kkkk")  
         # 6.3.3.LEFT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
         ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD,  ODi, COt, ncot, nf, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift,timing)
       }
@@ -247,7 +243,6 @@ SLGCDMatBuild <- function(CO,COt, OD, order, MaxGapSLGLeft, np, ncot, nr, nc, nf
   # of the model
 
   ud <- nc-(MaxGapSLGLeft-order+np+nf)
-  print(ud)
   # number of usable data for each row of OD
   # size of the current mobile caracteristic frame
   # (that changes according to "order") which is
