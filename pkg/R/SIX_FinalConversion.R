@@ -42,7 +42,7 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
     if (mi == 1 & include == FALSE) {
       RESULT <- as.data.frame( sapply(RESULT, mapvalues,
                                       from = as.character(as.vector(1:length(ODlevels))),
-                                      to = ODlevels) )
+                                      to = ODlevels, warn_missing=FALSE) )
     } else {
       # Taking account ot the special notation of RESULT that has an extra
       # column on the left of RESULT (as soon as mi > 1 or in any case if
@@ -50,9 +50,10 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
       RESULT[,2:ncol(RESULT)] <- as.data.frame( sapply(RESULT[,2:ncol(RESULT)],
                                                        mapvalues,
                                                        from = as.character(as.vector(1:length(ODlevels))),
-                                                       to = ODlevels) )
+                                                       to = ODlevels,warn_missing=FALSE) )
     }
   }
+  
 
   
   #### We put again the rows having only NA's discarder at the beginning

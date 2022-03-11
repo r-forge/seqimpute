@@ -818,11 +818,14 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     pred <- predict(reglog,CDi,type="probs")[1,]
     pred <- cumsum(pred)
     
+    names_saved <- names(pred)
+    
+    
     alea <- runif(1)
     # Example value returned in "alea":
     # [1] 0.2610005
     #
-    sel <- which(pred>=alea)
+    sel <- as.numeric(names_saved[which(pred>=alea)])
     
     
   }else if (regr == "mlogit") {
