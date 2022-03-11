@@ -1257,6 +1257,8 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
   }else if(regr=="multinom"){
     
     CD[,1] <- factor(CD[,1],levels=c(1:k))
+    CD[,1] <- droplevels(CD[,1])
+    
     
     if(timing==FALSE){
       if(npfi>1){
