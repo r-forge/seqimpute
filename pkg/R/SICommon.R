@@ -815,18 +815,28 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
 
 RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
   if(regr=="multinom"){
-    pred <- predict(reglog,CDi,type="probs")[1,]
-    pred <- cumsum(pred)
-    
-    names_saved <- names(pred)
-    
-    
-    alea <- runif(1)
-    # Example value returned in "alea":
-    # [1] 0.2610005
-    #
-    sel <- as.numeric(names_saved[which(pred>=alea)])
-    
+    if(length(reglog$lev)>2){
+      pred <- predict(reglog,CDi,type="probs")[1,]
+      pred <- cumsum(pred)
+      
+      names_saved <- names(pred)
+      
+      
+      alea <- runif(1)
+      # Example value returned in "alea":
+      # [1] 0.2610005
+      #
+      sel <- as.numeric(names_saved[which(pred>=alea)])
+    }else{
+      pred <- predict(reglog,CDi,type="probs")
+      alea <- runif(1)
+      if(alea<pred[1]){
+        sel <- as.numeric(reglog$lev[1])
+      }else{
+        sel <- as.numeric(reglog$lev[2])
+        
+      }
+    }
     
   }else if (regr == "mlogit") {
     ## Case of MULTINOMIAL REGRESSION MODEL
