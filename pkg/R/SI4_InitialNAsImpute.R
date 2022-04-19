@@ -4,10 +4,20 @@
 ################################################################################
 # Impute initial NAs
 
-ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth,timing){
+ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth,timing){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
   
+  
+  # Case when there is not enough observations after the longest initial gap
+  # -> nfi is therefore reduced
+  if(nfi>nc-MaxInitGapSize){
+    nfi <- nc-MaxInitGapSize
+    totVi <- 1+nfi+nco+(ncot/nc)
+    if (futureDistrib) {
+      totVi <- totVi + k
+    }
+  }
   # 4.3. Imputation using a specific model -------------------------------------
   
   # 4.3.1 Building of the data matrix CD for the computation of the model ------

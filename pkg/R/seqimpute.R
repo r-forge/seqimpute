@@ -224,14 +224,14 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         if ((nfi != 0) & (dataOD$MaxInitGapSize != 0)) {
           print("Imputation of the initial gaps...")
           # # we only impute the initial gaps if nfi > 0
-          dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
+          dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$nco, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
         }
         # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
         if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
           # we only impute the terminal
           # gaps if npt > 0
           print("Imputation of the terminal gaps...")
-          dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
+          dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
         }
         if (max(dataOD$ORDER)!=0) {
           # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
