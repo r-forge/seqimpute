@@ -258,7 +258,8 @@ factorAndMatrixChecks <- function(OD) {
     OD <- as.data.frame( sapply(OD, mapvalues, from = ODlevels,
                                 to = as.character(as.vector(1:length(ODlevels)))) )
   }else{
-    k <- max(OD)
+    k <- max(OD,na.rm=T)
+
   }
   #*************************************
   
