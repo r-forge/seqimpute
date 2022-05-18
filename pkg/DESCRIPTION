@@ -31,5 +31,4 @@ Imports:
     doSNOW,
     ranger,
     mlr,
-    nnet,
-    gdata
+    nnet
