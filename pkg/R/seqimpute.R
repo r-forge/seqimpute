@@ -194,6 +194,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   
   
   #Beginning of the multiple imputation (imputing "mi" times)
+  o <- NULL
   RESULT <- foreach(o=1:mi, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
     if (!ParParams){
       # Parallel and sequential execution of foreach don't use the same casting mechanism, this one is used for sequential execution.

@@ -1099,7 +1099,7 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
       }else{
         reglog <- try(mlogit(fmla, data=NCD, reflevel="2"))
       }
-      if (class(reglog) == "try-error"){
+      if (inherits(reglog,"try-error")){
         warning(paste("/!\\ A simpler model was used at some point."))
         if(timing==F){
           if(np>0){
@@ -1122,7 +1122,7 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
           reglog <- try(mlogit(fmla, data=NCD, reflevel="2"))
         }        
         
-        if(class(reglog)=="try-error"){
+        if(inherits(reglog,"try-error")){
           fmla <- as.formula("V1~1")
           if(reflevel=="1"){
             reglog <- mlogit(fmla, data=NCD, reflevel="1")

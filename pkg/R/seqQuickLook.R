@@ -61,7 +61,7 @@ seqQuickLook <- function(OD, np=1, nf=0) {
 
 
     # 1.2 Testing effectively exactly k possible categories of the multinomial variable -----------------------------------------------------------------
-    if (class(OD[1,1]) == "numeric") {
+    if (inherits(OD[1,1],"numeric")) {
         for (i in 1:nr) {
             for (j in 1:nc) {
                 if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
