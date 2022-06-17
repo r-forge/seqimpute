@@ -1,7 +1,7 @@
 Package: seqimpute
 Type: Package
 Title: Imputation of Missing Data in Sequence Analysis
-Version: 1.5.6
+Version: 1.5.7
 Author: Andre Berchtold, Anthony Guinchard, Kevin Emery, Kamyar Taher
 Date: 2022-05-30
 Maintainer: Andre Berchtold <andre.berchtold@unil.ch>
