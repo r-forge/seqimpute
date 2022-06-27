@@ -29,5 +29,3 @@ Imports:
     ranger,
     mlr,
     nnet
-
-Depends: R (>= 3.5.0)
