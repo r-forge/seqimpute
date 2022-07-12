@@ -131,7 +131,11 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   #
   # CO has to remain as a data frame!
   #***************************************************************************
-  
+  if(sum(is.na(OD))==0){
+    message("This dataset has no missing values!")
+    return(OD)
+    
+  }
   timing <- FALSE
   
   #k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
@@ -158,7 +162,6 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   if (max(dataOD$ORDER)!=0) {
     dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, dataOD$nr, dataOD$nc)
   }
-  
   
   #Setting parallel or sequential backend and  random seed
   if (ParExec & (parallel::detectCores() > 2 & mi>1)){
@@ -234,7 +237,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
           print("Imputation of the terminal gaps...")
           dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,num.trees,min.node.size,max.depth,timing=F)
         }
-        if (max(dataOD$ORDER)!=0) {
+        #if (max(dataOD$ORDER)!=0) {
           # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
           # left-hand side SLG
           if (max(dataOD$ORDERSLGLeft)!=0) {
@@ -270,7 +273,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
             #nfix <- 1
             #dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGBoth, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nfix, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
           }
-        }
+        #}
 
         # Trying to catch the potential singularity error (part 2/2)
         # (comment this part of code to debug more easily and see the
