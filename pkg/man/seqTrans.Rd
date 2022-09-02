@@ -12,11 +12,7 @@ seqTrans(OD, trans)
 \item{trans}{\code{character} vector gathering the desired transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")}
 }
 \value{
-It returns a message containing the transOverview \code{data.frame} object that gathers the occurences of each type of impossible transitions.
-
-rowMat \code{matrix} object containing the row coordinates of the impossible transitions (stored in \code{seqTransList[1]}).
-
-colMat \code{matrix} object containing the column coordinates of the impossible transitions (stored in \code{seqTransList[2]}).
+It returns a matrix whose rows each are the indices of an impossible transition.
 }
 \description{
 The purpose of \code{seqTrans.R} is to compute and spot transitions

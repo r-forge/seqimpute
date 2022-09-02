@@ -4,7 +4,7 @@
 ################################################################################
 # Impute initial NAs
 
-ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth,timing){
+ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
   
@@ -25,7 +25,7 @@ ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib
  
   # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
-  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,num.trees,min.node.size,max.depth,timing = F)
+  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,num.trees,min.node.size,max.depth)
   
   # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
   ODi <- Init_NA_CreatedModelImputation(OD, ODi, CO, log_CD$CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, log_CD$reglog, noise, available)
@@ -229,9 +229,7 @@ Init_NA_CreatedModelImputation <- function(OD, ODi, CO, CD, COt, MaxInitGapSize,
       # Type transformation of the columns of CDi
       # The first values of CDi must be of type factor
       # (categorical values)
-      # We also account for the fact that levels that do not appear at
-      # all in a given variable of CD were discarded with droplevels before
-      # the fit of the mlogit model
+      
       if(regr!="rf"){
         for(v in 1:(1+nfi)){
           CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)

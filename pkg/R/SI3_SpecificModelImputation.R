@@ -4,7 +4,7 @@
 ################################################################################
 # Impute data using a specific model
 
-ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,num.trees,min.node.size,max.depth,timing){
+ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,num.trees,min.node.size,max.depth){
   
   for (order in 1:MaxGap){ 
     print(paste0("Step ",order,"/",MaxGap))
@@ -13,13 +13,13 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
     # of the iteration, the order in which the
     # values are going to be imputed)
     # 3.1. Building of the data matrix CD for the computation of the model ----------------------------
-    CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing)
+    CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k)
     # 3.2. Computation of the model (Dealing with the LOCATIONS of imputation)-------------------------
     log_CD <- list()
-    log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,num.trees,min.node.size,max.depth,timing)
+    log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,num.trees,min.node.size,max.depth)
     
     # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
-    ODi <- CreatedModelImputation(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap,timing)
+    ODi <- CreatedModelImputation(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
 
   } 
   return(ODi)
@@ -30,7 +30,7 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
 ################################################################################
 # Building of the data matrix CD for the computation of the model
 
-CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing){
+CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k){
   # Building of a data matrix for the computation of the
   # model
   ud <- nc-(MaxGap-order+np+nf)    # number of usable data
@@ -63,12 +63,8 @@ CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pas
   #
   # We are then going to create a specific CD according to
   # the value of np and nf
-  if(timing==FALSE){
-    CD <- matrix(NA,nrow=nr*ud,ncol=1)
-  }else{
-    CD <- matrix(NA,nrow=nr*ud,ncol=2)
-    
-  }# initialization of
+  CD <- matrix(NA,nrow=nr*ud,ncol=1)
+  # initialization of
   # the current very left part of
   # the predictive model matrix
   # ("matrice de modele de
@@ -99,17 +95,17 @@ CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pas
   # following for loops
   # Only PAST
   if (np>0 & nf==0) { 
-    CD <- PastVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,timing)
+    CD <- PastVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k)
     # Only FUTURE
   } else if (np==0 & nf>0) {
     # only FUTURE VIs do exist
-    CD <- FutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,timing)
+    CD <- FutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf)
     
     # PAST and FUTURE
   } else {
     # meaning np>0 and nf>0 and that, thus,
     # PAST as well as FUTURE VIs do exist
-    CD <- PastFutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,timing)
+    CD <- PastFutureVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift)
   }
   
   CD_shift <- list()
@@ -122,7 +118,7 @@ CDCompute <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pas
 ################################################################################
 # Imputation using the just created model (Dealing with the actual VALUES to impute)
 
-CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, reglog, noise, shift, MaxGap,timing){
+CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, reglog, noise, shift, MaxGap){
   # Structure and building of the data matrix CDi
   # The first column of CDi is the dependent variable (VD,
   # response variable) that we have to implement during
@@ -136,22 +132,6 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
   # variables numbered from 1 to k and of course
   # the value NA) respectively Before and After the NA to
   # impute.
-  # (The fact that every lines of CDi are identical is
-  # related to the working of the function mlogit that has
-  # to have as much lines in CDi as there are categories
-  # of the variable (see the parameter "k") --> so, CDi is
-  # composed of k identical lines)
-  #
-  #            VD   Past VIs   Future VIS    Past distribution     Future distribution
-  #
-  #         /                                                                             \
-  #        |                                                                              |
-  # CDi =  |  CDi    CDpi       CPfi              CDdbi                   CDdai           |
-  #        \                                                                             /
-  #         \                                                                          /
-  #
-  # We are then going to create a specific CDi according
-  # to the value of np and nf
   
   
   # Analysing the value of parameter available
@@ -176,15 +156,15 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
   
   
   if (np>0 & nf==0) { # only PAST VIs do exist
-    ODi <- ODiImputePAST(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing)
+    ODi <- ODiImputePAST(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
                       
         #---------------------------------------------------------------------------------------------
   } else if (np==0 & nf>0) {  # only FUTURE VIs do exist
-    ODi <- ODiImputeFUTURE(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing)
+    ODi <- ODiImputeFUTURE(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
   } else { # meaning np>0 and nf>0 and that,
     # thus, PAST as well as FUTURE VIs
     # do exist
-    ODi <- ODiImputePF(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order,timing)
+    ODi <- ODiImputePF(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order)
     
   }
   return(ODi)
@@ -195,7 +175,7 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
 ################################################################################
 # Imputation where only FUTURE VIs exist
 
-ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise,timing){
+ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
   for (u in 1:nr_REFORD){
     i <- REFORD[u,1]
     # taking out the first coordinate
@@ -203,12 +183,8 @@ ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, fu
     j <- REFORD[u,2]
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
-    if(timing==F){
-      CDi <- matrix(NA, nrow=k, ncol=1)
-    }else{
-      CDi <- matrix(NA,nrow=k,ncol=2)
-      CDi[,2]<-j
-    }
+    
+    CDi <- matrix(NA, nrow=k, ncol=1)
     
     # Matrix for future values
     vect <- LOOKUP[i,(j+1):(j+nf)]
@@ -243,56 +219,31 @@ ODiImputeFUTURE <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, fu
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
-    # We also account for the fact that levels that do not appear at
-    # all in a given variable of CD were discarded with droplevels before
-    # the fit of the mlogit model
-    if(timing==FALSE){
-      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
-        for(v in 1:(1+np+nf)){
-          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
-        }
-      }else if(regr=="rf"|regr=="ranger"){
-        for(v in 2:(1+np+nf)){
-          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
-          CDi[,v][is.na(CDi[,v])]<-k+1
-        }
-        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
-      }else{
-        #multinom
-        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
-        for(v in 2:(1+np+nf)){
-          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
-        }
+    
+    
+    if(regr=="lm"|regr=="lrm"){
+      for(v in 1:(1+np+nf)){
+        CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
       }
-      # The last values of CDi must be of type numeric
-      # (distributions)
-      if (pastDistrib | futureDistrib) {
-        CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
+    }else if(regr=="rf"){
+      for(v in 2:(1+np+nf)){
+        CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
+        CDi[,v][is.na(CDi[,v])]<-k+1
       }
+      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
     }else{
-      if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
-        for(v in c(1,3:(2+np+nf))){
-          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
-        }
-      }else if(regr=="rf"|regr=="ranger"){
-        for(v in c(3:(2+np+nf))){
-          CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
-          CDi[,v][is.na(CDi[,v])]<-k+1
-        }
-        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
-      }else{
-        #multinom
-        CDi[,1] <- factor(CDi[,1],levels=c(1:k))
-        for(v in 3:(2+np+nf)){
-          CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
-        }
-      }
-      # The last values of CDi must be of type numeric
-      # (distributions)
-      if (pastDistrib | futureDistrib) {
-        CDi[,(2+np+nf+1):ncol(CDi)] <- lapply(CDi[,(2+np+nf+1):ncol(CDi)],as.numeric)
+      #multinom
+      CDi[,1] <- factor(CDi[,1],levels=c(1:k))
+      for(v in 2:(1+np+nf)){
+        CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
       }
     }
+    # The last values of CDi must be of type numeric
+    # (distributions)
+    if (pastDistrib | futureDistrib) {
+      CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
+    }
+    
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
     if (all(is.na(CO))==FALSE) {

@@ -8,9 +8,7 @@
 #'
 #' @author Andre Berchtold <andre.berchtold@@unil.ch>, Kevin Emery
 #'
-#' @return It returns a message containing the transOverview \code{data.frame} object that gathers the occurences of each type of impossible transitions.
-#' @return rowMat \code{matrix} object containing the row coordinates of the impossible transitions (stored in \code{seqTransList[1]}).
-#' @return colMat \code{matrix} object containing the column coordinates of the impossible transitions (stored in \code{seqTransList[2]}).
+#' @return It returns a matrix whose rows each are the indices of an impossible transition.
 #'
 #' @examples
 #' data(OD)
@@ -72,7 +70,6 @@
 #' @export
 seqTrans <- function(OD, trans){
   
-  k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
   
   impTrans <- trans
   # Naming the number of rows and columns of OD
@@ -90,27 +87,11 @@ seqTrans <- function(OD, trans){
          should be either 'factor' or 'numeric'")
   }
   
-  # 1.2 Testing effectively exactly k possible categories of the multinomial variable -----------------------------------------------------------------
-  if (inherits(OD[1,1],"numeric")) {
-    for (i in 1:nr) {
-      for (j in 1:nc) {
-        if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
-          stop("/!\\ Your dataset doesn't contain the right number of k categories of the multinomial variable")
-        } else {
-          next
-        }
-      }
-    }
-  } else { # Meaning that our values are of type "factor"
-    for (i in 1:nr) {
-      for (j in 1:nc) {
-        if (length(levels(OD[i,j])) != k) {
-          stop("/!\\ Your dataset doesn't contain the right number of k categories of the multinomial variable")
-        } else {
-          next
-        }
-      }
-    }
+  
+  if (ODClass == "factor") {
+    k <- length(sort(unique(as.vector(as.matrix(OD)))))
+  }else{
+    k <- max(OD)
   }
   
   
@@ -121,7 +102,6 @@ seqTrans <- function(OD, trans){
     if (all(is.na(OD[i,]))) {
       OD <- OD[-i,]
       numbOfNAFilledLines <- numbOfNAFilledLines + 1
-      #warning(paste("/!\\ Row number",i,"of OD consists only of NAs."),sep='')
     }
     i <- i+1
   }
@@ -151,118 +131,6 @@ seqTrans <- function(OD, trans){
     # stop("/!\\ You have typed in two same states (two times '",firstState,"') on both sides of the arrow. This doesn't correspond to a transition.")
     # }
   }
-  
-  
-  
-  # 2. Finding number of gaps -------------------------------------------------------------------------------------------------------------------------
-  
-  # 2.1 Number of initial gaps ------------------------------------------------------------------------------------------------------------------------
-  #
-  # Creation of matrix ORDER
-  ORDER <- matrix(0,nr,nc) # initialization of matrix ORDER with 0 everywhere
-  SEL <- is.na(OD)==TRUE   # creation of matrix SEL, constituted of TRUE where there is MD in OD and of FALSE everywhere else
-  ORDER[SEL] <- 1          # setting some 1 in ORDER at the location where in SEL we have some TRUE
-  
-  # Creation of vector InitGapSize (i.e. a vector containing the size of the initial gaps of each line)
-  InitGapSize <- vector()
-  for (i in 1:nr) {
-    if (ORDER[i,1]==0) {
-      InitGapSize[i] <- 0
-    } else {
-      InitGapSize[i] <- 1
-      for (j in 2:nc) {
-        if (ORDER[i,j]==1) {
-          InitGapSize[i] <- InitGapSize[i] + 1
-        } else {
-          break
-        }
-      }
-    }
-  }
-  MaxInitGapSize <- max(InitGapSize)
-  # Number of initial gaps
-  numbOfInitGaps <- length(InitGapSize[InitGapSize!=0])
-  
-  # Creation of matrix ORDERI
-  ORDERI <- matrix(0,nr,nc)
-  for (i in 1:nr) {
-    if (InitGapSize[i]!=0) {
-      ORDERI[i,1:InitGapSize[i]] <- c(MaxInitGapSize:(MaxInitGapSize+1-InitGapSize[i]))
-    } else {
-      next
-    }
-  }
-  # Replacing each value of ORDERI greater than '0' by '1'
-  ORDERI[ORDERI > 0] <- 1
-  
-  
-  
-  
-  
-  # 2.2 Number of terminal gaps -----------------------------------------------------------------------------------------------------------------------
-  # Creation of vector TermGapSize (i.e. a vector containing the size of the terminal gaps of each line)
-  TermGapSize <- vector()
-  for (i in 1:nr) {
-    if (ORDER[i,nc]==0) {
-      TermGapSize[i] <- 0
-    } else {
-      TermGapSize[i] <- 1
-      for (j in (nc-1):1) {
-        if (ORDER[i,j]==1) {
-          TermGapSize[i] <- TermGapSize[i] + 1
-        } else {
-          break
-        }
-      }
-    }
-  }
-  MaxTermGapSize <- max(TermGapSize)
-  # Number of terminal gaps
-  numbOfTermGaps <- length(TermGapSize[TermGapSize!=0])
-  
-  # Creation of matrix ORDERT
-  ORDERT <- matrix(0,nr,nc)
-  for (i in 1:nr) {
-    if (TermGapSize[i]!=0) {
-      ORDERT[i,(nc-TermGapSize[i]+1):nc] <- c((MaxTermGapSize+1-TermGapSize[i]):MaxTermGapSize)
-    } else {
-      next
-    }
-  }
-  # Replacing each value of ORDERT greater than '0' by '1'
-  ORDERT[ORDERT > 0] <- 1
-  
-  
-  
-  
-  
-  # 2.3 Number of internal gaps -----------------------------------------------------------------------------------------------------------------------
-  
-  # /!\ Final version of the matrix ORDER that we use through point 3.1 to 3.3 of the program
-  ORDER <- ORDER - ORDERI - ORDERT
-  
-  # Number of Internal Gaps
-  # Transforming ORDER in a single row vector
-  ORDERVect <- as.vector(t(ORDER))
-  # Transforming this single row vector into class character
-  ORDERVectChar <- paste(ORDERVect,collapse="")
-  # Identifying the patterns "0 1" (this is the signature look of an internal gap
-  # (it always indicates the beginning of an internal gap!))
-  numbOfInternGaps <- str_count(ORDERVectChar,pattern="01")
-  
-  
-  
-  
-  # Warning message returning the number of gaps of each type included in OD
-  if ( (numbOfInitGaps > 0) | (numbOfTermGaps > 0) | (numbOfInternGaps > 0) ) {
-    warning("/!\\ We have detected ",numbOfInitGaps," initial gap(s), ",numbOfTermGaps," terminal gap(s)","\n",
-            "    and ",numbOfInternGaps," internal gap(s) in your dataset.","\n",
-            "    Be aware that these gaps may hide other transitions!")
-  }
-  
-  
-  
-  
   
   
   
@@ -304,7 +172,8 @@ seqTrans <- function(OD, trans){
   # Interrupting the program in case no impossible transitions among impTrans have
   # been found
   if (sum(numbOfImpTrans) == 0) {
-    stop(" /!\\ Warning, no transitions have been found. Your input vector trans doesn't contain any transitions present in your dataset.")
+    message("Your dataset has no impossible transitions!")
+    return(NULL)
   }
   
   if(length(impTrans)==1){
@@ -393,21 +262,21 @@ seqTrans <- function(OD, trans){
 
   rowMat <- matrix(NA,length(impTrans),MaxNumTransitions)
   colMat <- matrix(NA,length(impTrans),MaxNumTransitions)
-  
-  # Converting into a dataframe
-  rowMat <- as.data.frame(rowMat)
-  # Renaming the columns of rowMat
-  colnames_rowMat <- paste(1:ncol(rowMat),")",sep='')
-  rownames(rowMat) <- impTrans
-  colnames(rowMat) <- colnames_rowMat
-  
-  # Converting into a dataframe
-  colMat <- as.data.frame(colMat)
-  # Renaming the columns of colMat
-  colnames_colMat <- paste(1:ncol(colMat),")",sep='')
-  rownames(colMat) <- impTrans
-  colnames(colMat) <- colnames_colMat
-  
+  # 
+  # # Converting into a dataframe
+  # rowMat <- as.data.frame(rowMat)
+  # # Renaming the columns of rowMat
+  # colnames_rowMat <- paste(1:ncol(rowMat),")",sep='')
+  # rownames(rowMat) <- impTrans
+  # colnames(rowMat) <- colnames_rowMat
+  # 
+  # # Converting into a dataframe
+  # colMat <- as.data.frame(colMat)
+  # # Renaming the columns of colMat
+  # colnames_colMat <- paste(1:ncol(colMat),")",sep='')
+  # rownames(colMat) <- impTrans
+  # colnames(colMat) <- colnames_colMat
+  # 
   for(i in 1:length(impTrans)){
     if(numbOfImpTrans[i]>0){
       rowMat[i,1:length(list_rows[[i]])] <- list_rows[[i]]
@@ -428,29 +297,14 @@ seqTrans <- function(OD, trans){
   impTransOverview <- data.frame(c(impTrans,"","Total:"),c(numbOfImpTrans,"",sum(numbOfImpTrans)))
   colnames(impTransOverview) <- c("Transitions", "Occurence")
   
-  
-  message("Transitions summarizing table:","\n",
-          "-----------------------------------------","\n",
-          "Note:","\n",
-          "The location of these spotted transitions can","\n",
-          "be found by looking in parallel at the matrices 'rowMat' and","\n",
-          "'colMat': the row in which the corresponding in OD row (resp. the column)","\n",
-          "index appears indicates the case of transition you are","\n",
-          "looking at and the column informs about the rank of this specific","\n",
-          "transition (i.e. if it is the first (1)) transition","\n",
-          "of this kind that is met or the second (2)), etc.)","\n","\n",
-          
-          paste0(capture.output(impTransOverview), collapse = "\n"),"\n")
+  if(length(rowMat)>0){
+    seqTransList <- matrix(0,length(rowMat),2)
+    seqTransList[,1]<- rowMat
+    seqTransList[,2]<- colMat
+  }
+  colnames(seqTransList) <- c("row","col")
   
   
-  
-  
-  
-  
-  
-  
-  
-  seqTransList <- list("rowMat" = rowMat, "colMat" = colMat)
   return(seqTransList)
   
   

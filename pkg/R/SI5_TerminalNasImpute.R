@@ -4,7 +4,7 @@
 ################################################################################
 # Impute terminal NAs
 
-ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,num.trees,min.node.size,max.depth,timing) {
+ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,num.trees,min.node.size,max.depth) {
   # 5.1.-2. Creation of ORDERT -------------------------------------------------
   REFORDT_L <- REFORDTCreation(nr, nc, TermGapSize, MaxTermGapSize)
   
@@ -23,7 +23,7 @@ ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, Ter
   CD <- TerminalCDMatCreate(CO, OD, COt, COtsample, pastDistrib,  npt, nr, nc, ncot, k)
   # 5.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
-  log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, npt,0, k,num.trees,min.node.size,max.depth,timing)
+  log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, npt,0, k,num.trees,min.node.size,max.depth)
   # 5.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
   ODi <- TerminalCreatedModelImputation(CO, OD, log_CD$CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, npt, noise)
 
@@ -220,9 +220,7 @@ TerminalCreatedModelImputation <- function(CO, OD, CD, ODi, COt, nc, ncot, totVt
       # Type transformation of the columns of CDi
       # The first values of CDi must be of type factor
       # (categorical values)
-      # We also account for the fact that levels that do not appear at
-      # all in a given variable of CD were discarded with droplevels before
-      # the fit of the mlogit model
+      
       
       if(regr!="rf"){
         for(v in 1:(1+npt)){

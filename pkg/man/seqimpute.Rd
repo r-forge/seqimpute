@@ -24,7 +24,8 @@ seqimpute(
   ParExec = TRUE,
   num.trees = 10,
   min.node.size = NULL,
-  max.depth = NULL
+  max.depth = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -34,23 +35,23 @@ a state sequence object built with the TraMineR package}
 \item{regr}{a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
 
-\item{np}{number of previous observations in the imputation model of the internal gaps (default \code{1}).}
+\item{np}{number of previous observations in the imputation model of the internal gaps.}
 
-\item{nf}{number of future observations in the imputation model of the internal gaps (default \code{0}).}
+\item{nf}{number of future observations in the imputation model of the internal gaps.}
 
-\item{nfi}{number of future observations in the imputation model of the initial gaps (default \code{1}).}
+\item{nfi}{number of future observations in the imputation model of the initial gaps.}
 
-\item{npt}{number of previous observations in the imputation model of the terminal gaps (default \code{1}).}
+\item{npt}{number of previous observations in the imputation model of the terminal gaps.}
 
-\item{available}{a logical value allowing the user to choose whether to consider the already imputed data in the predictive model (\code{available = TRUE}) or not (\code{available = FALSE}) (default \code{TRUE}).}
+\item{available}{a logical value allowing the user to choose whether to consider the already imputed data in the predictive model (\code{available = TRUE}) or not (\code{available = FALSE}).}
 
-\item{CO}{a data frame containing some covariates among which the user can choose in order to specify his model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
+\item{CO}{a data frame containing some covariates among which the user can choose in order to specify his model more accurately.}
 
-\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately (default empty matrix 1x1 (\code{matrix(NA,nrow=1,ncol=1)})).}
+\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
 
-\item{pastDistrib}{a logical indicating if the past distribution should be used as predictor in the imputation model (default \code{FALSE}).}
+\item{pastDistrib}{a logical indicating if the past distribution should be used as predictor in the imputation model.}
 
-\item{futureDistrib}{a logical indicating if the futur distribution should be used as predictor in the imputation model (default \code{FALSE}).}
+\item{futureDistrib}{a logical indicating if the futur distribution should be used as predictor in the imputation model.}
 
 \item{mi}{number of multiple imputations  (default: \code{1}).}
 
@@ -61,18 +62,20 @@ by the algorithm. By default, a data frame with the imputed datasets stacked ver
 dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
 
 \item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model 
-(by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}) (default \code{0}).}
+(by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}).}
 
 \item{SetRNGSeed}{an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
 of parallel computation.}
 
-\item{ParExec}{logical. If \code{TRUE}, the algorithm is ran in parallel. This allows faster run time depending of how many core the processor has.}
+\item{ParExec}{logical. If \code{TRUE}, the multiple imputations are run in parallell. This allows faster run time depending of how many core the processor has.}
 
 \item{num.trees}{random forest parameter setting the number of trees of each random forest model.}
 
 \item{min.node.size}{random forest parameter setting the minimum node size for each random forest model.}
 
 \item{max.depth}{random forest parameter setting the maximal depth tree for each random forest model.}
+
+\item{verbose}{logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
@@ -119,7 +122,7 @@ Order of imputation of the gaps types:
     6. Both-hand side SLG
 }
 \examples{
-\dontrun{
+\donttest{
 # Default single imputation
 RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
 

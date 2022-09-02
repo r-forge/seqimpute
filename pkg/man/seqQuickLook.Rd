@@ -14,9 +14,11 @@ seqQuickLook(OD, np = 1, nf = 0)
 \item{nf}{\code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).}
 }
 \value{
-It returns a message containing the MDGapsChart \code{data.frame} object that summarizes the number and the
-size of each type of gaps (Internal Gaps, Initial Gaps, Terminal Gaps, LEFT-
-hand side SLG, RIGHT-hand side SLG) present among the original dataset.
+It returns a  \code{data.frame} object that summarizes for each type of gaps 
+(Internal Gaps, Initial Gaps, Terminal Gaps, LEFT-
+hand side SLG, RIGHT-hand side SLG, Both-hand side SLG),
+the minimum length, the maximum length, the total number of gaps and 
+the total number of NAs induced.
 }
 \description{
 \code{seqQuickLook.R} is a function aimed at providing a quick overview of the

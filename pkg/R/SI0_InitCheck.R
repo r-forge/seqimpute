@@ -42,39 +42,12 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
   
-  if ( (regr != "mlogit") & (regr != "lm") & (regr != "lrm") & (regr!="rf") & (regr!="ranger") & (regr!="multinom")) {
+  if ( (regr != "lm") & (regr != "lrm") & (regr!="rf")  & (regr!="multinom")) {
     stop("/!\\ regr defines the type of regression model you want to use.
-               It has to be either assigned to character 'mlogit' (for multinomial
-               regression),'lm' (for linear regression) or 'lrm' (for ordinal
+               It has to be either assigned to character 'multinom' (for multinomial
+               regression),'rf' (for random forests), lm' (for linear regression) or 'lrm' (for ordinal
                regression)")
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  # 0.3 Testing effectively exactly k possible categories of the variable (in case we consider categorical variables) -------------------------------------------
-  # if (ODClass == "factor") {
-  #   for (i in 1:nr) {
-  #     for (j in 1:nc) {
-  #       if ( is.na(OD[i,j])==FALSE & (OD[i,j]<=0 | OD[i,j]>k) ) {
-  #         stop("/!\\ Your Original dataset doesn't contain the right
-  #                      number of k categories of the variable")
-  #       } else {
-  #         next
-  #       }
-  #     }
-  #   }
-  # }
-  
-  
-  
-  
   
   
   
@@ -111,30 +84,10 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   
   
   
-  
-  
-  
-  # 0.6 Testing np and nf are not chosen too large --------------------------------------------------------------------------------------------------------------
-  # if (np+1+nf>nc)
-  #   stop("/!\\ You have to choose lower value for np and nf. Your selected
-  #              np and nf are too large to fit the dimensions of your data matrix")
-  # 
-  # 
-  
-  
-  
   # 0.7 Testing not nfi<0, nor npt<0 ----------------------------------------------------------------------------------------------------------------------------
   # Negative value for nfi as well as npt raises an error
   if(nfi<0 | npt<0)
     stop("/!\\ nfi and npt can't be negative numbers")
-  # In case nfi = 0 and/or npt = 0, the imputation of the initial gaps and/or
-  # the terminal gaps respectively is simply omitted
-  
-  
-  
-  
-  
-  
   
   
   # 0.8 Testing the right construction of COt -------------------------------------------------------------------------------------------------------------------
@@ -143,7 +96,7 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
   # The total number of columns of COt is necessarily a multiple of the number
   # of column of OD
   if (ncot%%nc != 0) {
-    stop("/!\\ Be sure to have understood the notion of time-dependent covariates. Each time-dependent covariates contained in COt has to have the same number of columns as OD.")
+    stop("/!\\ Each time-dependent covariates contained in COt has to have the same number of columns as OD.")
   }
   
   
@@ -191,8 +144,6 @@ deleteNaRows <- function(OD, CO, COt) {
       # empty and updating the covariate matrix COt as well!
       COt <- COt[-rowsNA,]
     }
-    warning(paste("/!\\ Row number",paste(rowsNA,collapse=", "),"was not imputed
-                            because it only consisted of NAs."),sep='')
   } 
   return(list(OD, CO, COt, rowsNA))
 }
@@ -278,21 +229,6 @@ factorAndMatrixChecks <- function(OD) {
   # everything to numeric without losing the matrix structure.
   
   
-  
-  # Converting the columns of OD to factor
-  #
-  # /!\ With:
-  # for (j in 1:nc) {
-  #     OD[,j] <- as.factor(OD[,j])
-  # }
-  # Copying OD in ODi (the matrix in which we will proceed to the
-  # imputations ODi <- OD
-  # The values in certain components of OD change because as we convert into
-  # factors, the column containing only "1" or only "2" are then substituted
-  # into only "1" (because only one unique state (either "1" or "2") has been
-  # identified in the column)
-  # Here is the code to use to preserve original values in a variable turned
-  # into a factor:
   ODi <- OD
   #
   # In case OD is constituted of factor variables, we make sure that the
