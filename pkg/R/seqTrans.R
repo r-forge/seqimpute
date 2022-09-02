@@ -47,7 +47,6 @@
 #' @importFrom plyr mapvalues
 #' 
 #' @importFrom dfidx dfidx
-#' @importFrom mlogit mlogit
 #' 
 #' @importFrom rms lrm
 #' 
