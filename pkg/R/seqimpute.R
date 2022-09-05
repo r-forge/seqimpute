@@ -56,6 +56,8 @@
 #' @param noise \code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model 
 #' (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}).
 #' @param ParExec logical. If \code{TRUE}, the multiple imputations are run in parallell. This allows faster run time depending of how many core the processor has. 
+#' @param ncores integer. Number of cores to be used for the parallel computation. If no value is set for this parameter, the number of cores will be set
+#' to the maximum number of CPU cores minus 1. 
 #' @param SetRNGSeed an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
 #' of parallel computation.
 #' @param num.trees random forest parameter setting the number of trees of each random forest model.
@@ -77,7 +79,7 @@
 #' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
 #' 
 #' # Seqimpute used with parallelisation
-#' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
 #' }
 #' @references HALPIN, Brendan (2012). Multiple imputation for life-course sequence data. Working Paper WP2012-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3639.
 #' @references HALPIN, Brendan (2013). Imputing sequence data: Extensions to initial and terminal gaps, Stata's. Working Paper WP2013-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3620
@@ -87,7 +89,7 @@
 seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE
+                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=FALSE,ncores=NULL
                       ,num.trees=10,min.node.size=NULL,max.depth=NULL,verbose=TRUE) {
   
  
@@ -127,7 +129,11 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   
   #Setting parallel or sequential backend and  random seed
   if (ParExec & (parallel::detectCores() > 2 & mi>1)){
-    Ncpus <- parallel::detectCores() - 1
+    if(is.null(ncores)){
+      Ncpus <- parallel::detectCores() - 1
+    }else{
+      Ncpus <- min(ncores,parallel::detectCores() - 1)
+    }
     cl <- parallel::makeCluster(Ncpus)
     doSNOW::registerDoSNOW(cl) #registerDoParallel doesn't have compatibility with ProgressBar
     if(SetRNGSeed){
@@ -259,6 +265,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
     parallel::stopCluster(cl)
   }
   RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
+
   # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
   RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, mi, mice.return)
   

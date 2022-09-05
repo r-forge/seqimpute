@@ -77,7 +77,7 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
             }else if(j==mi & rowsNA[length(rowsNA)]==nrowsDataset){
               RESULT <- rbind(RESULT,c(mi,rep(NA,ncol(RESULT))))
             }else{
-              RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j,rep(NA,ncol(RESULT))),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
+              RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j,rep(NA,ncol(RESULT)-1)),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
             }
           }
         }

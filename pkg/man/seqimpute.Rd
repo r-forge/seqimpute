@@ -21,7 +21,8 @@ seqimpute(
   include = FALSE,
   noise = 0,
   SetRNGSeed = FALSE,
-  ParExec = TRUE,
+  ParExec = FALSE,
+  ncores = NULL,
   num.trees = 10,
   min.node.size = NULL,
   max.depth = NULL,
@@ -68,6 +69,9 @@ dataset should be included or not. This parameter does not apply if \code{mice.r
 of parallel computation.}
 
 \item{ParExec}{logical. If \code{TRUE}, the multiple imputations are run in parallell. This allows faster run time depending of how many core the processor has.}
+
+\item{ncores}{integer. Number of cores to be used for the parallel computation. If no value is set for this parameter, the number of cores will be set
+to the maximum number of CPU cores minus 1.}
 
 \item{num.trees}{random forest parameter setting the number of trees of each random forest model.}
 
@@ -127,7 +131,7 @@ Order of imputation of the gaps types:
 RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
 
 # Seqimpute used with parallelisation
-RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17)
+RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
 }
 }
 \references{

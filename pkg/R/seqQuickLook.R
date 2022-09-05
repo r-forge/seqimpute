@@ -52,7 +52,7 @@ seqQuickLook <- function(OD, np=1, nf=0) {
     }
     
     dataOD <- list()
-    dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)   
+    dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,matrix(NA,nrow=1,ncol=1),matrix(NA,nrow=1,ncol=1))   
     
     
     

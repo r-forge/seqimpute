@@ -172,7 +172,11 @@ seqTrans <- function(OD, trans){
   # been found
   if (sum(numbOfImpTrans) == 0) {
     message("Your dataset has no impossible transitions!")
-    return(NULL)
+    
+    seqTransList <- matrix(0,0,2)
+    colnames(seqTransList) <- c("row","col")
+    
+    return(seqTransList)
   }
   
   if(length(impTrans)==1){
