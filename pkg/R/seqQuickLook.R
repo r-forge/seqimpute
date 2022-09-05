@@ -51,7 +51,7 @@ seqQuickLook <- function(OD, np=1, nf=0) {
       k <- max(OD)
     }
     
-    
+    dataOD <- list()
     dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)   
     
     
