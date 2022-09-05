@@ -1,10 +1,10 @@
 #' Computing and spotting transitions among a dataset
 #'
-#' The purpose of \code{seqTrans.R} is to compute and spot transitions
+#' The purpose of \code{seqTrans.R} is to spot transitions
 #' in a dataset. 
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
-#' @param trans \code{character} vector gathering the desired transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")
+#' @param trans \code{character} vector gathering the impossible transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")
 #'
 #' @author Andre Berchtold <andre.berchtold@@unil.ch>, Kevin Emery
 #'

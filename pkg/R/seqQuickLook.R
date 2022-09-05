@@ -1,10 +1,8 @@
 #' Numbering NAs and types of gaps among a dataset
 #'
-#' \code{seqQuickLook.R} is a function aimed at providing a quick overview of the
-#' frequency of the NAs and the number and size of the different types of gaps
-#' spread in the original dataset \code{OD}. The user should run this function before
-#' running the main function \code{seqimpute.R} in order to identify a judicious choice
-#' for the values of \code{np} and \code{nf}.
+#' \code{seqQuickLook.R} is a function aimed at providing an overview of the
+#' number and size of the different types of gaps
+#' spread in the original dataset \code{OD}. 
 #'
 #' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
 #' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).

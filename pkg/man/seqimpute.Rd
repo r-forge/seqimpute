@@ -20,9 +20,9 @@ seqimpute(
   mice.return = FALSE,
   include = FALSE,
   noise = 0,
-  SetRNGSeed = FALSE,
   ParExec = FALSE,
   ncores = NULL,
+  SetRNGSeed = FALSE,
   num.trees = 10,
   min.node.size = NULL,
   max.depth = NULL,
@@ -65,13 +65,13 @@ dataset should be included or not. This parameter does not apply if \code{mice.r
 \item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model 
 (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}).}
 
-\item{SetRNGSeed}{an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
-of parallel computation.}
-
 \item{ParExec}{logical. If \code{TRUE}, the multiple imputations are run in parallell. This allows faster run time depending of how many core the processor has.}
 
 \item{ncores}{integer. Number of cores to be used for the parallel computation. If no value is set for this parameter, the number of cores will be set
 to the maximum number of CPU cores minus 1.}
+
+\item{SetRNGSeed}{an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
+of parallel computation.}
 
 \item{num.trees}{random forest parameter setting the number of trees of each random forest model.}
 
@@ -127,7 +127,7 @@ Order of imputation of the gaps types:
 }
 \examples{
 # Default single imputation
-RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
+RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=1)
 
 # Seqimpute used with parallelisation
 RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)

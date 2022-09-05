@@ -75,7 +75,7 @@
 #'
 #' @examples
 #' # Default single imputation
-#' RESULT <- seqimpute(OD=OD, np=1, nf=0, nfi=1, npt=1, mi=2)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=1)
 #' 
 #' # Seqimpute used with parallelisation
 #' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
@@ -88,8 +88,8 @@
 seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
                       available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=FALSE,ncores=NULL
-                      ,num.trees=10,min.node.size=NULL,max.depth=NULL,verbose=TRUE) {
+                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
+                      ,SetRNGSeed=FALSE, num.trees=10,min.node.size=NULL,max.depth=NULL,verbose=TRUE) {
   
  
   #***************************************************************************

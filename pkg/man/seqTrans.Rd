@@ -9,13 +9,13 @@ seqTrans(OD, trans)
 \arguments{
 \item{OD}{\code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).}
 
-\item{trans}{\code{character} vector gathering the desired transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")}
+\item{trans}{\code{character} vector gathering the impossible transitions. For example: trans <- c("1->3","1->4","2->1","4->1","4->3")}
 }
 \value{
 It returns a matrix whose rows each are the indices of an impossible transition.
 }
 \description{
-The purpose of \code{seqTrans.R} is to compute and spot transitions
+The purpose of \code{seqTrans.R} is to spot transitions
 in a dataset.
 }
 \examples{
