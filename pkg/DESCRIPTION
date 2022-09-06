@@ -3,8 +3,8 @@ Type: Package
 Title: Imputation of Missing Data in Sequence Analysis
 Version: 1.7
 Authors@R: c(person("Andre","Berchtold",email="andre.berchtold@unil.ch",role=c("aut","cre")),person("Anthony","Guinchard",role="aut"),person("Kevin","Emery",role="aut"),person("Kamyar","Taher",role="aut"))
-Date: 2022-09-05
-Description: Multiple imputation of missing data present in a dataset through the prediction based on either a random forest or a multinomial regression model. Covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the method of Halpin (2012) <http://hdl.handle.net/10344/3639>.
+Date: 2022-09-06
+Description: Multiple imputation of missing data present in a dataset through the prediction based on either a random forest or a multinomial regression model. Covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the method of Halpin (2012) <https://ulir.ul.ie/handle/10344/3639>.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
