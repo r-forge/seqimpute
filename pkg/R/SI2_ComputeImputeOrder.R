@@ -329,6 +329,9 @@ ORDERSLGLRCompute <- function(nr, nc, ORDERSLG, tempMinGapLeft, tempMinGapRight,
   
   # We create the matrix ORDERSLGBoth
   ORDERSLGBoth <- matrix(nrow=nr,ncol=nc,0)
+  ORDERSLGLeft <- matrix(nrow=nr,ncol=nc,0)
+  ORDERSLGRight <- matrix(nrow=nr,ncol=nc,0)
+  
   if(sum(ORDERSLGLeft!=0&ORDERSLGRight!=0)>0){
     LongGap <- TRUE
     ORDERSLGBoth[ORDERSLGLeft!=0&ORDERSLGRight!=0]<-ORDERSLGLeft[ORDERSLGLeft!=0&ORDERSLGRight!=0]
