@@ -17,7 +17,7 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
     # 3.2. Computation of the model (Dealing with the LOCATIONS of imputation)-------------------------
     log_CD <- list()
     log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,num.trees,min.node.size,max.depth)
-    
+
     # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
     ODi <- CreatedModelImputation(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
 
@@ -153,7 +153,6 @@ CreatedModelImputation <- function(order, CO, CD, COt, OD, ODi, pastDistrib, fut
     REFORD <- t(REFORD)
   }
   nr_REFORD <- nrow(REFORD)
-  
   
   if (np>0 & nf==0) { # only PAST VIs do exist
     ODi <- ODiImputePAST(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)

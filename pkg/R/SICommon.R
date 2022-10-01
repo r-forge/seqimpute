@@ -624,16 +624,17 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     # taking out the first coordinate
     # (row number in ORDER) from REFORD
     j <- REFORD[u,2]
+    
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
     CDi <- matrix(NA,nrow=k, ncol=1)
-       
+    
     # Matrix for past values
     shift <- as.numeric(shift)
+    
     vect <- LOOKUP[i,(j-shift-np):(j-shift-1)]
-    
+
     CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
     
     # Matrix for future values
     vect <- LOOKUP[i,(j-shift+MaxGap-order+1):(j-shift+MaxGap-order+nf)]
@@ -666,7 +667,6 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
     # The first values of CDi must be of type factor
     # (categorical values)
    
-    
     if(regr=="lm"|regr=="lrm"){
       for(v in 1:(1+np+nf)){
         CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
