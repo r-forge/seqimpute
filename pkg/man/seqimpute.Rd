@@ -126,11 +126,14 @@ Order of imputation of the gaps types:
     6. Both-hand side SLG
 }
 \examples{
+
 # Default single imputation
 RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=1)
 
 # Seqimpute used with parallelisation
+\dontrun{
 RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
+}
 
 }
 \references{
