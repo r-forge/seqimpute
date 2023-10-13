@@ -213,13 +213,21 @@ PastVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COt
   
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
-  if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
-    # completely empty
-    # Creation of the stacked covariates
-    # matrix for 3.1
-    COs <- do.call("rbind", rep(list(CO), ud))
-    # Concatenating CD and COs into CD
-    CD <- cbind(CD, COs)
+  if (all(is.na(CO))==FALSE) {
+    if(is.null(dim(CO))){
+      CO <- matrix(CO,nrow=nrow(OD),ncol=1)
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }else{
+      # Checking if CO is NOT
+      # completely empty
+      # Creation of the stacked covariates
+      # matrix for 3.1
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }
   }
   # Else, in case CO is empty (i.e. we don't consider
   # any covariate) simply continue with the current CD
@@ -339,13 +347,21 @@ FutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, C
   
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
-  if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
-    # completely empty
-    # Creation of the stacked covariates
-    # matrix for 3.1
-    COs <- do.call("rbind", rep(list(CO), ud))
-    # Concatenating CD and COs into CD
-    CD <- cbind(CD, COs)
+  if (all(is.na(CO))==FALSE) {
+    if(is.null(dim(CO))){
+      CO <- matrix(CO,nrow=nrow(OD),ncol=1)
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }else{
+      # Checking if CO is NOT
+      # completely empty
+      # Creation of the stacked covariates
+      # matrix for 3.1
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }
   }
   # Else, in case CO is empty (i.e. we don't consider
   # any covariate) simply continue with the current CD
@@ -469,13 +485,21 @@ PastFutureVICompute <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
   CD <- as.data.frame(CD)
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
-  if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
-    # completely empty
-    # Creation of the stacked covariates
-    # matrix for 3.1
-    COs <- do.call("rbind", rep(list(CO), ud))
-    # Concatenating CD and COs into CD
-    CD <- cbind(CD, COs)
+  if (all(is.na(CO))==FALSE) {
+    if(is.null(dim(CO))){
+      CO <- matrix(CO,nrow=nrow(OD),ncol=1)
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }else{
+      # Checking if CO is NOT
+      # completely empty
+      # Creation of the stacked covariates
+      # matrix for 3.1
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }
   }
   # Else, in case CO is empty (i.e. we don't consider
   # any covariate) simply continue with the current CD
@@ -574,9 +598,13 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
       # Checking if CO is NOT
       # completely empty
       # Creation of the matrix COi used in 3.3
-      COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+      if(is.null(dim(CO))){
+        COi <- do.call(rbind, replicate(k, as.data.frame(CO[i]), simplify=FALSE))
+      }else{
+        COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+      }
       # Concatenating CDi and COi into CDi
-      CDi <- cbind(CDi, COi)
+      CDi <- cbind(CDi,COi)
       # Transformation of the names of the columns
       # of CDi (called V1, V2, ..., "VtotV")
       colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
@@ -696,7 +724,11 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
       # Checking if CO is NOT
       # completely empty
       # Creation of the matrix COi used in 3.3
-      COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+      if(is.null(dim(CO))){
+        COi <- do.call(rbind, replicate(k, as.data.frame(CO[i]), simplify=FALSE))
+      }else{
+        COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+      }
       # Concatenating CDi and COi into CDi
       CDi <- cbind(CDi,COi)
       # Transformation of the names of the columns
@@ -893,7 +925,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
 ################################################################################
 # Compute model with the chosen regression model
 
-ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max.depth){
+ComputeModel <- function(CD, regr, tot_VI, np, nf, k,...){
   npfi <- np+nf
   # ==>> Manipulation of parameters
   
@@ -988,10 +1020,14 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
     # value of tot_VI
     fmla <- as.formula(paste("V1~", paste(factors, collapse="+")))
     #reglog <- randomForest(fmla, data=CD,ntree=100)
-    reglog<-ranger(fmla,data=CD,num.trees=num.trees,min.node.size=min.node.size,
-                   max.depth=max.depth)
     
-    
+    if("num.trees"%in%names(list(...))){
+      reglog<-ranger(fmla,data=CD,...)
+      
+    }else{
+      reglog<-ranger(fmla,data=CD,num.trees=10,...)
+      
+    }
   }else if(regr=="multinom"){
     
     CD[,1] <- factor(CD[,1],levels=c(1:k))
@@ -1015,7 +1051,7 @@ ComputeModel <- function(CD, regr, tot_VI, np, nf, k,num.trees,min.node.size,max
     # value of tot_VI
     fmla <- as.formula(paste("V1~", paste(factors, collapse="+")))
     
-    reglog <- nnet::multinom(CD,maxit=100, trace=FALSE, MaxNwts=1500)
+    reglog <- nnet::multinom(CD,maxit=100, trace=FALSE, MaxNwts=1500,...)
     
   }else{
   }

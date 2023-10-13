@@ -4,10 +4,10 @@
 ################################################################################
 # Left-hand side SLG imputation
 
-LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth){     # Checking if we have to impute
+LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){     # Checking if we have to impute
   # left-hand side SLG
   
-  message("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
+  #message("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
   
   # 6.2.LEFT Computation of the order of imputation of each MD ----
 
@@ -57,7 +57,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
         ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k)
         # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         log_CD <- list()
-        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,num.trees,min.node.size,max.depth)
+        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,...)
         # 6.3.3.LEFT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
         ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD,  ODi, COt, ncot, nf, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
       }
@@ -73,11 +73,11 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
 ##############################################################################
 #Right-hand side SLG imputation
 
-RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,num.trees,min.node.size,max.depth){
+RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){
   # Checking if we have to impute right-hand
   # side SLG
   
-  message("/!\\ Specially Located Gaps (SLG) have been detected on the right-hand side of OD.","\n","For certain missing data groups close to the border of OD, nf may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for nf.")
+  #message("/!\\ Specially Located Gaps (SLG) have been detected on the right-hand side of OD.","\n","For certain missing data groups close to the border of OD, nf may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for nf.")
   
   # 6.2.RIGHT Computation of the order of imputation of each MD ----------------
   
@@ -129,7 +129,7 @@ RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistri
 
         # 6.3.2.RIGHT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         log_CD <- list()
-        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, np,ParamList$nf_temp, k,num.trees,min.node.size,max.depth)
+        log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, np,ParamList$nf_temp, k,...)
         
 
         # 6.3.3.RIGHT Imputation using the just created model (Dealing with the actual VALUES to impute) ----

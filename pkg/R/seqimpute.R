@@ -1,6 +1,8 @@
 #' Imputation of missing data in sequence analysis
 #'
-#' Multiple imputation of missing data present in a dataset through the prediction based
+#' The seqimpute package implements the MICT and MICT-timing methods. These are multiple imputation methods for
+#' longitudinal data. The core idea of the algorithms is to fills gaps of missing data, which is the typcial for of
+#' missing data in a longitudinal setting, recursively from their edges. The prediction is based
 #' on either a multinomial or a random forest regression model.
 #' Covariates and time-dependant covariates can be included in the model.
 #' The prediction of the missing values is based on the theory of Prof. Brendan
@@ -16,7 +18,7 @@
 #'
 #' - Initial Gaps (gaps situated at the very beginning of a sequence)
 #'
-#' - Terminal Gaps (gaps situaed at the very end of a sequence)
+#' - Terminal Gaps (gaps situated at the very end of a sequence)
 #'
 #' - Left-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
 #' but the ending location is not included in the interval \code{[ncol(OD)-nf,ncol(OD)]})
@@ -37,18 +39,21 @@
 #'
 #' @param OD either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
 #' a state sequence object built with the TraMineR package
-#' @param regr a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
-#' while if \code{regr="rf"}, random forest models are used.
 #' @param np number of previous observations in the imputation model of the internal gaps.
 #' @param nf number of future observations in the imputation model of the internal gaps.
+#' @param mi number of multiple imputations  (default: \code{1}).
+#' @param timing a logical value that specifies if the standard MICT algorithm (timing=FALSE)
+#' or the MICT-timing algorithm (timing=TRUE) should be used.
+#' @param timeFrame parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.
+#' @param CO a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.
+#' @param COt a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.
+#' @param regr a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
+#' while if \code{regr="rf"}, random forest models are used.
 #' @param nfi number of future observations in the imputation model of the initial gaps.
 #' @param npt number of previous observations in the imputation model of the terminal gaps.
 #' @param available a logical value allowing the user to choose whether to consider the already imputed data in the predictive model (\code{available = TRUE}) or not (\code{available = FALSE}).
-#' @param CO a data frame containing some covariates among which the user can choose in order to specify his model more accurately.
-#' @param COt a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.
 #' @param pastDistrib a logical indicating if the past distribution should be used as predictor in the imputation model.
 #' @param futureDistrib a logical indicating if the futur distribution should be used as predictor in the imputation model.
-#' @param mi number of multiple imputations  (default: \code{1}).
 #' @param mice.return a logical indicating whether an object of class \code{mids}, that can be directly used by the \code{mice} package, should be returned
 #' by the algorithm. By default, a data frame with the imputed datasets stacked vertically is returned.
 #' @param include logical. If a dataframe is returned (\code{mice.return = FALSE}), indicates if the original
@@ -60,10 +65,8 @@
 #' to the maximum number of CPU cores minus 1. 
 #' @param SetRNGSeed an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
 #' of parallel computation.
-#' @param num.trees random forest parameter setting the number of trees of each random forest model.
-#' @param min.node.size random forest parameter setting the minimum node size for each random forest model.
-#' @param max.depth random forest parameter setting the maximal depth tree for each random forest model.
 #' @param verbose logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.
+#' @param ... Named arguments that are passed down to the imputation functions.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
 #'
@@ -88,14 +91,43 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
-                      available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
-                      COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                      futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
-                      ,SetRNGSeed=FALSE, num.trees=10,min.node.size=NULL,max.depth=NULL,verbose=TRUE) {
+seqimpute <- function(OD, np=1, nf=1, mi=1, CO=matrix(NA,nrow=1,ncol=1),
+                               COt=matrix(NA,nrow=1,ncol=1), timing=FALSE, timeFrame=0, regr="multinom", nfi=1, npt=1,
+                               available=TRUE, pastDistrib=FALSE,
+                               futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
+                               ,SetRNGSeed=FALSE,verbose=TRUE,...){
+  
+  if(timing==FALSE){
+    return(seqimpute_standard(OD, np=np, nf=nf, mi=mi, CO=CO,
+                               COt=COt, regr=regr, nfi=nfi, npt=npt,
+                               available=available, pastDistrib=pastDistrib,
+                               futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
+                               ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
+  }else{
+    return(seqimpute_timing(OD, np=np, nf=nf, mi=mi, CO=CO,
+                              COt=COt, regr=regr, nfi=nfi, npt=npt,
+                              available=available, pastDistrib=pastDistrib,
+                              futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
+                              ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
+  }
+}
+
+
+seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1),
+                      COt=matrix(NA,nrow=1,ncol=1), regr="multinom", nfi=1, npt=1,
+                      available=TRUE, pastDistrib=FALSE,
+                      futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
+                      ,SetRNGSeed=FALSE, verbose=TRUE,...) {
   
  
   #***************************************************************************
+    # Sequence object: Recode to NA the missing code
+  if(inherits(OD,"stslist")){
+    valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
+    OD <- data.frame(OD)
+    OD[OD==valuesNA[1]|OD==valuesNA[2]] <- NA
+  }
+  
   if(sum(is.na(OD))==0){
     if(verbose==T){
       message("This dataset has no missing values!")
@@ -113,17 +145,11 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
     include <- TRUE
   }
   
-  
   # 0. Initial tests and manipulations on parameters ------------------------------------------------------------------------------------------------------------
   dataOD <- preliminaryChecks(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib)
   dataOD[c("pastDistrib", "futureDistrib", "totV", "totVi", "totVt", "noise")] <- InitCorectControl(regr, dataOD$ODClass, dataOD$OD, dataOD$nr, dataOD$nc, dataOD$k, np, nf, dataOD$nco, dataOD$ncot, nfi, npt,  pastDistrib, futureDistrib, dataOD$totV, dataOD$totVi, dataOD$totVt, noise)
-  
-  
   # 1. Analysis of OD and creation of matrices ORDER, ORDER2 and ORDER3 -----------------------------------------------------------------------------------------
   dataOD[c("MaxInitGapSize", "InitGapSize",  "MaxTermGapSize", "TermGapSize", "MaxGap", "ORDER", "ORDER2", "ORDER3")] <- OrderCreation(dataOD$OD, dataOD$nr, dataOD$nc)
-  
-  
-  
   # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
   if (max(dataOD$ORDER)!=0) {
     dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, dataOD$nr, dataOD$nc)
@@ -192,7 +218,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
     #********************************************************************************************************************************
         #************************************************************************************************************************
         # 3. Imputation using a specific model --------------------------------------------------------------------------------------------------------
-    if (max(dataOD$ORDER)!=0) {
+    if (max(dataOD$ORDER)!=0){
       # Otherwise if there is only 0 in ORDER,
       # there is no need to impute internal gaps
       # and we directly jump to the imputation of
@@ -200,7 +226,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       if(verbose==T){
         print("Imputation of the internal gaps...")
       }
-      dataOD[["ODi"]]  <- ModelImputation(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, dataOD$k, available, dataOD$REFORD_L, dataOD$noise,num.trees,min.node.size,max.depth)
+      dataOD[["ODi"]]  <- ModelImputation(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, dataOD$k, available, dataOD$REFORD_L, dataOD$noise,...)
       
     }
     # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
@@ -209,7 +235,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         print("Imputation of the initial gaps...")
       }
       # # we only impute the initial gaps if nfi > 0
-      dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$nco, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,num.trees,min.node.size,max.depth)
+      dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$nco, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,...)
     }
     # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
     if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
@@ -218,7 +244,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       if(verbose==T){
         print("Imputation of the terminal gaps...")
       }
-      dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,num.trees,min.node.size,max.depth)
+      dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise, ...)
     }
     #if (max(dataOD$ORDER)!=0) {
     # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
@@ -229,7 +255,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       if(verbose==T){
         print("Imputation of the left-hand side SLG...")
       }
-      dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,num.trees,min.node.size,max.depth)
+      dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
       
     }
     # right-hand side SLG
@@ -240,7 +266,7 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         print("Imputation of the right-hand side SLG...")
       }
       
-      dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,num.trees,min.node.size,max.depth)
+      dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
       
     }
     # Checking if we have to impute
@@ -250,12 +276,11 @@ seqimpute <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         print("Imputation of the both-hand side SLG...")
       }
       for(h in 2:np){
-        print(h)
         if(sum(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)>0){
           tt <- which(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)
           tmpORDER <- matrix(0,nrow(dataOD$ORDERSLGBoth),ncol(dataOD$ORDERSLGBoth))
           tmpORDER[tt,h:ncol(dataOD$ORDERSLGBoth)] <- dataOD$ORDERSLGBoth[tt,h:ncol(dataOD$ORDERSLGBoth)]
-          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt,dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,num.trees,min.node.size,max.depth)
+          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt,dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
           
         }
       }

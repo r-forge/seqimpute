@@ -11,21 +11,12 @@ preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, future
   dataOD <- list()
   # Updating the number of columns of CO
   dataOD["nco"] <- emptyColUpdate(CO)
-  #
   # Updating the number of columns of COt
   dataOD["ncot"] <- emptyColUpdate(COt)
   
-  # Sequence object: Recode to NA the missing code
-  if(inherits(OD,"stslist")){
-    valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
-    OD <- as.data.frame(OD)
-    OD[OD==attr(OD,"nr")|OD==attr(OD,"void")] <- NA
-  }
-  
-  
   # Deleting entire rows of OD filled only with NAs
   # (and deleting corresponding lines in CO and COt)
-  dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)    
+  dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)   
   dataOD[c("OD", "ODi", "ODClass", "ODlevels","k","nr","nc")] <- factorAndMatrixChecks(dataOD$OD)
   dataOD[c("COtsample", "totV", "totVt", "totVi")] <- defineNbVariables(dataOD$OD, dataOD$COt, dataOD$ncot, np, dataOD$nco, nf, nfi, npt, dataOD$k, pastDistrib, futureDistrib, dataOD$nr, dataOD$nc)
   
@@ -113,8 +104,12 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
 # Update the number of columns of a matrix
 
 emptyColUpdate <- function(x) {
-  if (all(is.na(x))==FALSE) { # if CO is NOT completely empty
-    return(ncol(x))
+  if (all(is.na(x))==FALSE) {# if CO is NOT completely empty
+    if(is.null(dim(x))){
+      return(1)
+    }else{
+      return(ncol(x))
+    }
   }
   # else, in case CO is completely empty
   # then, nco has to be set to "0"
@@ -138,7 +133,12 @@ deleteNaRows <- function(OD, CO, COt) {
     OD <- OD[-rowsNA,]
     if (all(is.na(CO))==FALSE) { # Checking if CO is NOT completely
       # empty and updating the covariate matrix CO as well!
-      CO <- CO[-rowsNA,]
+      if(is.null(dim(CO))){
+        CO <- CO[-rowsNA]
+      }else{
+        CO <- CO[-rowsNA,]
+        
+      }
     }
     if (all(is.na(COt))==FALSE) { # Checking if COt is NOT completely
       # empty and updating the covariate matrix COt as well!

@@ -4,7 +4,7 @@
 ################################################################################
 # Impute initial NAs
 
-ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,num.trees,min.node.size,max.depth){
+ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,...){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
   
@@ -25,7 +25,7 @@ ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib
  
   # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
-  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,num.trees,min.node.size,max.depth)
+  log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,...)
   
   # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
   ODi <- Init_NA_CreatedModelImputation(OD, ODi, CO, log_CD$CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, log_CD$reglog, noise, available)
@@ -141,12 +141,20 @@ CDMatCreate <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureDistrib
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
   if (all(is.na(CO))==FALSE) {
-    # Checking if CO is NOT completely
-    # empty
-    # Creation of the stacked covariates matrix for 3.1
-    COs <- do.call("rbind", rep(list(CO), ud))
-    # Concatenating CD and COs into CD
-    CD <- cbind(CD, COs)
+    if(is.null(dim(CO))){
+      CO <- matrix(CO,nrow=nrow(OD),ncol=1)
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }else{
+      # Checking if CO is NOT
+      # completely empty
+      # Creation of the stacked covariates
+      # matrix for 3.1
+      COs <- do.call("rbind", rep(list(CO), ud))
+      # Concatenating CD and COs into CD
+      CD <- cbind(CD, COs)
+    }
   }
   # Else, in case CO is empty (i.e. we don't consider any
   # covariate)
@@ -248,14 +256,19 @@ Init_NA_CreatedModelImputation <- function(OD, ODi, CO, CD, COt, MaxInitGapSize,
       }
       # Eventually concatenating CDi with COi (the matrix
       # containing the covariates)
-      if (all(is.na(CO))==FALSE) { # Checking if CO is NOT
+      if (all(is.na(CO))==FALSE) {
+        # Checking if CO is NOT
         # completely empty
         # Creation of the matrix COi used in 3.3
-        COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+        if(is.null(dim(CO))){
+          COi <- do.call(rbind, replicate(k, as.data.frame(CO[i]), simplify=FALSE))
+        }else{
+          COi <- do.call(rbind, replicate(k, as.data.frame(CO[i,]), simplify=FALSE))
+        }
         # Concatenating CDi and COi into CDi
-        CDi <- cbind(CDi, COi)
-        # Transformation of the names of the columns of
-        # CDi (called V1, V2, ..., "VtotV")
+        CDi <- cbind(CDi,COi)
+        # Transformation of the names of the columns
+        # of CDi (called V1, V2, ..., "VtotV")
         colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
       }
       # Else, in case CO is empty (i.e. we don't consider
