@@ -17,12 +17,12 @@ make_missing_MCAR<- function(data,pstart=0.1,propdata=0.6){
     while(nmis>floor(0.75*ncol(data))){
       for(j in 1:ncol(data)){
         if(j==1){
-          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart,1-pstart))
+          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart,1-pstart))
         }else{
           if(matrix_missing[rowsmiss[i],j-1]==1){
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart,1-pstart))
+            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart,1-pstart))
           }else{
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(0.66,0.34))
+            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(0.66,0.34))
           }
         }
       }
@@ -56,17 +56,17 @@ make_missing_MAR<- function(data,pstart_high=0.2,pstart_low=0.03,propdata=0.6,st
     while(nmis>floor(0.75*ncol(data))){
       for(j in 1:ncol(data)){
         if(j==1){
-          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart_low,1-pstart_low))
+          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_low,1-pstart_low))
         }else{
           if(matrix_missing[rowsmiss[i],j-1]==1){
             if(data[rowsmiss[i],j-1]%in%states_high){
-              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart_high,1-pstart_high))
+              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_high,1-pstart_high))
             }else{
-              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart_low,1-pstart_low))
+              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_low,1-pstart_low))
               
             }
           }else{
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(66,34))
+            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(66,34))
           }
         }
       }

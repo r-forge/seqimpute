@@ -90,7 +90,9 @@ two columns are added: \code{.imp} integer that refers to the imputation number
 the rownames of the dataset to impute.
 }
 \description{
-Multiple imputation of missing data present in a dataset through the prediction based
+The seqimpute package implements the MICT and MICT-timing methods. These are multiple imputation methods for
+longitudinal data. The core idea of the algorithms is to fills gaps of missing data, which is the typcial for of
+missing data in a longitudinal setting, recursively from their edges. The prediction is based
 on either a multinomial or a random forest regression model.
 Covariates and time-dependant covariates can be included in the model.
 The prediction of the missing values is based on the theory of Prof. Brendan
@@ -107,7 +109,7 @@ The imputation process is divided into several steps. According to the location 
 
 - Initial Gaps (gaps situated at the very beginning of a sequence)
 
-- Terminal Gaps (gaps situaed at the very end of a sequence)
+- Terminal Gaps (gaps situated at the very end of a sequence)
 
 - Left-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
 but the ending location is not included in the interval \code{[ncol(OD)-nf,ncol(OD)]})

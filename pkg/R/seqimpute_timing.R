@@ -271,14 +271,7 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
   # everywhere (/!\ for each
   # "order", we are going to
   # build such a CD)
-  
-  # Dealing with the change of shape of the prediction
-  # frame (according to whether the imputed data is
-  # located at the beginning (left) of a gap or at the end
-  # (right)).
-  # The purpose of this if statement is to detect if we
-  # have to insert a shift (to jump at the end of the gap)
-  # or not
+
   if ( (np > 0 & nf > 0) & ( (MaxGap%%2==0 & order%%2==0) | (MaxGap%%2!=0 & order%%2!=0) )){
     shift <- MaxGap - order      # jumping at the end of
     udp <- min(timeFrame,col-(MaxGap-order)-np-1) #number of usable data in the past
@@ -373,9 +366,6 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
     # da has same dimensions as db
   }
   for (j in col_to_use){
-    # /!\ j is initialised at
-    # the very end (utmost right) of the
-    # frame
     t1 <- (nr*(iter-1)+1)
     # Determining the locations
     # of the time span (always nr) of
@@ -394,16 +384,16 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
     
     # Eventually considering time-dependent
     # covariates
+    
+    
     if (ncot > 0) {
-      COtselected <- COtselection(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted = -frameSize+np+1)
+      COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
     # Past distribution (i.e. Before)
     if (pastDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[(1:(j-frameSize+np)),], factor, levels=c(1:k,NA), exclude=NULL)
-      # because:
-      # j-frameSize+np+1 - 1 = j-frameSize+np
+      tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
@@ -413,7 +403,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
     if (futureDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[((j-frameSize+np+2):nc),], factor, levels=c(1:k,NA), exclude=NULL)
+      tempOD <- lapply(ODt[((j+1):nc),], factor, levels=c(1:k,NA), exclude=NULL)
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
@@ -526,15 +516,13 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
     # Eventually considering time-dependent
     # covariates
     if (ncot > 0) {
-      COtselected <- COtselection(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted = -frameSize+np+1)
+      COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
     # Past distribution (i.e. Before)
     if (pastDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[(1:(j-frameSize+np)),], factor, levels=c(1:k,NA), exclude=NULL)
-      # because:
-      # j-frameSize+np+1 - 1 = j-frameSize+np
+      tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
@@ -542,24 +530,16 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
     }
     # Future distribution (i.e. After)
     if (futureDistrib) {
-      if ( (j-frameSize+np+2) <= nc) {  
-        ODt <- t(OD)
-        ODt <- as.data.frame(ODt)
-        tempOD <- lapply(ODt[((j-frameSize+np+2):nc),], factor, levels=c(1:k,NA), exclude=NULL)
-        # because:
-        # j-frameSize+np+1 + 1
-        # = j-frameSize+np+2
-        
-        da_list <- lapply(tempOD,summary)
-        da_matrix <- do.call(rbind,da_list)
-        CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
-      } else {
-        # if index in OD exceeds OD number of
-        # columns, the future distribution of
-        # the k categorical variables is simply
-        # null for everyone of them
-        CDda[t1:t2,] <- matrix(nrow=nr,ncol=k,0)
-      }
+      ODt <- t(OD)
+      ODt <- as.data.frame(ODt)
+      tempOD <- lapply(ODt[((j+1):nc),], factor, levels=c(1:k,NA), exclude=NULL)
+      # because:
+      # j-frameSize+np+1 + 1
+      # = j-frameSize+np+2
+      
+      da_list <- lapply(tempOD,summary)
+      da_matrix <- do.call(rbind,da_list)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
     }
     
     iter <- iter+1
@@ -679,32 +659,30 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc,
     # Eventually considering time-dependent
     # covariates
     if (ncot > 0) {
-      COtselected <- COtselection(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted = 0)
+      COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
     # Past distribution (i.e. Before)
     if (pastDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[(1:(j-frameSize+np+shift)),], factor, levels=c(1:k,NA), exclude=NULL)
-      # because:
-      # j-frameSize+np+1 - 1 = j-frameSize+np
+      tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np+shift))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
     }
     # Future distribution (i.e. After)
     if (futureDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[((j-frameSize+np+shift+2):nc),], factor, levels=c(1:k,NA), exclude=NULL)
+      tempOD <- lapply(ODt[((j+1):nc),], factor, levels=c(1:k,NA), exclude=NULL)
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
+      
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+shift+2):nc)
-      
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
     }
     
     iter <- iter+1
@@ -814,11 +792,11 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
   
   
   if (np>0 & nf==0) { # only PAST VIs do exist
-    ODi <- ODiImputePASTTiming(CO, ODi, CD, COt, col, row_to_imp, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
+    ODi <- ODiImputePASTTiming(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
     
     #---------------------------------------------------------------------------------------------
   } else if (np==0 & nf>0) {  # only FUTURE VIs do exist
-    ODi <- ODiImputeFUTURETiming(CO, ODi, CD, COt, col, row_to_imp, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
+    ODi <- ODiImputeFUTURETiming(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
   } else { # meaning np>0 and nf>0 and that,
     # thus, PAST as well as FUTURE VIs
     # do exist
@@ -828,7 +806,7 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
   return(ODi)
 }
 
-ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
+ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
   for (u in 1:length(row_to_imp)) {
     i <- row_to_imp[u]
     # taking out the first coordinate
@@ -947,7 +925,7 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, REFORD, nr_RE
 }
 
 
-ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, REFORD, nr_REFORD, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
+ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise){
   for (u in 1:length(row_to_imp)) {
     i <- row_to_imp[u]
     # taking out the first coordinate
@@ -1408,26 +1386,26 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
     
     # VD
     CD[t1:t2,1] <- OD[,j]
-    # /!\ current pointer on
-    # column is thus:
-    # "j-frameSize+1"
     
     # Future VIs
     CDf[t1:t2,] <- OD[,(j+1):(j+nfi)]
     
     # Eventually considering time-dependent covariates
     if (ncot > 0) {
-      COtselected <- COtselection(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted = 0)
+      COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
-    
     # Future distribution (i.e. After)
     if (futureDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
-      tempOD <- lapply(ODt[((j-frameSize+2):nc),], factor, levels=c(1:k,NA), exclude=NULL)
+      tempOD <- lapply(ODt[((j+1):nc),], factor, levels=c(1:k,NA), exclude=NULL)
+      # because:
+      # j-frameSize+np+1 + 1
+      # = j-frameSize+np+2
+      
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+2):nc)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
     }
     
     iter <- iter+1
@@ -1690,19 +1668,18 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
     
     # Eventually considering time-dependent covariates
     if (ncot > 0) {
-      COtselected <- COtselection(COtselected, COt, ncot, t1, t2, nr, nc, j, shifted = 0)
+      COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
-    
     # Past distribution (i.e. Before)
     if (pastDistrib) {
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
       tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
+      
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
     }
-    
     iter <- iter+1
   }
   # Concatening CD
