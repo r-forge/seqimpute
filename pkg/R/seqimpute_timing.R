@@ -80,6 +80,7 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   
   
   #Beginning of the multiple imputation (imputing "mi" times)
+  o <- NULL
   RESULT <- foreach(o=1:mi, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
     if (!ParParams){
       # Parallel and sequential execution of foreach don't use the same casting mechanism, this one is used for sequential execution.
@@ -318,17 +319,17 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
   # following for loops
   # Only PAST
   if (np>0 & nf==0) { 
-    CD <- PastVIComputeTiming(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use)
+    CD <- PastVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use)
     # Only FUTURE
   } else if (np==0 & nf>0) {
     # only FUTURE VIs do exist
-    CD <- FutureVIComputeTiming(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use)
+    CD <- FutureVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use)
     
     # PAST and FUTURE
   } else {
     # meaning np>0 and nf>0 and that, thus,
     # PAST as well as FUTURE VIs do exist
-    CD <- PastFutureVIComputeTiming(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order)
+    CD <- PastFutureVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order)
   }
   
   CD_shift <- list()
@@ -337,7 +338,7 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
 }
 
 ################################################################################
-FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use){
+FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use){
   
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
   
@@ -397,7 +398,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
     }
     # Future distribution (i.e. After)
     if (futureDistrib) {
@@ -410,7 +411,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
       
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
     iter <- iter+1
   }
@@ -463,7 +464,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud,
 }
 
 
-PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use){
+PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use){
   
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
   
@@ -526,7 +527,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
     }
     # Future distribution (i.e. After)
     if (futureDistrib) {
@@ -539,7 +540,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
       
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
     
     iter <- iter+1
@@ -595,7 +596,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, n
 
 # Past or future VI computation
 
-PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order){
+PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order){
   
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
@@ -669,7 +670,7 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc,
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
     }
     # Future distribution (i.e. After)
     if (futureDistrib) {
@@ -682,7 +683,7 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, frameSize, iter, nr, nc,
       
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
     
     iter <- iter+1
@@ -1405,7 +1406,7 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
       
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
-      CDda[t1:t2,] <- da_matrix[,1:k]/length((j-frameSize+np+2):nc)
+      CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
     
     iter <- iter+1
@@ -1678,7 +1679,7 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
       
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
-      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-frameSize+np))
+      CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
     }
     iter <- iter+1
   }
