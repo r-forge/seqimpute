@@ -8,7 +8,7 @@ seqimpute(
   OD,
   np = 1,
   nf = 1,
-  mi = 1,
+  m = 1,
   CO = matrix(NA, nrow = 1, ncol = 1),
   COt = matrix(NA, nrow = 1, ncol = 1),
   timing = FALSE,
@@ -37,7 +37,7 @@ a state sequence object built with the TraMineR package}
 
 \item{nf}{number of future observations in the imputation model of the internal gaps.}
 
-\item{mi}{number of multiple imputations  (default: \code{1}).}
+\item{m}{number of multiple imputations  (default: \code{1}).}
 
 \item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
 
@@ -131,11 +131,11 @@ Order of imputation of the gaps types:
 \examples{
 
 # Default single imputation
-RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=1)
+RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=1)
 
 # Seqimpute used with parallelisation
 \dontrun{
-RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
+RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
 }
 
 }

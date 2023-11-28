@@ -41,7 +41,7 @@
 #' a state sequence object built with the TraMineR package
 #' @param np number of previous observations in the imputation model of the internal gaps.
 #' @param nf number of future observations in the imputation model of the internal gaps.
-#' @param mi number of multiple imputations  (default: \code{1}).
+#' @param m number of multiple imputations  (default: \code{1}).
 #' @param timing a logical value that specifies if the standard MICT algorithm (timing=FALSE)
 #' or the MICT-timing algorithm (timing=TRUE) should be used.
 #' @param timeFrame parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.
@@ -79,11 +79,11 @@
 #' @examples
 #' 
 #' # Default single imputation
-#' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=1)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=1)
 #' 
 #' # Seqimpute used with parallelisation
 #' \dontrun{
-#' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, mi=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
+#' RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
 #' }
 #' 
 #' @references HALPIN, Brendan (2012). Multiple imputation for life-course sequence data. Working Paper WP2012-01, Department of Sociology, University of Limerick. http://hdl.handle.net/10344/3639.
@@ -91,20 +91,20 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, np=1, nf=1, mi=1, CO=matrix(NA,nrow=1,ncol=1),
+seqimpute <- function(OD, np=1, nf=1, m=1, CO=matrix(NA,nrow=1,ncol=1),
                                COt=matrix(NA,nrow=1,ncol=1), timing=FALSE, timeFrame=0, regr="multinom", nfi=1, npt=1,
                                available=TRUE, pastDistrib=FALSE,
                                futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
                                ,SetRNGSeed=FALSE,verbose=TRUE,...){
   
   if(timing==FALSE){
-    return(seqimpute_standard(OD, np=np, nf=nf, mi=mi, CO=CO,
+    return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=CO,
                                COt=COt, regr=regr, nfi=nfi, npt=npt,
                                available=available, pastDistrib=pastDistrib,
                                futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                                ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
   }else{
-    return(seqimpute_timing(OD, np=np, nf=nf, mi=mi, CO=CO,
+    return(seqimpute_timing(OD, np=np, nf=nf, m=m, CO=CO,
                               COt=COt, regr=regr, nfi=nfi, npt=npt,
                               available=available, pastDistrib=pastDistrib,
                               futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
@@ -113,7 +113,7 @@ seqimpute <- function(OD, np=1, nf=1, mi=1, CO=matrix(NA,nrow=1,ncol=1),
 }
 
 
-seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1),
+seqimpute_standard <- function(OD, np=1, nf=0, m=1, CO=matrix(NA,nrow=1,ncol=1),
                       COt=matrix(NA,nrow=1,ncol=1), regr="multinom", nfi=1, npt=1,
                       available=TRUE, pastDistrib=FALSE,
                       futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
@@ -162,7 +162,7 @@ seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1)
   }
   
   #Setting parallel or sequential backend and  random seed
-  if (ParExec & (parallel::detectCores() > 2 & mi>1)){
+  if (ParExec & (parallel::detectCores() > 2 & m>1)){
     if(is.null(ncores)){
       Ncpus <- parallel::detectCores() - 1
     }else{
@@ -174,16 +174,16 @@ seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1)
       doRNG::registerDoRNG(SetRNGSeed)
     }
     # set progress bar for parallel processing
-    pb <- txtProgressBar(max = mi, style = 3)
+    pb <- txtProgressBar(max = m, style = 3)
     progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
     
     # condition used to run code part needed for parallel processing
     ParParams = TRUE
   }else{ 
-    if (ParExec & mi==1){
+    if (ParExec & m==1){
       if(verbose==T){
-        message(paste("/!\\ The number of mi iteration is 1, parallel processing is only available for mi > 1."))
+        message(paste("/!\\ The number of multiple imputation is 1, parallel processing is only available for m > 1."))
       }
     } else if (ParExec){
       if(verbose==T){
@@ -204,11 +204,11 @@ seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1)
   
   #Beginning of the multiple imputation (imputing "mi" times)
   o <- NULL
-  RESULT <- foreach(o=1:mi, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
+  RESULT <- foreach(o=1:m, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
     if (!ParParams){
       # Parallel and sequential execution of foreach don't use the same casting mechanism, this one is used for sequential execution.
       if(verbose==T){
-        cat("iteration :",o,"/",mi,"\n")
+        cat("iteration :",o,"/",m,"\n")
       }
     }
     # Trying to catch the potential singularity error (part 1/2)
@@ -300,7 +300,7 @@ seqimpute_standard <- function(OD, np=1, nf=0, mi=1, CO=matrix(NA,nrow=1,ncol=1)
   RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
 
   # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
-  RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, mi, mice.return)
+  RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, m, mice.return)
   
   
   # Rearrange dataframe by order of the mi imputation as parallel computation may not return the values in sequential order.

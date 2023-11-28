@@ -1,36 +1,96 @@
 #' Generation of missing data under the form of gaps, which
 #' is the typical form of missing data with longitudinal data.
-#' A missing completely at random (MCAR) mechanism is used.
+#' A missing completely at random (MAR) mechanism is used.
 #' 
-#' @param data a data frame containing sequences of a multinomial variable without missing
-#' data, on which missing data are simulated
-#' @param pstart probability to start a missing data
+#' @param data either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
+#' a state sequence object built with the TraMineR package
+#' @param states.high list of states that will have a larger probability to trigger a 
+#' subsequent gap of missing data
+#' @param pstart.high probability to start a missing data for the specified states 
+#' @param pstart.low probability to start a missing data for the other states
 #' @param propdata proportion of the observations on which missing data will be simulated
+#' @param maxgap maximum length of a gap of missing data
+#' 
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
 #' 
 #' @export
-make_missing_MCAR<- function(data,pstart=0.1,propdata=0.6){
+seqaddNA <- function(data, states.high=NULL, propdata=1, pstart.high=0.1, pstart.low=0.005, maxgap=3){
   sizehalf <- round(propdata*nrow(data))
   rowsmiss <- sample(1:nrow(data),size=sizehalf,replace=FALSE)
-  matrix_missing <- matrix(NA,nrow(data),ncol(data))
+  matrix.missing <- matrix(NA,nrow(data),ncol(data))
   for(i in 1:length(rowsmiss)){
     nmis <- ncol(data)
+    length.gap <- 0
     while(nmis>floor(0.75*ncol(data))){
       for(j in 1:ncol(data)){
-        if(j==1){
-          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart,1-pstart))
+        if(length.gap==maxgap){
+          matrix.missing[rowsmiss[i],j] <- 1
+          length.gap <- 0
         }else{
-          if(matrix_missing[rowsmiss[i],j-1]==1){
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart,1-pstart))
+          if(j==1){
+            matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.low,1-pstart.low))
           }else{
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(0.66,0.34))
+            if(matrix.missing[rowsmiss[i],j-1]==1){
+              if(data[rowsmiss[i],j-1]%in%states.high){
+                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.high,1-pstart.high))
+              }else{
+                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.low,1-pstart.low))
+              }
+            }else{
+              matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(66,34))
+            }
+          }
+          if(matrix.missing[rowsmiss[i],j]==0){
+            length.gap <- length.gap+1
+          }else{
+            length.gap <- 0
           }
         }
       }
-      nmis <- sum(matrix_missing[rowsmiss[i],]==0)
+      nmis <- sum(matrix.missing[rowsmiss[i],]==0)
     }
   }
-  data[matrix_missing==0] <- NA
+  if(inherits(data,"stslist")){
+    data[matrix.missing==0] <- attr(data,"nr")
+  }else{
+    data[matrix.missing==0] <- NA
+  }
   return(data)
+}
+
+#' Generation of missing data under the form of gaps, which
+#' is the typical form of missing data with longitudinal data.
+#' A missing completely at random (MAR) mechanism is used.
+#' 
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
+#' 
+#' @export
+seqcomplete <- function(seqdata){
+  if(!inherits(seqdata,"stslist")){
+    stop("seqdata is not a sequence object.")
+  }
+  rowsNA <- rowSums(seqdata==attr(seqdata,"nr"))
+  return(seqdata[rowsNA==0,])
+}
+
+#' Generation of missing data under the form of gaps, which
+#' is the typical form of missing data with longitudinal data.
+#' A missing completely at random (MAR) mechanism is used.
+#' 
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
+#' 
+#' @export
+seqwithmiss <- function(seqdata){
+  if(!inherits(seqdata,"stslist")){
+    stop("seqdata is not a sequence object.")
+  }
+  rowsNA <- rowSums(seqdata==attr(seqdata,"nr"))
+  return(seqdata[rowsNA!=0,])
 }
 
 
@@ -38,41 +98,67 @@ make_missing_MCAR<- function(data,pstart=0.1,propdata=0.6){
 #' is the typical form of missing data with longitudinal data.
 #' A missing completely at random (MAR) mechanism is used.
 #' 
-#' @param data a data frame containing sequences of a multinomial variable without missing
-#' data, on which missing data are simulated
-#' @param states_high list of states that will have a larger probability to trigger a 
-#' @param pstart_high probability to start a missing data for the specified states 
-#' @param pstart_low probability to start a missing data for the other states
-#' @param propdata proportion of the observations on which missing data will be simulated
-#' subsequent gap of missing data
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
 #' 
 #' @export
-make_missing_MAR<- function(data,pstart_high=0.2,pstart_low=0.03,propdata=0.6,states_high){
-  sizehalf <- round(propdata*nrow(data))
-  rowsmiss <- sample(1:nrow(data),size=sizehalf,replace=FALSE)
-  matrix_missing <- matrix(NA,nrow(data),ncol(data))
-  for(i in 1:length(rowsmiss)){
-    nmis <- ncol(data)
-    while(nmis>floor(0.75*ncol(data))){
-      for(j in 1:ncol(data)){
-        if(j==1){
-          matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_low,1-pstart_low))
-        }else{
-          if(matrix_missing[rowsmiss[i],j-1]==1){
-            if(data[rowsmiss[i],j-1]%in%states_high){
-              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_high,1-pstart_high))
-            }else{
-              matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart_low,1-pstart_low))
-              
-            }
-          }else{
-            matrix_missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(66,34))
-          }
-        }
-      }
-      nmis <- sum(matrix_missing[rowsmiss[i],]==0)
-    }
-  }
-  data[matrix_missing==0] <- NA
-  return(data)
+seqmissfplot <- function(seqdata){
+  seqmiss <- seqwithmiss(seqdata)
+  misspatterns <- matrix(NA,nrow(seqmiss),ncol(seqmiss))
+  misspatterns <- as.data.frame(misspatterns)
+  colnames(misspatterns) <- colnames(seqmiss)
+  
+  misspatterns[seqmiss==attr(seqmiss,"nr")] <- "missing"
+  misspatterns[seqmiss!=attr(seqmiss,"nr")] <- "observed"
+  seqtest <- suppressMessages(seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
+  
+  seqfplot(seqtest)
+  
+}
+
+#' Generation of missing data under the form of gaps, which
+#' is the typical form of missing data with longitudinal data.
+#' A missing completely at random (MAR) mechanism is used.
+#' 
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
+#' 
+#' @export
+seqmissiplot <- function(seqdata){
+  seqmiss <- seqwithmiss(seqdata)
+  misspatterns <- matrix(NA,nrow(seqmiss),ncol(seqmiss))
+  misspatterns <- as.data.frame(misspatterns)
+  colnames(misspatterns) <- colnames(seqmiss)
+  
+  misspatterns[seqmiss==attr(seqmiss,"nr")] <- "missing"
+  misspatterns[seqmiss!=attr(seqmiss,"nr")] <- "observed"
+  seqtest <- suppressMessages(seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
+  
+  seqiplot(seqtest)
+  
+}
+
+#' Generation of missing data under the form of gaps, which
+#' is the typical form of missing data with longitudinal data.
+#' A missing completely at random (MAR) mechanism is used.
+#' 
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @return Returns either a data frame or a state sequence object, depending
+#' the type of data that was provided to the function
+#' 
+#' @export
+seqmissIplot <- function(seqdata,...){
+  seqmiss <- seqwithmiss(seqdata)
+  misspatterns <- matrix(NA,nrow(seqmiss),ncol(seqmiss))
+  misspatterns <- as.data.frame(misspatterns)
+  colnames(misspatterns) <- colnames(seqmiss)
+  
+  misspatterns[seqmiss==attr(seqmiss,"nr")] <- "missing"
+  misspatterns[seqmiss!=attr(seqmiss,"nr")] <- "observed"
+  seqtest <- suppressMessages(seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
+  
+  seqIplot(seqtest,...)
+  
 }

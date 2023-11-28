@@ -1,7 +1,7 @@
 seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
                              available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
                              COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
-                             futureDistrib=FALSE, mi=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE, ncores=NULL
+                             futureDistrib=FALSE, m=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE, ncores=NULL
                              ,timeFrame=0, verbose=TRUE,...) {
   
   if(sum(is.na(OD))==0){
@@ -33,12 +33,18 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
   if (max(dataOD$ORDER)!=0) {
     dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, dataOD$nr, dataOD$nc)
+  }else{
+    dataOD$ORDERSLGLeft <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+    dataOD$ORDERSLGRight <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+    dataOD$ORDERSLGBoth <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+    dataOD$LongGap <- FALSE
+    
   }
   
   
   
   #Setting parallel or sequential backend and  random seed
-  if (ParExec & (parallel::detectCores() > 2 & mi>1)){
+  if (ParExec & (parallel::detectCores() > 2 & m>1)){
     if(is.null(ncores)){
       Ncpus <- parallel::detectCores() - 1
     }else{
@@ -50,16 +56,16 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       doRNG::registerDoRNG(SetRNGSeed)
     }
     # set progress bar for parallel processing
-    pb <- txtProgressBar(max = mi, style = 3)
+    pb <- txtProgressBar(max = m, style = 3)
     progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
     
     # condition used to run code part needed for parallel processing
     ParParams = TRUE
   }else{ 
-    if (ParExec & mi==1){
+    if (ParExec & m==1){
       if(verbose==T){
-        message(paste("/!\\ The number of mi iteration is 1, parallel processing is only available for mi > 1."))
+        message(paste("/!\\ The number of multiple imputations is 1, parallel processing is only available for m > 1."))
       }
     } else if (ParExec){
       if(verbose==T){
@@ -81,11 +87,11 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   
   #Beginning of the multiple imputation (imputing "mi" times)
   o <- NULL
-  RESULT <- foreach(o=1:mi, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
+  RESULT <- foreach(o=1:m, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
     if (!ParParams){
       # Parallel and sequential execution of foreach don't use the same casting mechanism, this one is used for sequential execution.
       if(verbose==T){
-        cat("iteration :",o,"/",mi,"\n")
+        cat("iteration :",o,"/",m,"\n")
       }
     }
     # Trying to catch the potential singularity error (part 1/2)
@@ -125,8 +131,7 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       }
       dataOD[["ODi"]]  <- ImputingTerminalNAsTiming(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,timeFrame,...)
     }
-    
-    if (max(dataOD$ORDERSLGLeft)!=0) {
+    if (max(dataOD$ORDERSLGLeft)!=0 & !is.null(dataOD$ORDERSLGLeft)) {
       # Checking if we have to impute
       # left-hand side SLG
       if(verbose==TRUE){
@@ -136,7 +141,7 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       
     }
     # right-hand side SLG
-    if (max(dataOD$ORDERSLGRight)!=0) {
+    if (max(dataOD$ORDERSLGRight)!=0 & !is.null(dataOD$ORDERSLGRight)) {
       # Checking if we have to impute right-hand
       # side SLG
       if(verbose==TRUE){
@@ -175,7 +180,7 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   }
   RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
   # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
-  RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, mi, mice.return)
+  RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, m, mice.return)
   
   
   # Rearrange dataframe by order of the mi imputation as parallel computation may not return the values in sequential order.
@@ -1299,7 +1304,7 @@ Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGa
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }
     # The last values of CDi must be of type numeric
     # (distributions)

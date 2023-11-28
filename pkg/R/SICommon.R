@@ -798,7 +798,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     }else{
       pred <- predict(reglog,CDi,type="probs")
       alea <- runif(1)
-      if(alea<pred[1]){
+      if(alea>pred[1]){
         sel <- as.numeric(reglog$lev[1])
       }else{
         sel <- as.numeric(reglog$lev[2])
@@ -828,7 +828,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     sel <- pred
     
     
-  } else if(regr=="lrm") { # meaning (regr == "lrm")
+  }else if(regr=="lrm") { # meaning (regr == "lrm")
     ## Case of ORDINAL REGRESSION MODEL
     
     # Since we are performing an ordinal
@@ -905,7 +905,7 @@ RegrImpute <- function(ODi, CDi, regr, reglog, noise, i, j, k){
     # Example value returned in "alea":
     # [1] 0.2610005
     #
-    sel <- which(pred>=alea)
+    sel <- levels(CDi[,1])[which(pred>=alea)[1]]
     # Corresponding example value returned
     # in sel:
     # 1 2
