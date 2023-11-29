@@ -94,7 +94,7 @@
 seqimpute <- function(OD, np=1, nf=1, m=1, CO=matrix(NA,nrow=1,ncol=1),
                                COt=matrix(NA,nrow=1,ncol=1), timing=FALSE, timeFrame=0, regr="multinom", nfi=1, npt=1,
                                available=TRUE, pastDistrib=FALSE,
-                               futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
+                               futureDistrib=FALSE, mice.return=FALSE, include=TRUE, noise=0, ParExec=FALSE,  ncores=NULL
                                ,SetRNGSeed=FALSE,verbose=TRUE,...){
   
   if(timing==FALSE){

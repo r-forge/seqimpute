@@ -38,7 +38,7 @@ seqaddNA <- function(data, states.high=NULL, propdata=1, pstart.high=0.1, pstart
                 matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart.low,1-pstart.low))
               }
             }else{
-              matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(66,34))
+              matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(66,34))
             }
           }
           if(matrix.missing[rowsmiss[i],j]==0){
