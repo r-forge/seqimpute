@@ -20,7 +20,7 @@ seqimpute(
   pastDistrib = FALSE,
   futureDistrib = FALSE,
   mice.return = FALSE,
-  include = FALSE,
+  include = TRUE,
   noise = 0,
   ParExec = FALSE,
   ncores = NULL,
