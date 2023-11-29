@@ -29,13 +29,13 @@ seqaddNA <- function(data, states.high=NULL, propdata=1, pstart.high=0.1, pstart
           length.gap <- 0
         }else{
           if(j==1){
-            matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.low,1-pstart.low))
+            matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart.low,1-pstart.low))
           }else{
             if(matrix.missing[rowsmiss[i],j-1]==1){
               if(data[rowsmiss[i],j-1]%in%states.high){
-                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.high,1-pstart.high))
+                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart.high,1-pstart.high))
               }else{
-                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(pstart.low,1-pstart.low))
+                matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,prob=c(pstart.low,1-pstart.low))
               }
             }else{
               matrix.missing[rowsmiss[i],j] <- sample(x=c(0,1),size=1,p=c(66,34))
@@ -58,3 +58,6 @@ seqaddNA <- function(data, states.high=NULL, propdata=1, pstart.high=0.1, pstart
   }
   return(data)
 }
+
+
+

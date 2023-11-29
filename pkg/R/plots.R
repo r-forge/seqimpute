@@ -44,9 +44,9 @@ seqmissfplot <- function(seqdata,...){
   
   misspatterns[seqmiss==attr(seqmiss,"nr")] <- "missing"
   misspatterns[seqmiss!=attr(seqmiss,"nr")] <- "observed"
-  seqtest <- suppressMessages(seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
+  seqtest <- suppressMessages(TraMineR::seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
   
-  seqfplot(seqtest,...)
+  TraMineR::seqfplot(seqtest,...)
   
 }
 
@@ -65,8 +65,8 @@ seqmissIplot <- function(seqdata,...){
   
   misspatterns[seqmiss==attr(seqmiss,"nr")] <- "missing"
   misspatterns[seqmiss!=attr(seqmiss,"nr")] <- "observed"
-  seqtest <- suppressMessages(seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
+  seqtest <- suppressMessages(TraMineR::seqdef(misspatterns,alphabet = c("observed","missing"),cpal=c("blue","red"),xtstep=attr(seqmiss,"xtstep")))
   
-  seqIplot(seqtest,...)
+  TraMineR::seqIplot(seqtest,...)
   
 }
