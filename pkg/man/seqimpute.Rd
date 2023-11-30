@@ -9,10 +9,10 @@ seqimpute(
   np = 1,
   nf = 1,
   m = 1,
-  CO = matrix(NA, nrow = 1, ncol = 1),
-  COt = matrix(NA, nrow = 1, ncol = 1),
   timing = FALSE,
   timeFrame = 0,
+  CO = matrix(NA, nrow = 1, ncol = 1),
+  COt = matrix(NA, nrow = 1, ncol = 1),
   regr = "multinom",
   nfi = 1,
   npt = 1,
@@ -39,14 +39,14 @@ a state sequence object built with the TraMineR package}
 
 \item{m}{number of multiple imputations  (default: \code{1}).}
 
-\item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
-
-\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
-
 \item{timing}{a logical value that specifies if the standard MICT algorithm (timing=FALSE)
 or the MICT-timing algorithm (timing=TRUE) should be used.}
 
 \item{timeFrame}{parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.}
+
+\item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
+
+\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
 
 \item{regr}{a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
