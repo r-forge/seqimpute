@@ -26,4 +26,5 @@ Imports:
     doSNOW,
     ranger,
     mlr,
-    nnet 
+    nnet,
+    TraMineRextras
