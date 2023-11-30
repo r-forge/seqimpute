@@ -70,3 +70,19 @@ seqmissIplot <- function(seqdata,...){
   TraMineR::seqIplot(seqtest,...)
   
 }
+
+#' Function built on the seqimplic function of the TraMineRextras package.
+#' Visualization and identification of the states 
+#' that best characterize sequence with missing data vs the sequences without missing data at each position (time point). 
+#' See the seqimplic helps to more details on how it works.
+#' 
+#' @param seqdata a state sequence object built with the TraMineR package
+#' @param ... parameters to be passed to the seqIplot function 
+#' 
+#' @export
+seqmissimplic <- function(seqdata,...){
+  tt <- rep("missing",nrow(seqdata))
+  tt[rowSums(seqdata==attr(seqdata,"nr"))==0] <- "observed"
+  imp <- TraMineRextras::seqimplic(seqdata,tt)
+  return(imp) 
+}

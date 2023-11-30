@@ -91,20 +91,19 @@
 #'
 #' 
 #' @export
-seqimpute <- function(OD, np=1, nf=1, m=1, CO=matrix(NA,nrow=1,ncol=1),
-                               COt=matrix(NA,nrow=1,ncol=1), timing=FALSE, timeFrame=0, regr="multinom", nfi=1, npt=1,
+seqimpute <- function(data, idvar="id",timevar=NULL, v.names=NULL, covariates=NULL, np=1, nf=1, m=1, timing=FALSE, timeFrame=0, regr="multinom", nfi=1, npt=1,
                                available=TRUE, pastDistrib=FALSE,
                                futureDistrib=FALSE, mice.return=FALSE, include=TRUE, noise=0, ParExec=FALSE,  ncores=NULL
                                ,SetRNGSeed=FALSE,verbose=TRUE,...){
   
   if(timing==FALSE){
-    return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=CO,
+    return(seqimpute_standard(data, idvar=idvar,timevar=timevar, v.names=v.names, covariates=covariates, np=np, nf=nf, m=m, CO=CO,
                                COt=COt, regr=regr, nfi=nfi, npt=npt,
                                available=available, pastDistrib=pastDistrib,
                                futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                                ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
   }else{
-    return(seqimpute_timing(OD, np=np, nf=nf, m=m, CO=CO,
+    return(seqimpute_timing(data, idvar=idvar,timevar=timevar, v.names=v.names, covariates=covariates, np=np, nf=nf, m=m, CO=CO,
                               COt=COt, regr=regr, nfi=nfi, npt=npt,
                               available=available, pastDistrib=pastDistrib,
                               futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
@@ -113,8 +112,7 @@ seqimpute <- function(OD, np=1, nf=1, m=1, CO=matrix(NA,nrow=1,ncol=1),
 }
 
 
-seqimpute_standard <- function(OD, np=1, nf=0, m=1, CO=matrix(NA,nrow=1,ncol=1),
-                      COt=matrix(NA,nrow=1,ncol=1), regr="multinom", nfi=1, npt=1,
+seqimpute_standard <- function(data, idvar="id",timevar=NULL, v.names=NULL, covariates=NULL, np=1, nf=1, m=1, regr="multinom", nfi=1, npt=1,
                       available=TRUE, pastDistrib=FALSE,
                       futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
                       ,SetRNGSeed=FALSE, verbose=TRUE,...) {
@@ -136,13 +134,15 @@ seqimpute_standard <- function(OD, np=1, nf=0, m=1, CO=matrix(NA,nrow=1,ncol=1),
     
   }
 
-  #k <- n_distinct(data.frame(newcol = c(t(OD)), stringsAsFactors=FALSE),na.rm = TRUE)
-  
   rownamesDataset <- rownames(OD)
   nrowsDataset <- nrow(OD)
   
   if(mice.return==TRUE){
     include <- TRUE
+  }
+  
+  if(!is.null(covariates)){
+    
   }
   
   # 0. Initial tests and manipulations on parameters ------------------------------------------------------------------------------------------------------------

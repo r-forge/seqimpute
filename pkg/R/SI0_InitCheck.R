@@ -7,7 +7,6 @@
 
 preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib){
   
-  
   dataOD <- list()
   # Updating the number of columns of CO
   dataOD["nco"] <- emptyColUpdate(CO)
