@@ -96,15 +96,9 @@ seqimpute <- function(OD, np=1, nf=1, m=1, timing=FALSE, timeFrame=0, covariates
                                futureDistrib=FALSE, mice.return=FALSE, include=TRUE, noise=0, ParExec=FALSE,  ncores=NULL
                                ,SetRNGSeed=FALSE,verbose=TRUE,...){
   
-  if (!missing("CO")){
-    warning("CO is deprecated, use covariates instead.")
-    covariates <- CO
-  }
+  lifecycle::deprecate_warn("2.1", "seqimpute(CO)", "seqimpute(covariates)")
   
-  if (!missing("COt")){
-    warning("COt is deprecated, use time.covariates instead.")
-    covariates <- CO
-  }
+  lifecycle::deprecate_warn("2.1", "seqimpute(COt)", "seqimpute(time.covariates)")
   
   if(timing==FALSE){
     return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=covariates,

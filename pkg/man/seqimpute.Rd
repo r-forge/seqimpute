@@ -11,8 +11,8 @@ seqimpute(
   m = 1,
   timing = FALSE,
   timeFrame = 0,
-  CO = matrix(NA, nrow = 1, ncol = 1),
-  COt = matrix(NA, nrow = 1, ncol = 1),
+  covariates = matrix(NA, nrow = 1, ncol = 1),
+  time.covariates = matrix(NA, nrow = 1, ncol = 1),
   regr = "multinom",
   nfi = 1,
   npt = 1,
@@ -43,10 +43,6 @@ a state sequence object built with the TraMineR package}
 or the MICT-timing algorithm (timing=TRUE) should be used.}
 
 \item{timeFrame}{parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.}
-
-\item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
-
-\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
 
 \item{regr}{a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
@@ -81,6 +77,10 @@ of parallel computation.}
 \item{verbose}{logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.}
 
 \item{...}{Named arguments that are passed down to the imputation functions.}
+
+\item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
+
+\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
