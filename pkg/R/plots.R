@@ -120,7 +120,7 @@ seqmissimplic <- function(seqdata,...){
 addcluster <- function(imputed, clustering){
   imputed$cluster <- NA
   if(!".imp"%in%colnames(imputed)){
-    error("The provided dataset does not have any columns .imp")
+    stop("The provided dataset does not have any columns .imp")
   }
   if(!0%in%imputed$.imp){
     imputed$cluster <- clustering
