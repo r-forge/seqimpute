@@ -45,8 +45,8 @@
 #' @param timing a logical value that specifies if the standard MICT algorithm (timing=FALSE)
 #' or the MICT-timing algorithm (timing=TRUE) should be used.
 #' @param timeFrame parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.
-#' @param CO a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.
-#' @param COt a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.
+#' @param covariates a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.
+#' @param time.covariates a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.
 #' @param regr a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 #' while if \code{regr="rf"}, random forest models are used.
 #' @param nfi number of future observations in the imputation model of the initial gaps.

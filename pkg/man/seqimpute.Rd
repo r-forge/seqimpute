@@ -44,6 +44,10 @@ or the MICT-timing algorithm (timing=TRUE) should be used.}
 
 \item{timeFrame}{parameter relative to the MICT-timing algorithm specifying the radius of the timeFrame.}
 
+\item{covariates}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
+
+\item{time.covariates}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
+
 \item{regr}{a character specifying the imputation method. If \code{regr="multinom"}, multinomial models are used,
 while if \code{regr="rf"}, random forest models are used.}
 
@@ -77,10 +81,6 @@ of parallel computation.}
 \item{verbose}{logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.}
 
 \item{...}{Named arguments that are passed down to the imputation functions.}
-
-\item{CO}{a data frame containing the covariates intended for use in the imputation process, with each column representing a distinct covariate.}
-
-\item{COt}{a data frame object containing some time-dependent covariates that help specifying the predictive model more accurately.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
