@@ -4,6 +4,12 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
                              futureDistrib=FALSE, m=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE, ncores=NULL
                              ,timeFrame=0, verbose=TRUE,...) {
   
+  if(inherits(OD,"stslist")){
+    valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
+    OD <- data.frame(OD)
+    OD[OD==valuesNA[1]|OD==valuesNA[2]] <- NA
+  }
+  
   if(sum(is.na(OD))==0){
     if(verbose==T){
       message("This dataset has no missing values!")
@@ -873,7 +879,7 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, 
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }
     # The last values of CDi must be of type numeric
     # (distributions)
@@ -988,7 +994,7 @@ ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }
     # The last values of CDi must be of type numeric
     # (distributions)
@@ -1113,7 +1119,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }else{
       #glmnet
       CDi[,1] <- factor(CDi[,1],levels=c(1:k))
@@ -1583,7 +1589,7 @@ TerminalCreatedModelImputationTiming <- function(CO, OD, CD, ODi, COt, nc, ncot,
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }
     # The 
     # The last values of CDi must be of type numeric

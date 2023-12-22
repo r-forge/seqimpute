@@ -4,10 +4,10 @@
 #' number and size of the different types of gaps
 #' spread in the original dataset \code{OD}. 
 #'
-#' @param OD \code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).
-#' @param np \code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).
-#' @param nf \code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).
-#'
+#' @param OD either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
+#' a state sequence object built with the TraMineR package
+#' @param np number of previous observations in the imputation model of the internal gaps.
+#' @param nf number of future observations in the imputation model of the internal gaps.
 #' @author Andre Berchtold <andre.berchtold@@unil.ch>
 #'
 #' @return It returns a  \code{data.frame} object that summarizes for each type of gaps 
@@ -24,11 +24,15 @@
 #' @export
 
 
-seqQuickLook <- function(OD, np=1, nf=0) {
+seqQuickLook <- function(OD, np=1, nf=1) {
 
 
 
-
+  if(inherits(OD,"stslist")){
+    valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
+    OD <- data.frame(OD)
+    OD[OD==valuesNA[1]|OD==valuesNA[2]] <- NA
+  }
 
 
 
@@ -70,6 +74,12 @@ seqQuickLook <- function(OD, np=1, nf=0) {
     # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
     if (max(dataOD$ORDER)!=0) {
       dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, nr, nc)
+    }else{
+      dataOD$ORDERSLGLeft <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+      dataOD$ORDERSLGRight <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+      dataOD$ORDERSLGBoth <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
+      dataOD$LongGap <- FALSE
+      
     }
     
 

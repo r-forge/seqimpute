@@ -578,7 +578,7 @@ ODiImputePAST <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, futu
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }else{
       #multinom
       CDi[,1] <- factor(CDi[,1],levels=c(1:k))
@@ -704,7 +704,7 @@ ODiImputePF <- function(CO, ODi, CD, COt, REFORD, nr_REFORD, pastDistrib, future
         CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
         CDi[,v][is.na(CDi[,v])]<-k+1
       }
-      CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+      CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }else{
       #multinom
       CDi[,1] <- factor(CDi[,1],levels=c(1:k))

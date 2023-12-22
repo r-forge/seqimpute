@@ -247,7 +247,7 @@ Init_NA_CreatedModelImputation <- function(OD, ODi, CO, CD, COt, MaxInitGapSize,
           CDi[,v]<-factor(CDi[,v],levels=c(1:(k+1)))
           CDi[,v][is.na(CDi[,v])]<-k+1
         }
-        CDi[,1]<-factor(CDi[,1],levels=c(1:k))
+        CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
       }
       # The last values of CDi must be of type numeric
       # (distributions)

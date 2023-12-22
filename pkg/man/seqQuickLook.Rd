@@ -4,14 +4,15 @@
 \alias{seqQuickLook}
 \title{Numbering NAs and types of gaps among a dataset}
 \usage{
-seqQuickLook(OD, np = 1, nf = 0)
+seqQuickLook(OD, np = 1, nf = 1)
 }
 \arguments{
-\item{OD}{\code{matrix} object containing sequences of a variable with missing data (coded as \code{NA}).}
+\item{OD}{either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
+a state sequence object built with the TraMineR package}
 
-\item{np}{\code{numeric} object corresponding to the number of previous observations in the imputation model of the internal gaps (default \code{1}).}
+\item{np}{number of previous observations in the imputation model of the internal gaps.}
 
-\item{nf}{\code{numeric} object corresponding to the number of future observations in the imputation model of the internal gaps (default \code{0}).}
+\item{nf}{number of future observations in the imputation model of the internal gaps.}
 }
 \value{
 It returns a  \code{data.frame} object that summarizes for each type of gaps 

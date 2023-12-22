@@ -66,6 +66,8 @@
 #' @param SetRNGSeed an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
 #' of parallel computation.
 #' @param verbose logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.
+#' @param CO (deprecated) old argument for covariates
+#' @param COt (deprecated) old argument for time.covariates
 #' @param ... Named arguments that are passed down to the imputation functions.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
@@ -94,21 +96,23 @@
 seqimpute <- function(OD, np=1, nf=1, m=1, timing=FALSE, timeFrame=0, covariates=matrix(NA,nrow=1,ncol=1), time.covariates=matrix(NA,nrow=1,ncol=1), regr="multinom", nfi=1, npt=1,
                                available=TRUE, pastDistrib=FALSE,
                                futureDistrib=FALSE, mice.return=FALSE, include=TRUE, noise=0, ParExec=FALSE,  ncores=NULL
-                               ,SetRNGSeed=FALSE,verbose=TRUE,...){
+                               ,SetRNGSeed=FALSE,verbose=TRUE, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nrow=1,ncol=1),...){
   
   lifecycle::deprecate_warn("2.1", "seqimpute(CO)", "seqimpute(covariates)")
   
   lifecycle::deprecate_warn("2.1", "seqimpute(COt)", "seqimpute(time.covariates)")
+  CO <- covariates
+  COt <- time.covariates
   
   if(timing==FALSE){
-    return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=covariates,
-                               COt=time.covariates, regr=regr, nfi=nfi, npt=npt,
+    return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=CO,
+                               COt=COt, regr=regr, nfi=nfi, npt=npt,
                                available=available, pastDistrib=pastDistrib,
                                futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                                ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
   }else{
-    return(seqimpute_timing(OD, np=np, nf=nf, m=m, CO=covariates,
-                              COt=time.covariates, regr=regr, nfi=nfi, npt=npt,
+    return(seqimpute_timing(OD, np=np, nf=nf, m=m, CO=CO,
+                              COt=COt, regr=regr, nfi=nfi, npt=npt,
                               available=available, pastDistrib=pastDistrib,
                               futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                               ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
