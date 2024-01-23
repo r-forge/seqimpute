@@ -2,6 +2,21 @@
 #
 #
 ################################################################################
+
+check.deprecated <- function(...){
+  nms <- names(list(...))
+  replace.args <- list(CO = "covariates", COt = "time.covariates")
+  wrn <- names(replace.args) %in% nms
+  if (any(wrn)) {
+    for (i in which(wrn)) {
+      msg <- paste0("The '", names(replace.args)[i], "' argument is no longer supported. Please use '", 
+                    replace.args[i], "' instead.")
+      warning(msg)
+    }
+  }
+  invisible(NULL)
+}
+
 # In case of a factor dataset OD:
 # RECODING of OD with numbers "1", "2", etc. instead of its "words"
 

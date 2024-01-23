@@ -4,7 +4,7 @@
 ################################################################################
 # Impute terminal NAs
 
-ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,...) {
+ImputingTerminalNAs <- function(OD, covariates, time.covariates, ODi, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,...) {
   # 5.1.-2. Creation of ORDERT -------------------------------------------------
   REFORDT_L <- REFORDTCreation(nr, nc, TermGapSize, MaxTermGapSize)
   
@@ -20,12 +20,12 @@ ImputingTerminalNAs <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, Ter
   # 5.3. Imputation using a specific model -------------------------------------
   
   # 5.3.1 Building of the data matrix CD for the computation of the model ------
-  CD <- TerminalCDMatCreate(CO, OD, COt, COtsample, pastDistrib,  npt, nr, nc, ncot, k)
+  CD <- TerminalCDMatCreate(covariates, OD, time.covariates, COtsample, pastDistrib,  npt, nr, nc, ncot, k)
   # 5.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
   log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, npt,0, k,...)
   # 5.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
-  ODi <- TerminalCreatedModelImputation(CO, OD, log_CD$CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, npt, noise)
+  ODi <- TerminalCreatedModelImputation(covariates, OD, log_CD$CD, ODi, time.covariates, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, npt, noise)
 
   return(ODi)
 }

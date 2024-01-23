@@ -4,7 +4,7 @@
 ################################################################################
 # Left-hand side SLG imputation
 
-LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){     # Checking if we have to impute
+LSLGNAsImpute <- function(OD, ODi, covariates, time.covariates, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){     # Checking if we have to impute
   # left-hand side SLG
   
   #message("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
@@ -54,12 +54,12 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
       # for the computation of the model for every SLG
       # on the left-hand side of OD
       for (order in 1:ParamList$MaxGap) {
-        ParamList[c("CD","shift")]  <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k)
+        ParamList[c("CD","shift")]  <- SLGCDMatBuild(covariates, time.covariates, OD, order, ParamList$MaxGap, ParamList$np_temp, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k)
         # 6.3.2.LEFT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         log_CD <- list()
         log_CD[c("reglog","CD")] <- ComputeModel(ParamList$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,...)
         # 6.3.3.LEFT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
-        ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD,  ODi, COt, ncot, nf, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
+        ODi <- SLGCreatedModelImpute(covariates, OD, log_CD$CD,  ODi, time.covariates, ncot, nf, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, ParamList$np_temp, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
       }
      
     }
@@ -73,7 +73,7 @@ LSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, fu
 ##############################################################################
 #Right-hand side SLG imputation
 
-RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){
+RSLGNAsImpute <- function(OD, ODi, covariates, time.covariates, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,...){
   # Checking if we have to impute right-hand
   # side SLG
   
@@ -125,7 +125,7 @@ RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistri
         # 6.3.1.RIGHT Building of the different data matrices CD ---------------
         # for the computation of the model for every SLG
         # on the right-hand side of OD
-        ParamList[c("CD","shift")] <- SLGCDMatBuild(CO, COt, OD, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k)
+        ParamList[c("CD","shift")] <- SLGCDMatBuild(covariates, time.covariates, OD, order, ParamList$MaxGap, np, ncot, nr, nc, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, k)
 
         # 6.3.2.RIGHT Computation of the model (Dealing with the LOCATIONS of imputation) ----
         log_CD <- list()
@@ -133,7 +133,7 @@ RSLGNAsImpute <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistri
         
 
         # 6.3.3.RIGHT Imputation using the just created model (Dealing with the actual VALUES to impute) ----
-        ODi <- SLGCreatedModelImpute(CO, OD, log_CD$CD, ODi, COt, ncot, ParamList$nf_temp, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, np, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
+        ODi <- SLGCreatedModelImpute(covariates, OD, log_CD$CD, ODi, time.covariates, ncot, ParamList$nf_temp, nc, regr, k, ParamList$totV_temp, log_CD$reglog, noise, available, ParamList$REFORD_L, np, pastDistrib, futureDistrib, order, ParamList$MaxGap, ParamList$shift)
  
         }
     

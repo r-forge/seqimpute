@@ -66,8 +66,6 @@
 #' @param SetRNGSeed an integer that is used to set the seed in the case of parallel computation. Note that setting \code{set.seed()} alone before the seqimpute function won't work in case
 #' of parallel computation.
 #' @param verbose logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.
-#' @param CO (deprecated) old argument for covariates
-#' @param COt (deprecated) old argument for time.covariates
 #' @param ... Named arguments that are passed down to the imputation functions.
 #' 
 #' @author Andre Berchtold <andre.berchtold@@unil.ch> Kevin Emery Anthony Guinchard Kamyar Taher
@@ -96,23 +94,19 @@
 seqimpute <- function(OD, np=1, nf=1, m=1, timing=FALSE, timeFrame=0, covariates=matrix(NA,nrow=1,ncol=1), time.covariates=matrix(NA,nrow=1,ncol=1), regr="multinom", nfi=1, npt=1,
                                available=TRUE, pastDistrib=FALSE,
                                futureDistrib=FALSE, mice.return=FALSE, include=TRUE, noise=0, ParExec=FALSE,  ncores=NULL
-                               ,SetRNGSeed=FALSE,verbose=TRUE, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nrow=1,ncol=1),...){
+                               ,SetRNGSeed=FALSE,verbose=TRUE,...){
   
-  lifecycle::deprecate_warn("2.1", "seqimpute(CO)", "seqimpute(covariates)")
-  
-  lifecycle::deprecate_warn("2.1", "seqimpute(COt)", "seqimpute(time.covariates)")
-  CO <- covariates
-  COt <- time.covariates
+  check.deprecated(...)
   
   if(timing==FALSE){
-    return(seqimpute_standard(OD, np=np, nf=nf, m=m, CO=CO,
-                               COt=COt, regr=regr, nfi=nfi, npt=npt,
+    return(seqimpute_standard(OD, np=np, nf=nf, m=m, covariates=covariates,
+                               time.covariates=time.covariates, regr=regr, nfi=nfi, npt=npt,
                                available=available, pastDistrib=pastDistrib,
                                futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                                ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
   }else{
-    return(seqimpute_timing(OD, np=np, nf=nf, m=m, CO=CO,
-                              COt=COt, regr=regr, nfi=nfi, npt=npt,
+    return(seqimpute_timing(OD, np=np, nf=nf, m=m, covariates=covariates,
+                              time.covariates=time.covariates, regr=regr, nfi=nfi, npt=npt,
                               available=available, pastDistrib=pastDistrib,
                               futureDistrib=futureDistrib, mice.return=mice.return, include=include, noise=noise, ParExec=ParExec,  ncores=ncores
                               ,SetRNGSeed=SetRNGSeed, verbose=verbose,...))
@@ -120,7 +114,7 @@ seqimpute <- function(OD, np=1, nf=1, m=1, timing=FALSE, timeFrame=0, covariates
 }
 
 
-seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nrow=1,ncol=1), np=1, nf=1, m=1, regr="multinom", nfi=1, npt=1,
+seqimpute_standard <- function(OD, covariates=matrix(NA,nrow=1,ncol=1), time.covariates=matrix(NA,nrow=1,ncol=1), np=1, nf=1, m=1, regr="multinom", nfi=1, npt=1,
                       available=TRUE, pastDistrib=FALSE,
                       futureDistrib=FALSE, mice.return=FALSE, include=FALSE, noise=0, ParExec=FALSE,  ncores=NULL
                       ,SetRNGSeed=FALSE, verbose=TRUE,...) {
@@ -151,7 +145,7 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
   
   
   # 0. Initial tests and manipulations on parameters ------------------------------------------------------------------------------------------------------------
-  dataOD <- preliminaryChecks(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib)
+  dataOD <- preliminaryChecks(OD, covariates, time.covariates, np, nf, nfi, npt, pastDistrib, futureDistrib)
   dataOD[c("pastDistrib", "futureDistrib", "totV", "totVi", "totVt", "noise")] <- InitCorectControl(regr, dataOD$ODClass, dataOD$OD, dataOD$nr, dataOD$nc, dataOD$k, np, nf, dataOD$nco, dataOD$ncot, nfi, npt,  pastDistrib, futureDistrib, dataOD$totV, dataOD$totVi, dataOD$totVt, noise)
   # 1. Analysis of OD and creation of matrices ORDER, ORDER2 and ORDER3 -----------------------------------------------------------------------------------------
   dataOD[c("MaxInitGapSize", "InitGapSize",  "MaxTermGapSize", "TermGapSize", "MaxGap", "ORDER", "ORDER2", "ORDER3")] <- OrderCreation(dataOD$OD, dataOD$nr, dataOD$nc)
@@ -165,7 +159,7 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
     dataOD$LongGap <- FALSE
 
   }
-  
+
   #Setting parallel or sequential backend and  random seed
   if (ParExec & (parallel::detectCores() > 2 & m>1)){
     if(is.null(ncores)){
@@ -231,7 +225,9 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
       if(verbose==T){
         print("Imputation of the internal gaps...")
       }
-      dataOD[["ODi"]]  <- ModelImputation(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, dataOD$k, available, dataOD$REFORD_L, dataOD$noise,...)
+      dataOD[["ODi"]]  <- ModelImputation(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, MaxGap=dataOD$MaxGap, 
+                                          totV=dataOD$totV, totVi=dataOD$totVi, regr=regr, nc=dataOD$nc, np=np, nf=nf, nr=dataOD$nr, ncot=dataOD$ncot, COtsample=dataOD$COtsample, 
+                                          pastDistrib=dataOD$pastDistrib, futureDistrib=dataOD$futureDistrib, k=dataOD$k, available=available, REFORD_L=dataOD$REFORD_L, noise=dataOD$noise,...)
       
     }
     # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
@@ -240,7 +236,9 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
         print("Imputation of the initial gaps...")
       }
       # # we only impute the initial gaps if nfi > 0
-      dataOD[["ODi"]] <- ImputingInitialNAs(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$nco, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,...)
+      dataOD[["ODi"]] <- ImputingInitialNAs(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, totVi=dataOD$totVi, COtsample=dataOD$COtsample, 
+                                            futureDistrib=dataOD$futureDistrib, InitGapSize=dataOD$InitGapSize, MaxInitGapSize=dataOD$MaxInitGapSize, nr=dataOD$nr, nc=dataOD$nc, 
+                                            ud=dataOD$ud, nco=dataOD$nco, ncot=dataOD$ncot, nfi=nfi, regr=regr, k=dataOD$k, available=available, noise=dataOD$noise,...)
     }
     # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
     if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
@@ -249,7 +247,9 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
       if(verbose==T){
         print("Imputation of the terminal gaps...")
       }
-      dataOD[["ODi"]]  <- ImputingTerminalNAs(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise, ...)
+      dataOD[["ODi"]]  <- ImputingTerminalNAs(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, COtsample=dataOD$COtsample, MaxTermGapSize=dataOD$MaxTermGapSize, 
+                                              TermGapSize=dataOD$TermGapSize, pastDistrib=dataOD$pastDistrib, regr=regr, npt=npt, nco=dataOD$nco, ncot=dataOD$ncot, totVt=dataOD$totVt, 
+                                              nr=dataOD$nr, nc=dataOD$nc, ud=dataOD$ud, available=available, k=dataOD$k, noise=dataOD$noise, ...)
     }
     #if (max(dataOD$ORDER)!=0) {
     # 6. Imputing SLG NAs -----------------------------------------------------------------------------------------------------------------------------
@@ -260,7 +260,9 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
       if(verbose==T){
         print("Imputation of the left-hand side SLG...")
       }
-      dataOD[["ODi"]] <- LSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
+      dataOD[["ODi"]] <- LSLGNAsImpute(OD=dataOD$OD, ODi=dataOD$ODi, covariates=dataOD$CO, time.covariates=dataOD$COt, COtsample=dataOD$COtsample, ORDERSLG=dataOD$ORDERSLGLeft, 
+                                       pastDistrib=dataOD$pastDistrib, futureDistrib=dataOD$futureDistrib, regr=regr, np=np, nr=dataOD$nr, nf=nf, nc=dataOD$nc, ud=dataOD$ud, ncot=dataOD$ncot, 
+                                       nco=dataOD$nco, k=dataOD$k, noise=dataOD$noise, available=available,...)
       
     }
     # right-hand side SLG
@@ -270,8 +272,9 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
       if(verbose==T){
         print("Imputation of the right-hand side SLG...")
       }
-      
-      dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
+      dataOD[["ODi"]] <- RSLGNAsImpute(OD=dataOD$OD, ODi=dataOD$ODi, covariates=dataOD$CO, time.covariates=dataOD$COt, COtsample=dataOD$COtsample, ORDERSLGRight=dataOD$ORDERSLGRight, 
+                                       pastDistrib=dataOD$pastDistrib, futureDistrib=dataOD$futureDistrib, regr=regr, np=np, nr=dataOD$nr, nf=nf, nc=dataOD$nc, ud=dataOD$ud, ncot=dataOD$ncot, 
+                                       nco=dataOD$nco, k=dataOD$k, noise=dataOD$noise, available=available,...)
       
     }
     # Checking if we have to impute
@@ -285,7 +288,10 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
           tt <- which(dataOD$ORDERSLGBoth[,h-1]==0&dataOD$ORDERSLGBoth[,h]!=0)
           tmpORDER <- matrix(0,nrow(dataOD$ORDERSLGBoth),ncol(dataOD$ORDERSLGBoth))
           tmpORDER[tt,h:ncol(dataOD$ORDERSLGBoth)] <- dataOD$ORDERSLGBoth[tt,h:ncol(dataOD$ORDERSLGBoth)]
-          dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt,dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,...)
+          
+          dataOD[["ODi"]] <- RSLGNAsImpute(OD=dataOD$OD, ODi=dataOD$ODi, covariates=dataOD$CO, time.covariates=dataOD$COt, COtsample=dataOD$COtsample, ORDERSLGRight=tmpORDER, 
+                                           pastDistrib=dataOD$pastDistrib, futureDistrib=dataOD$futureDistrib, regr=regr, np=h-1, nr=dataOD$nr, nf=nf, nc=dataOD$nc, ud=dataOD$ud, 
+                                           ncot=dataOD$ncot, nco=dataOD$nco, k=dataOD$k, noise=dataOD$noise, available=available,...)
           
         }
       }
@@ -302,6 +308,7 @@ seqimpute_standard <- function(OD, CO=matrix(NA,nrow=1,ncol=1), COt=matrix(NA,nr
   if (ParParams){
     parallel::stopCluster(cl)
   }
+        
   RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
 
   # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------

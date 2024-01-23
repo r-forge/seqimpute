@@ -4,7 +4,7 @@
 ################################################################################
 # Impute data using a specific model
 
-ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,...){
+ModelImputation <- function(OD, covariates, time.covariates, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,...){
   
   for (order in 1:MaxGap){ 
     print(paste0("Step ",order,"/",MaxGap))
@@ -13,12 +13,12 @@ ModelImputation <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np,
     # of the iteration, the order in which the
     # values are going to be imputed)
     # 3.1. Building of the data matrix CD for the computation of the model ----------------------------
-    CD_shift <- CDCompute(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k)
+    CD_shift <- CDCompute(covariates, OD, time.covariates, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k)
     # 3.2. Computation of the model (Dealing with the LOCATIONS of imputation)-------------------------
     log_CD <- list()
     log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,...)
     # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
-    ODi <- CreatedModelImputation(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
+    ODi <- CreatedModelImputation(order, covariates, log_CD$CD, time.covariates, OD, ODi, pastDistrib, futureDistrib, available, REFORD_L, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
   } 
   return(ODi)
 }

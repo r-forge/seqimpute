@@ -4,7 +4,7 @@
 ################################################################################
 # Impute initial NAs
 
-ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,...){
+ImputingInitialNAs <- function(OD, covariates, time.covariates, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise,...){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
   
@@ -21,14 +21,14 @@ ImputingInitialNAs <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib
   # 4.3. Imputation using a specific model -------------------------------------
   
   # 4.3.1 Building of the data matrix CD for the computation of the model ------
-  CD <- CDMatCreate(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureDistrib, k)
+  CD <- CDMatCreate(covariates, COtsample, OD, time.covariates, nfi, nr, nc, ncot, futureDistrib, k)
  
   # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
   log_CD <- list()
   log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, nfi, k,...)
   
   # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
-  ODi <- Init_NA_CreatedModelImputation(OD, ODi, CO, log_CD$CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, log_CD$reglog, noise, available)
+  ODi <- Init_NA_CreatedModelImputation(OD, ODi, covariates, log_CD$CD, time.covariates, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, log_CD$reglog, noise, available)
   return(ODi)
 }
 

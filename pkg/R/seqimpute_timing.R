@@ -1,41 +1,41 @@
 seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
-                             available=TRUE, CO=matrix(NA,nrow=1,ncol=1),
-                             COt=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
+                             available=TRUE, covariates=matrix(NA,nrow=1,ncol=1),
+                             time.covariates=matrix(NA,nrow=1,ncol=1), pastDistrib=FALSE,
                              futureDistrib=FALSE, m=1, mice.return=FALSE, include=FALSE, noise=0, SetRNGSeed=FALSE, ParExec=TRUE, ncores=NULL
                              ,timeFrame=0, verbose=TRUE,...) {
-  
+
   if(inherits(OD,"stslist")){
     valuesNA <- c(attr(OD,"nr"),attr(OD,"void"))
     OD <- data.frame(OD)
     OD[OD==valuesNA[1]|OD==valuesNA[2]] <- NA
   }
-  
+
   if(sum(is.na(OD))==0){
     if(verbose==T){
       message("This dataset has no missing values!")
     }
     return(OD)
-    
+
   }
-  
+
   rownamesDataset <- rownames(OD)
   nrowsDataset <- nrow(OD)
-  
+
   if(mice.return==TRUE){
     include <- TRUE
   }
-  
-  
+
+
   # 0. Initial tests and manipulations on parameters ------------------------------------------------------------------------------------------------------------
-  dataOD <- preliminaryChecks(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib)
+  dataOD <- preliminaryChecks(OD, covariates,time.covariates , np, nf, nfi, npt, pastDistrib, futureDistrib)
   dataOD[c("pastDistrib", "futureDistrib", "totV", "totVi", "totVt", "noise")] <- InitCorectControl(regr, dataOD$ODClass, dataOD$OD, dataOD$nr, dataOD$nc, dataOD$k, np, nf, dataOD$nco, dataOD$ncot, nfi, npt,  pastDistrib, futureDistrib, dataOD$totV, dataOD$totVi, dataOD$totVt, noise)
-  
-  
+
+
   # 1. Analysis of OD and creation of matrices ORDER, ORDER2 and ORDER3 -----------------------------------------------------------------------------------------
   dataOD[c("MaxInitGapSize", "InitGapSize",  "MaxTermGapSize", "TermGapSize", "MaxGap", "ORDER", "ORDER2", "ORDER3")] <- OrderCreation(dataOD$OD, dataOD$nr, dataOD$nc)
-  
-  
-  
+
+
+
   # 2. Computation of the order of imputation of each MD (i.e. updating of matrix ORDER) --------------------------------------------------------------------
   if (max(dataOD$ORDER)!=0) {
     dataOD[c("ORDERSLGLeft", "ORDERSLGRight", "ORDERSLGBoth", "LongGap", "MaxGap", "REFORD_L", "ORDER")] <- ImputeOrderComputation(dataOD$ORDER, dataOD$ORDER3, dataOD$MaxGap, np, nf, dataOD$nr, dataOD$nc)
@@ -44,11 +44,11 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
     dataOD$ORDERSLGRight <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
     dataOD$ORDERSLGBoth <- matrix(nrow=dataOD$nr,ncol=dataOD$nc,0)
     dataOD$LongGap <- FALSE
-    
+
   }
-  
-  
-  
+
+
+
   #Setting parallel or sequential backend and  random seed
   if (ParExec & (parallel::detectCores() > 2 & m>1)){
     if(is.null(ncores)){
@@ -65,10 +65,10 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
     pb <- txtProgressBar(max = m, style = 3)
     progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
-    
+
     # condition used to run code part needed for parallel processing
     ParParams = TRUE
-  }else{ 
+  }else{
     if (ParExec & m==1){
       if(verbose==T){
         message(paste("/!\\ The number of multiple imputations is 1, parallel processing is only available for m > 1."))
@@ -78,19 +78,19 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         message(paste("/!\\ The number of cores of your processor does not allow paralell processing, at least 3 cores are needed."))
       }
     }
-    
+
     if(SetRNGSeed){
       set.seed(SetRNGSeed)
     }
-    
+
     foreach::registerDoSEQ()
     opts = NULL
-    
+
     # condition used to run code part needed for sequential processing
-    ParParams  = FALSE 
+    ParParams  = FALSE
   }
-  
-  
+
+
   #Beginning of the multiple imputation (imputing "mi" times)
   o <- NULL
   RESULT <- foreach(o=1:m, .inorder = TRUE, .combine = "rbind", .options.snow = opts) %dopar% {
@@ -112,13 +112,13 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       # there is no need to impute internal gaps
       # and we directly jump to the imputation of
       # external gaps (i.e. points 4. and 5.)
-      
+
       if(verbose==T){
         print("Imputation of the internal gaps...")
       }
-      
+
       dataOD[["ODi"]]  <- ModelImputationTiming(dataOD$OD, dataOD$CO, dataOD$COt, dataOD$ODi, dataOD$MaxGap, dataOD$totV, dataOD$totVi, regr, dataOD$nc, np, nf, dataOD$nr, dataOD$ncot, dataOD$COtsample, dataOD$pastDistrib, dataOD$futureDistrib, dataOD$k, available, dataOD$REFORD_L, dataOD$noise,timeFrame,...)
-      
+
     }
     # 4. Imputing initial NAs -------------------------------------------------------------------------------------------------------------------------
     if ((nfi != 0) & (dataOD$MaxInitGapSize != 0)) {
@@ -126,7 +126,9 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         print("Imputation of the initial gaps...")
       }
       # # we only impute the initial gaps if nfi > 0
-      dataOD[["ODi"]] <- ImputingInitialNAsTiming(dataOD$CO, dataOD$COt, dataOD$OD, dataOD$ODi, dataOD$totVi, dataOD$COtsample, dataOD$futureDistrib, dataOD$InitGapSize, dataOD$MaxInitGapSize, dataOD$nr, dataOD$nc, dataOD$ud, dataOD$nco, dataOD$ncot, nfi, regr, dataOD$k, available, dataOD$noise,timeFrame,...)
+      dataOD[["ODi"]] <- ImputingInitialNAsTiming(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, totVi=dataOD$totVi, COtsample=dataOD$COtsample,
+                                            futureDistrib=dataOD$futureDistrib, InitGapSize=dataOD$InitGapSize, MaxInitGapSize=dataOD$MaxInitGapSize, nr=dataOD$nr, nc=dataOD$nc,
+                                            ud=dataOD$ud, nco=dataOD$nco, ncot=dataOD$ncot, nfi=nfi, regr=regr, k=dataOD$k, available=available, noise=dataOD$noise,timeFrame=timeFrame,...)
     }
     # 5. Imputing terminal NAs ------------------------------------------------------------------------------------------------------------------------
     if ((npt != 0) & (dataOD$MaxTermGapSize != 0)){
@@ -135,7 +137,9 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       if(verbose==T){
         print("Imputation of the terminal gaps...")
       }
-      dataOD[["ODi"]]  <- ImputingTerminalNAsTiming(dataOD$ODi, dataOD$CO, dataOD$OD, dataOD$COt, dataOD$COtsample, dataOD$MaxTermGapSize, dataOD$TermGapSize, dataOD$pastDistrib, regr, npt, dataOD$nco, dataOD$ncot, dataOD$totVt, dataOD$nr, dataOD$nc, dataOD$ud, available, dataOD$k, dataOD$noise,timeFrame,...)
+      dataOD[["ODi"]]  <- ImputingTerminalNAsTiming(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, totVi=dataOD$totVi, COtsample=dataOD$COtsample,
+                                                   pastDistrib=dataOD$pastDistrib, TermGapSize=dataOD$TermGapSize, MaxTermGapSize=dataOD$MaxTermGapSize, nr=dataOD$nr, nc=dataOD$nc,
+                                                   ud=dataOD$ud, nco=dataOD$nco, ncot=dataOD$ncot, npt=npt, regr=regr, k=dataOD$k, available=available, noise=dataOD$noise,timeFrame=timeFrame,...)
     }
     if (max(dataOD$ORDERSLGLeft)!=0 & !is.null(dataOD$ORDERSLGLeft)) {
       # Checking if we have to impute
@@ -144,7 +148,7 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
         print("Imputation of the left-hand side SLG...")
       }
       dataOD[["ODi"]] <- LSLGNAsImputeTiming(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGLeft, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,timeFrame,...)
-      
+
     }
     # right-hand side SLG
     if (max(dataOD$ORDERSLGRight)!=0 & !is.null(dataOD$ORDERSLGRight)) {
@@ -153,9 +157,9 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
       if(verbose==TRUE){
         print("Imputation of the right-hand side SLG...")
       }
-      
+
       dataOD[["ODi"]] <- RSLGNAsImputeTiming(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt, dataOD$COtsample, dataOD$ORDERSLGRight, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available, timeFrame,...)
-      
+
     }
     # Checking if we have to impute
     # Both-hand side SLG
@@ -169,17 +173,17 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
           tmpORDER <- matrix(0,nrow(dataOD$ORDERSLGBoth),ncol(dataOD$ORDERSLGBoth))
           tmpORDER[tt,h:ncol(dataOD$ORDERSLGBoth)] <- dataOD$ORDERSLGBoth[tt,h:ncol(dataOD$ORDERSLGBoth)]
           dataOD[["ODi"]] <- RSLGNAsImputeTiming(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COt,dataOD$COtsample, tmpORDER, dataOD$pastDistrib, dataOD$futureDistrib, regr, h-1, dataOD$nr, nf, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available, timeFrame,...)
-          
+
         }
       }
       #nfix <- 1
       #dataOD[["ODi"]] <- RSLGNAsImpute(dataOD$OD, dataOD$ODi, dataOD$CO, dataOD$COtsample, dataOD$ORDERSLGBoth, dataOD$pastDistrib, dataOD$futureDistrib, regr, np, dataOD$nr, nfix, dataOD$nc, dataOD$ud, dataOD$ncot, dataOD$nco, dataOD$k, dataOD$noise, available,num.trees,min.node.size,max.depth,timing=F)
     }
-    
+
 
     # Updating the matrix RESULT used to store the multiple imputations
     return(cbind(replicate(dataOD$nr,o), dataOD$ODi))
-    
+
   }
   if (ParParams){
     parallel::stopCluster(cl)
@@ -187,35 +191,36 @@ seqimpute_timing <- function(OD, regr="multinom", np=1, nf=0, nfi=1, npt=1,
   RESULT <- rbind(cbind(replicate(dataOD$nr,0),dataOD$OD), RESULT)
   # X. Final conversions ----------------------------------------------------------------------------------------------------------------------------------------
   RESULT <- FinalResultConvert(RESULT, dataOD$ODClass, dataOD$ODlevels, rownamesDataset, nrowsDataset, dataOD$nr, dataOD$nc, dataOD$rowsNA, include, m, mice.return)
-  
-  
+
+
   # Rearrange dataframe by order of the mi imputation as parallel computation may not return the values in sequential order.
   # if (ParParams){
   #   RESULT <- RESULT[order(RESULT$.imp),]
   # }
-  
+
   return(RESULT)
 }
 
-
-ModelImputationTiming <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, nc, np, nf, nr, ncot, COtsample, pastDistrib, futureDistrib, k, available, REFORD_L, noise,timeFrame,...){
+ModelImputationTiming<-function(OD=dataOD$OD, covariates=dataOD$CO, time.covariates=dataOD$COt, ODi=dataOD$ODi, MaxGap=dataOD$MaxGap,
+                totV=dataOD$totV, totVi=dataOD$totVi, regr=regr, nc=dataOD$nc, np=np, nf=nf, nr=dataOD$nr, ncot=dataOD$ncot, COtsample=dataOD$COtsample,
+                pastDistrib=dataOD$pastDistrib, futureDistrib=dataOD$futureDistrib, k=dataOD$k, available=available, REFORD_L=dataOD$REFORD_L, noise=dataOD$noise,timeFrame=timeFrame,...){
   for(order in 1:MaxGap){
     print(paste0("Step ",order,"/",MaxGap))
-    
-    # number of time-point that have a missing data to impute that correspond to actual gap 
+
+    # number of time-point that have a missing data to impute that correspond to actual gap
     ncol_imp <- length(unique(REFORD_L[[order]][,2]))
     # columns that have a missing data to impute that correspond to the actual gap
     col_to_imp <- unique(sort(unique(REFORD_L[[order]])[,2]))
     for(i in 1:ncol_imp){
-      CD_shift <- CDComputeTiming(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,col_to_imp[i], timeFrame)
-      
+      CD_shift <- CDComputeTiming(covariates, OD, time.covariates, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,col_to_imp[i], timeFrame)
+
       # Identify if only one level appear in the predictive matrix. If it is the case, we directly predict the only level that appears.
       if(length(table(CD_shift$CD[,1]))>1){
         log_CD <- list()
         log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, totV, np,nf, k,...)
         row_to_imp <- REFORD_L[[order]][which(REFORD_L[[order]][,2]==col_to_imp[[i]]),1]
         # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
-        ODi <- CreatedModelImputationTiming(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, col_to_imp[i],row_to_imp, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
+        ODi <- CreatedModelImputationTiming(order, covariates, log_CD$CD, time.covariates, OD, ODi, pastDistrib, futureDistrib, available, col_to_imp[i],row_to_imp, ncot, nc, np, nf, k, totV, regr, log_CD$reglog, noise, CD_shift$shift, MaxGap)
       }else{
         lev <- names(table(CD_shift$CD[,1]))
         REFORD <- as.matrix(REFORD_L[[order]])
@@ -223,7 +228,7 @@ ModelImputationTiming <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, n
           REFORD <- t(REFORD)
         }
         nr_REFORD <- nrow(REFORD)
-        
+
         for (u in 1:nr_REFORD) {
           i <- REFORD[u,1]
           # taking out the first coordinate (row
@@ -232,10 +237,10 @@ ModelImputationTiming <- function(OD, CO, COt, ODi, MaxGap, totV, totVi, regr, n
           ODi[i,j] <- lev
         }
       }
-      
+
     }
   }
-  
+
   return(ODi)
 }
 
@@ -244,12 +249,12 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
   # Building of a data matrix for the computation of the
   # model
   # number of usable data in past and futur
-  
-  
-  # for each row of 
-  
+
+
+  # for each row of
+
   #frameSize <- MaxGap-order+np+nf+1 # size of the current
-  
+
   # mobile caracteristic frame (that
   # changes according to
   # "order") which is equal to
@@ -296,53 +301,53 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
     # no shift is needed for the
     # case of model 2 (only past)
     # and model 3 (only future))
-    
+
     if(np>0 & nf>0){
       udp <- min(timeFrame,col-np-1)
       udf <- min(timeFrame,nc-col-(MaxGap-order)-nf)
       col_to_use <- (col-udp):(col+udf)
       ud <- udp + udf + 1
     }
-    
+
     if(np>0 & nf==0){
       udp <- min(timeFrame, col-np-1)
       udf <- min(timeFrame, nc-col)
       col_to_use <- (col-udp):(col+udf)
       ud <- udp + udf + 1
     }
-    
+
     if(nf>0 & np==0){
       udf <- min(timeFrame, nc-col-nf)
       udp <- min(col-1,timeFrame)
       col_to_use <- (col-udp):(col+udf)
       ud <- udp + udf + 1
     }
-    
+
   }
-  
-  
-  
+
+
+
   CD <- matrix(NA,nrow=nr*ud,ncol=1)
-  
-  
+
+
   iter <- 1                # initialisation of the number
   # of iterations of the
   # following for loops
   # Only PAST
-  if (np>0 & nf==0) { 
+  if (np>0 & nf==0) {
     CD <- PastVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use)
     # Only FUTURE
   } else if (np==0 & nf>0) {
     # only FUTURE VIs do exist
     CD <- FutureVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use)
-    
+
     # PAST and FUTURE
   } else {
     # meaning np>0 and nf>0 and that, thus,
     # PAST as well as FUTURE VIs do exist
     CD <- PastFutureVIComputeTiming(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order)
   }
-  
+
   CD_shift <- list()
   CD_shift[c("CD","shift")] <- list(CD, shift)
   return(CD_shift)
@@ -350,14 +355,14 @@ CDComputeTiming <- function(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsampl
 
 ################################################################################
 FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf,col_to_use){
-  
+
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
-  
+
   if (ncot > 0) {
     # initialisation of matrix COtselected
     COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
   }
-  
+
   # initialisation of matrix CDdb (for past
   # distribution analysis) (Distribution Before)
   if (pastDistrib) {
@@ -368,7 +373,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
     # ud matrix db on top
     # of each other
   }
-  
+
   # initialisation of matrix CDda (for future
   # distribution analysis) (Distribution After)
   if (futureDistrib) {
@@ -385,19 +390,19 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j]
-    
+
     # future VIs
     CDf[t1:t2,] <- OD[,(j+1):(j+nf)]
-    
+
     # /!\ current
     # pointer on column
     # is thus:
     # "j-frameSize
-    
+
     # Eventually considering time-dependent
     # covariates
-    
-    
+
+
     if (ncot > 0) {
       COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
     }
@@ -406,7 +411,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
       tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
-      
+
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
       CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
@@ -419,29 +424,29 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
-      
+
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
       CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
     iter <- iter+1
   }
-  
-  
+
+
   # future VIs
-  CD <- cbind(CD, CDf) 
-  
+  CD <- cbind(CD, CDf)
+
   if (pastDistrib) {
     CD <- cbind(CD, CDdb)
   }
-  
+
   if (futureDistrib) {
     CD <- cbind(CD, CDda)
   }
-  
+
   # Conversion of CD into a data frame
   CD <- as.data.frame(CD)
-  
+
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
   if (all(is.na(CO))==FALSE) {
@@ -462,7 +467,7 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
   }
   # Else, in case CO is empty (i.e. we don't consider
   # any covariate) simply continue with the current CD
-  
+
   # Eventually concatenating CD with COtselected (the
   # matrix containing the current time-dependent
   # covariates)
@@ -476,14 +481,14 @@ FutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsam
 
 
 PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,col_to_use){
-  
+
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
-  
+
   if (ncot > 0) {
     # initialisation of matrix COtselected
     COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
   }
-  
+
   # initialisation of matrix CDdb (for past
   # distribution analysis) (Distribution Before)
   if (pastDistrib) {
@@ -494,7 +499,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
     # ud matrix db on top
     # of each other
   }
-  
+
   # initialisation of matrix CDda (for future
   # distribution analysis) (Distribution After)
   if (futureDistrib) {
@@ -514,17 +519,17 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j]
-    
-    
+
+
     # past VIs
     CDp[t1:t2,] <- OD[,(j-np):(j-1)]
-    
-    
+
+
     # /!\ current
     # pointer on column
     # is thus:
     # "j-frameSize
-    
+
     # Eventually considering time-dependent
     # covariates
     if (ncot > 0) {
@@ -535,7 +540,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
       tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
-      
+
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
       CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
@@ -548,31 +553,31 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
-      
+
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
       CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
-    
+
     iter <- iter+1
   }
-  
-  
+
+
   # past VIs
-  CD <- cbind(CD, CDp) 
-  
-  
+  CD <- cbind(CD, CDp)
+
+
   if (pastDistrib) {
     CD <- cbind(CD, CDdb)
   }
-  
+
   if (futureDistrib) {
     CD <- cbind(CD, CDda)
   }
-  
+
   # Conversion of CD into a data frame
   CD <- as.data.frame(CD)
-  
+
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
   if (all(is.na(CO))==FALSE) {
@@ -593,7 +598,7 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
   }
   # Else, in case CO is empty (i.e. we don't consider
   # any covariate) simply continue with the current CD
-  
+
   # Eventually concatenating CD with COtselected (the
   # matrix containing the current time-dependent
   # covariates)
@@ -608,16 +613,16 @@ PastVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsampl
 # Past or future VI computation
 
 PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift,col_to_use,MaxGap,order){
-  
+
   CDp <- matrix(NA, nrow=nr*ud, ncol=np)
   CDf <- matrix(NA, nrow=nr*ud, ncol=nf)
-  
-  
+
+
   if (ncot > 0) {
     # initialisation of matrix COtselected
     COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
   }
-  
+
   # initialisation of matrix CDdb (for past
   # distribution analysis) (Distribution Before)
   if (pastDistrib) {
@@ -647,8 +652,8 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, CO
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j]
-    
-    
+
+
     if(shift==0){
       CDp[t1:t2,] <- OD[,(j-np):(j-1)]
       CDf[t1:t2,] <- OD[,(j+MaxGap-order+1):(j+MaxGap-order+nf)]
@@ -656,18 +661,18 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, CO
       CDp[t1:t2,] <- OD[,(j-shift-np):(j-shift-1)]
       CDf[t1:t2,] <- OD[,(j+1):(j+nf)]
     }
-    # 
+    #
     # # past VIs
-    # CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)] 
-    # 
+    # CDp[t1:t2,] <- OD[,(j-frameSize+1):(j-frameSize+np)]
+    #
     # # future VIs
     # CDf[t1:t2,] <- OD[,(j-nf+1):j]
-    # 
+    #
     # /!\ current
     # pointer on column
     # is thus:
     # "j-frameSize
-    
+
     # Eventually considering time-dependent
     # covariates
     if (ncot > 0) {
@@ -678,7 +683,7 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, CO
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
       tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
-      
+
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
       CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
@@ -691,28 +696,28 @@ PastFutureVIComputeTiming <- function(CD, CO, OD, ncot, iter, nr, nc, ud, np, CO
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
-      
+
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
       CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
-    
+
     iter <- iter+1
   }
-  
+
   # past and future VIs
   CD <- cbind(CD, CDp, CDf)
-  
-  
-  
+
+
+
   if (pastDistrib) {
     CD <- cbind(CD, CDdb)
   }
-  
+
   if (futureDistrib) {
     CD <- cbind(CD, CDda)
   }
-  
+
   # Conversion of CD into a data frame
   CD <- as.data.frame(CD)
   # Eventually concatenating CD with COs (the matrix
@@ -780,8 +785,8 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
   #
   # We are then going to create a specific CDi according
   # to the value of np and nf
-  
-  
+
+
   # Analysing the value of parameter available
   if (available==TRUE){   # we take the previously imputed
     # data into account
@@ -791,8 +796,8 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
     # data into account
     LOOKUP <- OD
   }
-  
-  
+
+
   # Assigning the current "REFORD_order" matrix to the
   # variable matrix REFORD
   # (according to the current value of "order")
@@ -801,11 +806,11 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
   #   REFORD <- t(REFORD)
   # }
   # nr_REFORD <- nrow(REFORD)
-  
-  
+
+
   if (np>0 & nf==0) { # only PAST VIs do exist
     ODi <- ODiImputePASTTiming(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
-    
+
     #---------------------------------------------------------------------------------------------
   } else if (np==0 & nf>0) {  # only FUTURE VIs do exist
     ODi <- ODiImputeFUTURETiming(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise)
@@ -813,7 +818,7 @@ CreatedModelImputationTiming <- function(order, CO, CD, COt, OD, ODi, pastDistri
     # thus, PAST as well as FUTURE VIs
     # do exist
     ODi <- ODiImputePFTiming(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, futureDistrib, k, np, nf, nc, ncot, totV, reglog, LOOKUP, regr, noise, shift, MaxGap, order)
-    
+
   }
   return(ODi)
 }
@@ -826,50 +831,50 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, 
     j <- col
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
-    
+
     CDi <- matrix(NA, nrow=k, ncol=1)
-    
-    
+
+
     # Matrix for past values
     vect <- LOOKUP[i,(j-np):(j-1)]
     # /!\ current pointer
     # on olumn is thus: "j"
     CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for past distribution
     if (pastDistrib) {
       dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
       CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Matrix for future distribution
     if (futureDistrib) {
       dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
       CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Concatenating CDi
     CDi <- cbind(CDi, CDpi)
-    
+
     if (pastDistrib) {
       CDi <- cbind(CDi, CDdbi)
     }
-    
+
     if (futureDistrib) {
       CDi <- cbind(CDi, CDdai)
     }
-    
+
     # Conversion of CDi into a data frame
     CDi <- as.data.frame(CDi)
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
-    
+
     # We also account for the fact that levels that do not appear at
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
-    
-    
+
+
     if(regr!="rf"){
       for(v in 1:(1+np+nf)){
         CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
@@ -886,7 +891,7 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, 
     if (pastDistrib | futureDistrib) {
       CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
     }
-    
+
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
     if (all(is.na(CO))==FALSE) {
@@ -907,7 +912,7 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, 
     # Else, in case CO is empty (i.e. we don't
     # consider any covariate)
     # simply continue with the current CDi
-    
+
     # Eventually concatenating CDi with
     # COtselected_i (the matrix containing the
     # current time-dependent covariates)
@@ -925,12 +930,12 @@ ODiImputePASTTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, 
       # of CDi (called V1, V2, ..., "VtotV")
       colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
     }
-    
-    
+
+
     # Check for missing-values among predictors
     if (max(is.na(CDi[1,2:totV]))==0){
       ODi <- RegrImpute(ODi, CDi, regr, reglog, noise, i, j, k)
-      
+
     }
   }
   return(ODi)
@@ -946,45 +951,45 @@ ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
     CDi <- matrix(NA, nrow=k, ncol=1)
-    
-    
+
+
     # Matrix for future values
     vect <- LOOKUP[i,(j+1):(j+nf)]
     CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for past distribution
     if (pastDistrib) {
       dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
       CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Matrix for future distribution
     if (futureDistrib) {
       dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
       CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Concatenating CDi
     CDi <- cbind(CDi, CDfi)
-    
+
     if (pastDistrib) {
       CDi <- cbind(CDi, CDdbi)
     }
-    
+
     if (futureDistrib) {
       CDi <- cbind(CDi, CDdai)
     }
-    
+
     # Conversion of CDi into a data frame
     CDi <- as.data.frame(CDi)
-    
+
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
     # We also account for the fact that levels that do not appear at
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
-    
+
     if(regr!="rf"){
       for(v in 1:(1+np+nf)){
         CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
@@ -1001,7 +1006,7 @@ ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib
     if (pastDistrib | futureDistrib) {
       CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
     }
-    
+
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
     if (all(is.na(CO))==FALSE) {
@@ -1022,7 +1027,7 @@ ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib
     # Else, in case CO is empty (i.e. we don't
     # consider any covariate)
     # simply continue with the current CDi
-    
+
     # Eventually concatenating CDi with
     # COtselected_i (the matrix containing the
     # current time-dependent covariates)
@@ -1040,8 +1045,8 @@ ODiImputeFUTURETiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib
       # of CDi (called V1, V2, ..., "VtotV")
       colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
     }
-    
-    
+
+
     # Check for missing-values among predictors
     if (max(is.na(CDi[1,2:totV]))==0){
       ODi <- RegrImpute(ODi, CDi, regr, reglog, noise, i, j, k)
@@ -1060,18 +1065,18 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
     # taking out the second coordinate
     # (column number in ORDER) from REFORD
     CDi <- matrix(NA,nrow=k, ncol=1)
-       
+
     # Matrix for past values
     shift <- as.numeric(shift)
-    
+
     if(shift==0){
       vect <- LOOKUP[i,(j-np):(j-1)]
     }else{
       vect <- LOOKUP[i,(j-shift-np):(j-shift-1)]
     }
-    
+
     CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for future values
     if(shift==0){
       vect <- LOOKUP[i,(j+MaxGap-order+1):(j+MaxGap-order+nf)]
@@ -1079,7 +1084,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
       vect <- LOOKUP[i,(j+1):(j+nf)]
     }
     CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for past distribution
     if (pastDistrib) {
       dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
@@ -1092,15 +1097,15 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
     }
     # Concatenating CDi
     CDi <- cbind(CDi, CDpi, CDfi)
-    
+
     if (pastDistrib) {
       CDi <- cbind(CDi, CDdbi)
     }
-    
+
     if (futureDistrib) {
       CDi <- cbind(CDi, CDdai)
     }
-    
+
     # Conversion of CDi into a data frame
     CDi <- as.data.frame(CDi)
     # Type transformation of the columns of CDi
@@ -1109,7 +1114,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
     # We also account for the fact that levels that do not appear at
     # all in a given variable of CD were discarded with droplevels before
     # the fit of the mlogit model
-    
+
     if(regr=="lm"|regr=="lrm"|regr=="mlogit"){
       for(v in 1:(1+np+nf)){
         CDi[,v]<-factor(CDi[,v],levels=levels(CD[,v]),exclude=NULL)
@@ -1132,7 +1137,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
     if (pastDistrib | futureDistrib) {
       CDi[,(1+np+nf+1):ncol(CDi)] <- lapply(CDi[,(1+np+nf+1):ncol(CDi)],as.numeric)
     }
-    
+
     # Eventually concatenating CDi with COi
     # (the matrix containing the covariates)
     if (all(is.na(CO))==FALSE) {
@@ -1153,7 +1158,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
     # Else, in case CO is empty (i.e. we don't
     # consider any covariate)
     # simply continue with the current CDi
-    
+
     # Eventually concatenating CDi with
     # COtselected_i (the matrix containing the
     # current time-dependent covariates)
@@ -1171,8 +1176,8 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
       # of CDi (called V1, V2, ..., "VtotV")
       colnames(CDi) <- paste("V", 1:ncol(CDi), sep = "")
     }
-    
-    
+
+
     # Check for missing-values among predictors
     # (i.e. we won't impute any value on the current
     # MD if there is any NA among the VIs)
@@ -1185,7 +1190,7 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
       # imputed for the
       # current NA)
       ODi <- RegrImpute(ODi, CDi, regr, reglog, noise, i, j, k)
-      
+
     }
   }
   return(ODi)
@@ -1197,26 +1202,25 @@ ODiImputePFTiming <- function(CO, ODi, CD, COt, col, row_to_imp, pastDistrib, fu
 #
 ################################################################################
 # Impute initial NAs
-
-ImputingInitialNAsTiming <- function(CO, COt, OD, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise, timeFrame,...){
+ImputingInitialNAsTiming <- function(OD, covariates, time.covariates, ODi, totVi, COtsample, futureDistrib, InitGapSize, MaxInitGapSize, nr, nc, ud, nco, ncot, nfi, regr, k, available, noise, timeFrame,...){
   # 4.1.-2. Creation of ORDERI -------------------------------------------------
   REFORDI_L <- REFORDICreation(nr, nc, InitGapSize, MaxInitGapSize)
-  
+
   # 4.3. Imputation using a specific model -------------------------------------
-  
+
   for(order in 1:MaxInitGapSize){
     col <- MaxInitGapSize-order+1
-    CD <- CDMatCreateTiming(CO, COtsample, OD, COt, min(nfi,nc-col), nr, nc, ncot, futureDistrib, k, col, timeFrame)
-    
+    CD <- CDMatCreateTiming(covariates, COtsample, OD, time.covariates, min(nfi,nc-col), nr, nc, ncot, futureDistrib, k, col, timeFrame)
+
     # 4.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
     if(length(table(CD[,1]))>1){
       log_CD <- list()
-      
+
       totVi <- 1+min(nfi,nc-col)+nco+(ncot/nc)
       log_CD[c("reglog","CD")]  <- ComputeModel(CD, regr, totVi, 0, min(nfi,nc-col), k,...)
-      
+
       # 4.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
-      ODi <- Init_NA_CreatedModelImputationTiming(OD, ODi, CO, log_CD$CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, min(nfi,nc-col), ncot, regr, log_CD$reglog, noise, available, order)
+      ODi <- Init_NA_CreatedModelImputationTiming(OD, ODi, covariates, log_CD$CD, time.covariates, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, min(nfi,nc-col), ncot, regr, log_CD$reglog, noise, available, order)
     }else{
       lev <- names(table(CD[,1]))
       REFORDI <- as.matrix(REFORDI_L[[order]])
@@ -1224,7 +1228,7 @@ ImputingInitialNAsTiming <- function(CO, COt, OD, ODi, totVi, COtsample, futureD
         REFORDI <- t(REFORDI)
       }
       nr_REFORDI <- nrow(REFORDI)
-      
+
       for (u in 1:nr_REFORDI) {
         i <- REFORDI[u,1]
         # taking out the first coordinate (row
@@ -1233,17 +1237,17 @@ ImputingInitialNAsTiming <- function(CO, COt, OD, ODi, totVi, COtsample, futureD
         ODi[i,j] <- lev
       }
     }
-    
+
   }
-  
-  
+
+
   return(ODi)
 }
 
 Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGapSize, REFORDI_L, futureDistrib, totVi, nc, k, nfi, ncot, regr, reglog, noise, available, order){
   # Conversion of ODi from data.frame to matrix
   ODi <- as.matrix(ODi)
-  
+
   # Analysing the value of parameter available
   if (available==TRUE){
     # we take the previously imputed data
@@ -1254,7 +1258,7 @@ Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGa
     # the previously imputed data into account
     LOOKUP <- OD
   }
-  
+
   # Assigning the current "REFORDI_order" matrix to the
   # variable matrix REFORDI
   # (according to the current value of "order")
@@ -1264,7 +1268,7 @@ Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGa
     REFORDI <- t(REFORDI)
   }
   nr_REFORDI <- nrow(REFORDI)
-  
+
   for (u in 1:nr_REFORDI) {
     i <- REFORDI[u,1]
     # taking out the first coordinate (row
@@ -1272,29 +1276,29 @@ Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGa
     j <- REFORDI[u,2]
     # taking out the second coordinate
     # (column number in ORDER) from REFORDI
-    
+
     CDi <- matrix(NA,nrow=k,ncol=1)
-    
+
     # Matrix for future values
     vect <- LOOKUP[i,(j+1):(j+nfi)]
     CDfi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for future distribution
     if (futureDistrib) {
       dai <- summary(factor(LOOKUP[i,(j+1):nc], levels=c(1:k), exclude=NULL))/length((j+1):nc)
       CDdai <- matrix(dai[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Concatenating CDi
     CDi <- cbind(CDi, CDfi)
-    
+
     if (futureDistrib) {
       CDi <- cbind(CDi, CDdai)
     }
-    
+
     # Conversion of CDi into a data frame
     CDi <- as.data.frame(CDi)
-    
+
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
@@ -1337,16 +1341,16 @@ Init_NA_CreatedModelImputationTiming <- function(OD, ODi, CO, CD, COt, MaxInitGa
     # Else, in case CO is empty (i.e. we don't consider
     # any covariate) simply continue with the current
     # CDi
-    
+
     # Eventually concatenating CDi with COtselected_i
     # (the matrix containing the current time-dependent
     # covariates)
     # Checking if COt is NOT completely empty
     CDi <- COtselectionSpe(CDi, COt, ncot, nc, i, j, k)
-    
+
     # Check for missing-values among predictors
     if (max(is.na(CDi[1,2:totVi]))==0){
-      
+
       ODi <- RegrImpute(ODi, CDi, regr, reglog, noise, i, j, k)
     }
   }
@@ -1368,16 +1372,16 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
   udp <- min(timeFrame, col-1)
   ud <- udf+udp+1
   col_to_use <- (col-udp):(col+udf)
-  
+
   CD <- matrix(NA, nrow=nr*ud, ncol=1)
-  
+
   # initialisation of matrix CDf
   CDf <- matrix(NA, nrow=nr*ud, ncol=nfi)
   if (ncot > 0) {
     # initialisation of matrix COtselected
     COtselected <- do.call(rbind, replicate(ud, COtsample, simplify=FALSE))
   }
-  
+
   # initialisation of matrix CDda (for future distribution
   # analysis)
   # (Distribution After)
@@ -1388,20 +1392,20 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
     # composed of ud matrix da on
     # top of each other
   }
-  
+
   iter <- 1
-  
+
   for (j in col_to_use) {
-    
+
     t1 <- (nr*(iter-1)+1)
     t2 <- nr*iter
-    
+
     # VD
     CD[t1:t2,1] <- OD[,j]
-    
+
     # Future VIs
     CDf[t1:t2,] <- OD[,(j+1):(j+nfi)]
-    
+
     # Eventually considering time-dependent covariates
     if (ncot > 0) {
       COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
@@ -1414,25 +1418,25 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
       # because:
       # j-frameSize+np+1 + 1
       # = j-frameSize+np+2
-      
+
       da_list <- lapply(tempOD,summary)
       da_matrix <- do.call(rbind,da_list)
       CDda[t1:t2,] <- da_matrix[,1:k]/length((j+1):nc)
     }
-    
+
     iter <- iter+1
   }
-  
+
   # Concatenating CD
   CD <- cbind(CD, CDf)
-  
+
   if (futureDistrib) {
     CD <- cbind(CD, CDda)
   }
-  
+
   # Conversion of CD into a data frame
   CD <- as.data.frame(CD)
-  
+
   # Eventually concatenating CD with COs (the matrix
   # containing the covariates)
   if (all(is.na(CO))==FALSE) {
@@ -1454,7 +1458,7 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
   # Else, in case CO is empty (i.e. we don't consider any
   # covariate)
   # simply continue with the current CD
-  
+
   # Eventually concatenating CD with COtselected (the
   # matrix containing the current time-dependent
   # covariates)
@@ -1468,29 +1472,29 @@ CDMatCreateTiming <- function(CO, COtsample, OD, COt, nfi, nr, nc, ncot, futureD
 
 
 # 5. Imputation of terminal NAs
-# 
+#
 #
 ################################################################################
 # Impute terminal NAs
 
-ImputingTerminalNAsTiming <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,timeFrame,...) {
-  
+ImputingTerminalNAsTiming <- function(OD, covariates, time.covariates, ODi, COtsample, MaxTermGapSize, TermGapSize, pastDistrib, regr, npt, nco, ncot, totVt, nr, nc, ud, available, k, noise,timeFrame,...) {
+
   # 5.1.-2. Creation of ORDERT -------------------------------------------------
   REFORDT_L <- REFORDTCreation(nr, nc, TermGapSize, MaxTermGapSize)
-  
+
   for(order in 1:MaxTermGapSize){
     col <- nc-MaxTermGapSize+order
-    CD <- TerminalCDMatCreateTiming(CO, OD, COt, COtsample, pastDistrib,  min(npt,col-1), nr, nc, ncot, k, col, timeFrame)
+    CD <- TerminalCDMatCreateTiming(covariates, OD, time.covariates, COtsample, pastDistrib,  min(npt,col-1), nr, nc, ncot, k, col, timeFrame)
     # 5.3.2 Computation of the model (Dealing with the LOCATIONS of imputation) --
     if(length(table(CD[,1]))>1){
       log_CD <- list()
       totVt <- 1+min(npt,col-1)+nco+(ncot/nc)
       log_CD[c("reglog","CD")] <- ComputeModel(CD, regr, totVt, min(npt,col-1),0, k,...)
-      
-      
+
+
       # 5.3.3 Imputation using the just created model (Dealing with the actual VALUES to impute)
-      ODi <- TerminalCreatedModelImputationTiming(CO, OD, log_CD$CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, min(npt,col-1), noise, order)
-      
+      ODi <- TerminalCreatedModelImputationTiming(covariates, OD, log_CD$CD, ODi, time.covariates, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, log_CD$reglog, k, min(npt,col-1), noise, order)
+
     }else{
       lev <- names(table(CD[,1]))
       REFORDT <- as.matrix(REFORDT_L[[order]])
@@ -1498,7 +1502,7 @@ ImputingTerminalNAsTiming <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSiz
         REFORDT <- t(REFORDT)
       }
       nr_REFORDT <- nrow(REFORDT)
-      
+
       for (u in 1:nr_REFORDT) {
         i <- REFORDT[u,1]
         # taking out the first coordinate (row
@@ -1507,13 +1511,13 @@ ImputingTerminalNAsTiming <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSiz
         ODi[i,j] <- lev
       }
     }
-    
+
   }
-  
+
   # 5.3. Imputation using a specific model -------------------------------------
-  
+
   # 5.3.1 Building of the data matrix CD for the computation of the model ------
-  
+
   return(ODi)
 }
 
@@ -1525,7 +1529,7 @@ ImputingTerminalNAsTiming <- function(ODi, CO, OD, COt, COtsample, MaxTermGapSiz
 TerminalCreatedModelImputationTiming <- function(CO, OD, CD, ODi, COt, nc, ncot, totVt, REFORDT_L, pastDistrib, MaxTermGapSize, available, regr, reglog, k, npt, noise, order){
   # Conversion of ODi from data.frame to matrix
   ODi <- as.matrix(ODi)
-  
+
   # Analysing the value of parameter available
   if (available==TRUE){
     # we take the previously
@@ -1536,44 +1540,44 @@ TerminalCreatedModelImputationTiming <- function(CO, OD, CD, ODi, COt, nc, ncot,
     # data into account
     LOOKUP <- OD
   }
-  
+
   # Assigning the current "REFORDT_order" matrix to the
   # variable matrix REFORDT
   # (according to the current value of "order")
-  REFORDT <- as.matrix(REFORDT_L[[order]]) 
+  REFORDT <- as.matrix(REFORDT_L[[order]])
   if (ncol(REFORDT) == 1) {
     REFORDT <- t(REFORDT)
   }
   nr_REFORDT <- nrow(REFORDT)
-  
+
   for (u in 1:nr_REFORDT) {
     i <- REFORDT[u,1] # taking out the first coordinate
     # (row number in ORDER) from REFORDT
     j <- REFORDT[u,2] # taking out the second coordinate
     # (column number in ORDER) from REFORDT
-    
+
     CDi <- matrix(NA,nrow=k,ncol=1)
-    
+
     # Matrix for past values
     vect <- LOOKUP[i,(j-npt):(j-1)]
     CDpi <- matrix(vect, nrow=k, ncol=length(vect), byrow=TRUE)
-    
+
     # Matrix for past distribution
     if (pastDistrib) {
       dbi <- summary(factor(LOOKUP[i,1:(j-1)], levels=c(1:k), exclude=NULL))/length(1:(j-1))
       CDdbi <- matrix(dbi[1:k], nrow=k, ncol=k, byrow=TRUE)
     }
-    
+
     # Concatenating CDi
     CDi <- cbind(CDi, CDpi)
-    
+
     if (pastDistrib) {
       CDi <- cbind(CDi, CDdbi)
     }
-    
+
     # Conversion of CDi into a data frame
     CDi <- as.data.frame(CDi)
-    
+
     # Type transformation of the columns of CDi
     # The first values of CDi must be of type factor
     # (categorical values)
@@ -1591,7 +1595,7 @@ TerminalCreatedModelImputationTiming <- function(CO, OD, CD, ODi, COt, nc, ncot,
       }
       CDi[,1]<-factor(CDi[,1],levels=levels(CD[,1]))
     }
-    # The 
+    # The
     # The last values of CDi must be of type numeric
     # (distributions)
     if (pastDistrib) {
@@ -1617,16 +1621,16 @@ TerminalCreatedModelImputationTiming <- function(CO, OD, CD, ODi, COt, nc, ncot,
     # Else, in case CO is empty (i.e. we don't consider
     # any covariate)
     # simply continue with the current CDi
-    
+
     # Eventually concatenating CDi with COtselected_i
     # (the matrix containing the current time-dependent
     # covariates)
     # Checking if COt is NOT completely empty
     CDi <- COtselectionSpe(CDi, COt, ncot, nc, i, j, k)
-    
+
     # Check for missing-values among predictors
     if (max(is.na(CDi[1,2:totVt]))==0){
-      
+
       ODi <- RegrImpute(ODi, CDi, regr, reglog, noise, i, j, k)
     }
   }
@@ -1648,7 +1652,7 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
   ud <- udf+udp+1
   col_to_use <- (col-udp):(col+udf)
   CD <- matrix(NA, nrow=nr*ud, ncol=1)
-  
+
   # initialisation of matrix CDp
   CDp <- matrix(NA, nrow=nr*ud, ncol=npt)
   if (ncot > 0) {
@@ -1665,19 +1669,19 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
     # composed of ud matrix db on
     # top of each other
   }
-  
+
   iter <- 1
   for (j in col_to_use) {
-    
+
     t1 <- (nr*(iter-1)+1)
     t2 <- nr*iter
     # VD
     CD[t1:t2,1] <- OD[,j]
     # /!\ current pointer on column is thus: "j"
-    
+
     # Past VIs
     CDp[t1:t2,] <- OD[,(max(j-npt,1)):(j-1)]
-    
+
     # Eventually considering time-dependent covariates
     if (ncot > 0) {
       COtselected <- COtselected[t1:t2,j+(1:(ncot/nc)-1)*nc]
@@ -1687,7 +1691,7 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
       ODt <- t(OD)
       ODt <- as.data.frame(ODt)
       tempOD <- lapply(ODt[(1:(j-1)),], factor, levels=c(1:k,NA), exclude=NULL)
-      
+
       db_list <- lapply(tempOD,summary)
       db_matrix <- do.call(rbind,db_list)
       CDdb[t1:t2,] <- db_matrix[,1:k]/length(1:(j-1))
@@ -1696,14 +1700,14 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
   }
   # Concatening CD
   CD <- cbind(CD, CDp)
-  
+
   if (pastDistrib) {
     CD <- cbind(CD, CDdb)
   }
-  
+
   # Conversion of CD into a data frame
   CD <- as.data.frame(CD)
-  
+
   # Eventually concatenating CD with COs
   # (the matrix containing the covariates)
   if (all(is.na(CO))==FALSE) {
@@ -1724,7 +1728,7 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
   }
   # Else, in case CO is empty (i.e. we don't consider any
   # covariate) simply continue with the current CD
-  
+
   # Eventually concatenating CD with COtselected (the
   # matrix containing the current time-dependent
   # covariates)
@@ -1745,16 +1749,16 @@ TerminalCDMatCreateTiming <- function(CO, OD, COt, COtsample, pastDistrib,  npt,
 
 LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,timeFrame,...){     # Checking if we have to impute
   # left-hand side SLG
-  
+
   warning("/!\\ Specially Located Gaps (SLG) have been detected on the left-hand side of OD.","\n","For certain missing data groups close to the border of OD, np may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for np.")
-  
+
   # 6.2.LEFT Computation of the order of imputation of each MD ----
-  
+
   # Initialization of a list to take all the variable returned by the functions
   ParamList = list()
   # Creation of the temporary SLG matrices for the left-hand
   # side of OD
-  
+
   for (h in 2:np) {
     if (max(ORDERSLG[,h])>0) {
       # Checking if a gap begins
@@ -1764,13 +1768,13 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
       # the entire following procedure
       # and we simply can go
       # to the next column of ORDERSLGLeft
-      
+
       ParamList[c("ORDERSLG_temp","totV_temp","np_temp")] <- SLGMatrix_temp(nr, nc, nf, h, ORDERSLG, nco, ncot, pastDistrib, futureDistrib, k)
-      
+
       if (max(ParamList$ORDERSLG_temp)==0) {
         next
       }
-      
+
       # In a similar manner to part 2.4., we go here one
       # single time through the reduced version
       # ORDERSLGLeft_temp of ORDERSLG and we create
@@ -1778,17 +1782,17 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
       # collecting the coordinates of each corresponding
       # values in ORDERSLGLeft_temp which are greater
       # than 0
-      
-      
+
+
       # REFORDSLGLeft matrices
       # Initialization of the REFORDSLGLeft matrices
       ParamList[c("MaxGap","REFORD_L","ORDERSLG_temp")]  <- REFORDInit(ParamList$ORDERSLG_temp, nr, nc)
-      
-      # MaxGapSLGLeft <- REFORDOD[[1]]   
+
+      # MaxGapSLGLeft <- REFORDOD[[1]]
       # REFORDSLG_L <- REFORDOD[[2]]
-      
+
       # 6.3.LEFT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model ----
-      
+
       # 6.3.1.LEFT Building of the different data matrices CD ----
       # for the computation of the model for every SLG
       # on the left-hand side of OD
@@ -1797,13 +1801,13 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
         col_to_imp <- unique(sort(unique(ParamList$REFORD_L[[order]])[,2]))
         for(i in 1:ncol_imp){
           CD_shift <- CDComputeTiming(CO, OD, COt, ParamList$MaxGap, order, ParamList$np_temp, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,col_to_imp[i], timeFrame)
-          
+
           if(length(table(CD_shift$CD[,1]))>1){
-            
+
             #CD_shift <- CDComputeTiming(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing,col_to_imp[i], timeFrame)
             log_CD <- list()
             log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, ParamList$totV_temp, ParamList$np_temp,nf, k,...)
-            
+
             row_to_imp <- ParamList$REFORD_L[[order]][which(ParamList$REFORD_L[[order]][,2]==col_to_imp[i]),1]
             # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
             ODi <- CreatedModelImputationTiming(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, col_to_imp[i],row_to_imp, ncot, nc, ParamList$np_temp, nf, k, ParamList$totV_temp, regr, log_CD$reglog, noise, CD_shift$shift, ParamList$MaxGap)
@@ -1814,7 +1818,7 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
               REFORDI <- t(REFORDI)
             }
             nr_REFORDI <- nrow(REFORDI)
-            
+
             for (u in 1:nr_REFORDI) {
               i <- REFORDI[u,1]
               # taking out the first coordinate (row
@@ -1823,7 +1827,7 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
               ODi[i,j] <- lev
             }
           }
-          
+
         }
       }
     }
@@ -1831,14 +1835,14 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
   return(ODi)
 }
 
-# 
+#
 # ################################################################################
 # # Compute the CD matrix for SLG
-# 
+#
 # SLGCDMatBuildTiming <- function(CO,COt, OD, order, MaxGapSLGLeft, np, ncot, nr, nc, nf, COtsample, pastDistrib, futureDistrib, k,timing, col, timeFrame){
 #   # Building of a data matrix for the computation
 #   # of the model
-#   # 
+#   #
 #   # ud <- nc-(MaxGapSLGLeft-order+np+nf)
 #   # print(ud)
 #   # # number of usable data for each row of OD
@@ -1868,13 +1872,13 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
 #   #
 #   # We are then going to create a specific CD
 #   # according to the value of np and nf
-#   
+#
 #   # initialization of the current very left part
 #   # of the predictive model matrix ("matrice de
 #   # modele de prediction") with NA everywhere
 #   # (/!\ for each "order", we are going to build
 #   # such a CD)
-#   
+#
 #   CD <- matrix(NA,nrow=nr*ud,ncol=1)
 #   # Dealing with the change of shape of the
 #   # prediction frame (according to whether the
@@ -1892,7 +1896,7 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
 #   #   # is needed for the case of model 2
 #   #   # (only past) and model 3 (only future))
 #   # }
-#   
+#
 #   if ( (np > 0 & nf > 0) & ( (MaxGapSLGLeft%%2==0 & order%%2==0) | (MaxGapSLGLeft%%2!=0 & order%%2!=0) )){
 #     shift <- MaxGapSLGLeft - order      # jumping at the end of
 #     udp <- min(timeFrame,col-(MaxGapSLGLeft-order)-np-1) #number of usable data in the past
@@ -1905,28 +1909,28 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
 #     # no shift is needed for the
 #     # case of model 2 (only past)
 #     # and model 3 (only future))
-#     
+#
 #     if(np>0 & nf>0){
 #       udp <- min(timeFrame,col-np-1)
 #       udf <- min(timeFrame,nc-col-(MaxGapSLGLeft-order)-nf)
 #       col_to_use <- (col-udp):(col+udf)
 #       ud <- udp + udf + 1
 #     }
-#     
+#
 #   }
-#   
+#
 #   iter <- 1
 #   # initialisation of the number of
 #   # iterations of the following for loops
-#   
-#   
+#
+#
 #   # For left SLG, naturally only the cases "only
 #   # PAST" and "PAST and FUTURE" are possible to
 #   # meet (because np has to be greater than
 #   # 0, otherwise, it would mean that we are not
 #   # in the case of a SLG and that we
 #   # can impute it as a usual internal gap)
-#   
+#
 #   # Only PAST
 #   if (np>0 & nf==0) {
 #     CD <- PastVICompute(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k,timing)
@@ -1934,10 +1938,10 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
 #   } else {
 #     CD <- PastFutureVIComputeTiming(CD, CO, OD, ncot, frameSize, iter, nr, nc, ud, np, COtsample, COt, pastDistrib, futureDistrib, k, nf, shift, timing, col_to_use, MaxGapSLGLeft, order)
 #   }
-#   
+#
 #   return(list(CD, shift))
 # }
-# 
+#
 
 
 ##############################################################################
@@ -1946,14 +1950,14 @@ LSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLG, pastDistr
 RSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, pastDistrib, futureDistrib, regr, np, nr, nf, nc, ud, ncot, nco, k, noise, available,timeFrame,...){
   # Checking if we have to impute right-hand
   # side SLG
-  
+
   warning("/!\\ Specially Located Gaps (SLG) have been detected on the right-hand side of OD.","\n","For certain missing data groups close to the border of OD, nf may have been automatically reduced.","\n","If you don't want this to happen, please choose a lower value for nf.")
-  
+
   # 6.2.RIGHT Computation of the order of imputation of each MD ----------------
-  
+
   # Initialization of a list to take all the variable returned by the functions
   ParamList = list()
-  
+
   # Creation of the temporary SLG matrices for the right-hand
   # side of OD
   for (h in (nc-1):(nc-nf+1)) {
@@ -1964,13 +1968,13 @@ RSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, past
       # If that is not the case, there is no need to
       # perform the entire following procedure and we
       # simply can go to the next column of ORDERSLGRight
-      
+
       ParamList[c("ORDERSLGRight_temp","totV_temp","nf_temp")] <- SLGMatrixRight_temp(nr, nc, np, h, ORDERSLGRight, nco, ncot, pastDistrib, futureDistrib, k)
-      
+
       if (max(ParamList$ORDERSLGRight_temp)==0) {
         next
       }
-      
+
       # In a similar manner to part 2.4., we go here one
       # single time through the reduced version
       # ORDERSLGRight_temp of ORDERSLG and we create
@@ -1979,30 +1983,30 @@ RSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, past
       # each corresponding values in
       # ORDERSLGRight_temp which are
       # greater than 0
-      
-      
+
+
       # REFORDSLGRight matrices
       # Initialization of the REFORDSLGRight matrices
-      
-      
+
+
       ParamList[c("MaxGap","REFORD_L","ORDERSLGRight_temp")] <- REFORDInit(ParamList$ORDERSLGRight_temp, nr, nc)
-      
-      
+
+
       # 6.3.RIGHT Imputation of the missing data listed by ORDERSLGLeft_temp and ORDERSLGRight_temp using a specific model ----
-      
+
       for(order in 1:ParamList$MaxGap){
         ncol_imp <- length(unique(ParamList$REFORD_L[[order]][,2]))
         col_to_imp <- unique(sort(unique(ParamList$REFORD_L[[order]])[,2]))
         for(i in 1:ncol_imp){
           CD_shift <- CDComputeTiming(CO, OD, COt, ParamList$MaxGap, order, np, nc, nr, ParamList$nf_temp, COtsample, pastDistrib, futureDistrib, ncot, k,col_to_imp[i], timeFrame)
-          
+
           if(length(table(CD_shift$CD[,1]))>1){
-            
-            
+
+
             #CD_shift <- CDComputeTiming(CO, OD, COt, MaxGap, order, np, nc, nr, nf, COtsample, pastDistrib, futureDistrib, ncot, k,timing,col_to_imp[i], timeFrame)
             log_CD <- list()
             log_CD[c("reglog","CD")] <- ComputeModel(CD_shift$CD, regr, ParamList$totV_temp, np, ParamList$nf_temp, k,...)
-            
+
             row_to_imp <- ParamList$REFORD_L[[order]][which(ParamList$REFORD_L[[order]][,2]==col_to_imp[i]),1]
             # 3.3. Imputation using the just created model (Dealing with the actual VALUES to impute) ---------
             ODi <- CreatedModelImputationTiming(order, CO, log_CD$CD, COt, OD, ODi, pastDistrib, futureDistrib, available, col_to_imp[i],row_to_imp, ncot, nc, np, ParamList$nf_temp, k, ParamList$totV_temp, regr, log_CD$reglog, noise, CD_shift$shift, ParamList$MaxGap)
@@ -2013,7 +2017,7 @@ RSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, past
               REFORDI <- t(REFORDI)
             }
             nr_REFORDI <- nrow(REFORDI)
-            
+
             for (u in 1:nr_REFORDI) {
               i <- REFORDI[u,1]
               # taking out the first coordinate (row
@@ -2022,7 +2026,7 @@ RSLGNAsImputeTiming <- function(OD, ODi, CO, COt, COtsample, ORDERSLGRight, past
               ODi[i,j] <- lev
             }
           }
-          
+
         }
       }
     }

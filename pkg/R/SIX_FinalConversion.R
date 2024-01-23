@@ -58,7 +58,7 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
   
   #### We put again the rows having only NA's discarder at the beginning
   if(length(rowsNA)>0){
-    if (include == FALSE) {
+    if (include == FALSE){
       if (mi == 1) {
         for(i in 1:length(rowsNA)){
           if(rowsNA[i]==1){
@@ -73,9 +73,9 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
         for(j in 1:mi){
           for(i in 1:length(rowsNA)){
             if(j==1 & rowsNA[i]==1){
-              RESULT <- rbind(c(j,rep(NA,ncol(RESULT))),RESULT)
+              RESULT <- rbind(c(j,rep(NA,ncol(RESULT)-1)),RESULT)
             }else if(j==mi & rowsNA[length(rowsNA)]==nrowsDataset){
-              RESULT <- rbind(RESULT,c(mi,rep(NA,ncol(RESULT))))
+              RESULT <- rbind(RESULT,c(mi,rep(NA,ncol(RESULT)-1)))
             }else{
               RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j,rep(NA,ncol(RESULT)-1)),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
             }
@@ -86,11 +86,11 @@ FinalResultConvert <- function(RESULT, ODClass, ODlevels, rownamesDataset, nrows
       for(j in 1:(mi+1)){
         for(i in 1:length(rowsNA)){
           if(j==1 & rowsNA[i]==1){
-            RESULT <- rbind(c(j-1,rep(NA,ncol(RESULT))),RESULT)
+            RESULT <- rbind(c(j-1,rep(NA,ncol(RESULT)-1)),RESULT)
           }else if(j==(mi+1) & rowsNA[length(rowsNA)]==nrowsDataset){
-            RESULT <- rbind(RESULT,c(mi-1,rep(NA,ncol(RESULT))))
+            RESULT <- rbind(RESULT,c(mi-1,rep(NA,ncol(RESULT)-1)))
           }else{
-            RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j-1,rep(NA,ncol(RESULT))),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
+            RESULT <- rbind(RESULT[1:(nrowsDataset*(j-1)+rowsNA[i]-1),],c(j-1,rep(NA,ncol(RESULT)-1)),RESULT[(nrowsDataset*(j-1)+rowsNA[i]):nrow(RESULT),])
           }
         }
       }
