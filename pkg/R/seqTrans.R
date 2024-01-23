@@ -32,8 +32,6 @@
 #' 
 #' @importFrom utils capture.output
 #' 
-#' @importFrom swfscMisc na.count
-#' 
 #' @importFrom Amelia missmap
 #' 
 #' @importFrom TraMineR seqdef

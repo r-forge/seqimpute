@@ -26,8 +26,6 @@ seqimpute(
   ncores = NULL,
   SetRNGSeed = FALSE,
   verbose = TRUE,
-  CO = matrix(NA, nrow = 1, ncol = 1),
-  COt = matrix(NA, nrow = 1, ncol = 1),
   ...
 )
 }
@@ -81,10 +79,6 @@ to the maximum number of CPU cores minus 1.}
 of parallel computation.}
 
 \item{verbose}{logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.}
-
-\item{CO}{(deprecated) old argument for covariates}
-
-\item{COt}{(deprecated) old argument for time.covariates}
 
 \item{...}{Named arguments that are passed down to the imputation functions.}
 }
