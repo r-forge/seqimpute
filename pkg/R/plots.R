@@ -44,8 +44,12 @@ seqwithmiss <- function(seqdata){
 #' @param ... parameters to be passed to the seqfplot function 
 #' 
 #' @export
-seqmissfplot <- function(seqdata,...){
-  seqmiss <- seqwithmiss(seqdata)
+seqmissfplot <- function(seqdata, with.complete=TRUE,...){
+  if(with.complete==TRUE){
+    seqmiss <- seqdata
+  }else{
+    seqmiss <- seqwithmiss(seqdata)
+  }
   misspatterns <- matrix(NA,nrow(seqmiss),ncol(seqmiss))
   misspatterns <- as.data.frame(misspatterns)
   colnames(misspatterns) <- colnames(seqmiss)
@@ -65,8 +69,12 @@ seqmissfplot <- function(seqdata,...){
 #' @param ... parameters to be passed to the seqIplot function 
 #' 
 #' @export
-seqmissIplot <- function(seqdata,...){
-  seqmiss <- seqwithmiss(seqdata)
+seqmissIplot <- function(seqdata, with.complete=TRUE,...){
+  if(with.complete==TRUE){
+    seqmiss <- seqdata
+  }else{
+    seqmiss <- seqwithmiss(seqdata)
+  }
   if(nrow(seqmiss)==0){
     stop("The provided sequence object has no missing values. Note that the 
             default behavior of the seqdef() function is to delete missing values 
