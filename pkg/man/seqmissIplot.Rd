@@ -4,7 +4,7 @@
 \alias{seqmissIplot}
 \title{Plot all the patterns of missing data.}
 \usage{
-seqmissIplot(seqdata, ...)
+seqmissIplot(seqdata, with.complete = TRUE, ...)
 }
 \arguments{
 \item{seqdata}{a state sequence object built with the TraMineR package}

@@ -4,7 +4,7 @@
 \alias{seqmissfplot}
 \title{Plot of the most common patterns of missing data.}
 \usage{
-seqmissfplot(seqdata, ...)
+seqmissfplot(seqdata, with.complete = TRUE, ...)
 }
 \arguments{
 \item{seqdata}{a state sequence object built with the TraMineR package}
