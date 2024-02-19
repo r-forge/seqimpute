@@ -10,8 +10,8 @@ seqwithmiss(seqdata)
 \item{seqdata}{a state sequence object built with the TraMineR package}
 }
 \value{
-Returns either a data frame or a state sequence object, depending
-the type of data that was provided to the function
+Returns a state sequence object containing only
+the sequences with at least one missing value
 }
 \description{
 Extract all the sequences with at least one missing value

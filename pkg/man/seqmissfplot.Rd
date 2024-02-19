@@ -9,6 +9,8 @@ seqmissfplot(seqdata, with.complete = TRUE, ...)
 \arguments{
 \item{seqdata}{a state sequence object built with the TraMineR package}
 
+\item{with.complete}{a logical stating if complete trajectories should be included or not in the plot}
+
 \item{...}{parameters to be passed to the seqfplot function}
 }
 \description{

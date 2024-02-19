@@ -12,7 +12,7 @@ seqmissimplic(seqdata, ...)
 \arguments{
 \item{seqdata}{a state sequence object built with the TraMineR package}
 
-\item{...}{parameters to be passed to the seqIplot function}
+\item{...}{parameters to be passed to the seqimplic() function}
 }
 \description{
 Function built on the seqimplic function of the TraMineRextras package.
