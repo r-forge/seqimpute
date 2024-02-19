@@ -3,7 +3,7 @@ Type: Package
 Title: Imputation of Missing Data in Sequence Analysis
 Version: 2.1
 Authors@R: c(person("Andre","Berchtold",email="andre.berchtold@unil.ch",role=c("aut","cre")),person("Anthony","Guinchard",role="aut"),person("Kevin","Emery",role="aut"),person("Kamyar","Taher",role="aut"))
-Date: 2023-12-04
+Date: 2024-02-19
 Description: Multiple imputation of missing data present in a dataset through the prediction based on either a random forest or a multinomial regression model. Covariates and time-dependant covariates can be included in the model. The prediction of the missing values is based on the method of Halpin (2012) <https://researchrepository.ul.ie/articles/report/Multiple_imputation_for_life-course_sequence_data/19839736>.
 License: GPL-2
 Encoding: UTF-8
