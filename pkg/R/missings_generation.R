@@ -61,3 +61,4 @@ seqaddNA <- function(data, states.high=NULL, propdata=1, pstart.high=0.1, pstart
 
 
 
+
