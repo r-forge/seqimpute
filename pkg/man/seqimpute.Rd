@@ -19,8 +19,6 @@ seqimpute(
   available = TRUE,
   pastDistrib = FALSE,
   futureDistrib = FALSE,
-  mice.return = FALSE,
-  include = TRUE,
   noise = 0,
   ParExec = FALSE,
   ncores = NULL,
@@ -61,13 +59,7 @@ while if \code{regr="rf"}, random forest models are used.}
 
 \item{futureDistrib}{a logical indicating if the futur distribution should be used as predictor in the imputation model.}
 
-\item{mice.return}{a logical indicating whether an object of class \code{mids}, that can be directly used by the \code{mice} package, should be returned
-by the algorithm. By default, a data frame with the imputed datasets stacked vertically is returned.}
-
-\item{include}{logical. If a dataframe is returned (\code{mice.return = FALSE}), indicates if the original
-dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
-
-\item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model 
+\item{noise}{\code{numeric} object adding a noise on the predicted variable \code{pred} determined by the multinomial model
 (by introducing a variance \code{noise} for each components of the vector \code{pred}) (the user can choose any value for \code{noise}, but we recommend to choose a rather relatively small value situated in the interval \code{[0.005-0.03]}).}
 
 \item{ParExec}{logical. If \code{TRUE}, the multiple imputations are run in parallell. This allows faster run time depending of how many core the processor has.}
@@ -81,6 +73,12 @@ of parallel computation.}
 \item{verbose}{logical. If \code{TRUE}, seqimpute will print history and warnings on console. Use \code{verbose=FALSE} for silent computation.}
 
 \item{...}{Named arguments that are passed down to the imputation functions.}
+
+\item{mice.return}{a logical indicating whether an object of class \code{mids}, that can be directly used by the \code{mice} package, should be returned
+by the algorithm. By default, a data frame with the imputed datasets stacked vertically is returned.}
+
+\item{include}{logical. If a dataframe is returned (\code{mice.return = FALSE}), indicates if the original
+dataset should be included or not. This parameter does not apply if \code{mice.return=TRUE}.}
 }
 \value{
 Returns either an S3 object of class \code{mids} if \code{mice.return = TRUE}
@@ -114,7 +112,7 @@ The imputation process is divided into several steps. According to the location 
 - Left-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
 but the ending location is not included in the interval \code{[ncol(OD)-nf,ncol(OD)]})
 
-- Right-hand side SLG (Specially Located Gaps) (gaps of which the ending location is included in the interval \code{[ncol(OD)-nf,ncol(OD)]} 
+- Right-hand side SLG (Specially Located Gaps) (gaps of which the ending location is included in the interval \code{[ncol(OD)-nf,ncol(OD)]}
 but the beginning location is not included in the interval \code{[0,np]})
 
 - Both-hand side SLG (Specially Located Gaps) (gaps of which the beginning location is included in the interval \code{[0,np]}
@@ -131,11 +129,11 @@ Order of imputation of the gaps types:
 \examples{
 
 # Default single imputation
-RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=1)
+RESULT <- seqimpute(OD = OD, np = 1, nf = 1, nfi = 1, npt = 1, m = 1)
 
 # Seqimpute used with parallelisation
 \dontrun{
-RESULT <- seqimpute(OD=OD, np=1, nf=1, nfi=1, npt=1, m=2, ParExec=TRUE, SetRNGSeed=17,ncores=2)
+RESULT <- seqimpute(OD = OD, np = 1, nf = 1, nfi = 1, npt = 1, m = 2, ParExec = TRUE, SetRNGSeed = 17, ncores = 2)
 }
 
 }

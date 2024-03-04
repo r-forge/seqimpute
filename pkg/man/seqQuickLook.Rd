@@ -15,10 +15,10 @@ a state sequence object built with the TraMineR package}
 \item{nf}{number of future observations in the imputation model of the internal gaps.}
 }
 \value{
-It returns a  \code{data.frame} object that summarizes for each type of gaps 
+It returns a  \code{data.frame} object that summarizes for each type of gaps
 (Internal Gaps, Initial Gaps, Terminal Gaps, LEFT-
 hand side SLG, RIGHT-hand side SLG, Both-hand side SLG),
-the minimum length, the maximum length, the total number of gaps and 
+the minimum length, the maximum length, the total number of gaps and
 the total number of NAs induced.
 }
 \description{
@@ -29,7 +29,7 @@ spread in the original dataset \code{OD}.
 \examples{
 data(OD)
 
-seqQuickLook(OD=OD, np=1, nf=0)
+seqQuickLook(OD = OD, np = 1, nf = 0)
 
 }
 \author{

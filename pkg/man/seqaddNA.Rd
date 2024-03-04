@@ -19,7 +19,7 @@ seqaddNA(
 \item{data}{either a data frame containing sequences of a multinomial variable with missing data (coded as \code{NA}) or
 a state sequence object built with the TraMineR package}
 
-\item{states.high}{list of states that will have a larger probability to trigger a 
+\item{states.high}{list of states that will have a larger probability to trigger a
 subsequent gap of missing data}
 
 \item{propdata}{proportion of the observations on which missing data will be simulated}

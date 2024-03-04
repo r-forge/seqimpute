@@ -21,8 +21,7 @@ in a dataset.
 \examples{
 data(OD)
 
-seqTransList <- seqTrans(OD=OD, trans=c("yes->no"))
-
+seqTransList <- seqTrans(OD = OD, trans = c("yes->no"))
 
 }
 \author{

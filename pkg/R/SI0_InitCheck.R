@@ -3,37 +3,51 @@
 #
 ################################################################################
 
-check.deprecated <- function(...){
+check.deprecated <- function(...) {
   nms <- names(list(...))
   replace.args <- list(CO = "covariates", COt = "time.covariates")
   wrn <- names(replace.args) %in% nms
   if (any(wrn)) {
     for (i in which(wrn)) {
-      msg <- paste0("The '", names(replace.args)[i], "' argument is no longer supported. Please use '", 
-                    replace.args[i], "' instead.")
+      msg <- paste0(
+        "The '", names(replace.args)[i], "' argument is no longer supported. Please use '",
+        replace.args[i], "' instead."
+      )
       warning(msg)
     }
   }
+  
+  deleted.args <- c("mice.return","include")
+  wrn <- deleted.args %in% nms
+  if (any(wrn)) {
+    for (i in which(wrn)) {
+      msg <- paste0(
+        "The '", deleted.args[i], "' argument is no longer supported. An object of class seqimp is
+        returned by the function since version 2.0"
+      )
+      warning(msg)
+    }
+  }
+  
   invisible(NULL)
 }
 
 # In case of a factor dataset OD:
 # RECODING of OD with numbers "1", "2", etc. instead of its "words"
 
-preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib){
-  
+preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, futureDistrib) {
   dataOD <- list()
   # Updating the number of columns of CO
   dataOD["nco"] <- emptyColUpdate(CO)
   # Updating the number of columns of COt
   dataOD["ncot"] <- emptyColUpdate(COt)
-  
+
   # Deleting entire rows of OD filled only with NAs
   # (and deleting corresponding lines in CO and COt)
-  dataOD[c("OD", "CO", "COt", "rowsNA")]  <- deleteNaRows(OD,CO,COt)   
-  dataOD[c("OD", "ODi", "ODClass", "ODlevels","k","nr","nc")] <- factorAndMatrixChecks(dataOD$OD)
+  dataOD[c("OD", "CO", "COt", "rowsNA")] <- deleteNaRows(OD, CO, COt)
+  dataOD[c("OD", "ODi", "ODClass", "ODlevels", "k", "nr", "nc")] <- factorAndMatrixChecks(dataOD$OD)
   dataOD[c("COtsample", "totV", "totVt", "totVi")] <- defineNbVariables(dataOD$OD, dataOD$COt, dataOD$ncot, np, dataOD$nco, nf, nfi, npt, dataOD$k, pastDistrib, futureDistrib, dataOD$nr, dataOD$nc)
-  
+
   return(dataOD)
 }
 
@@ -43,73 +57,75 @@ preliminaryChecks <- function(OD, CO, COt, np, nf, nfi, npt, pastDistrib, future
 ################################################################################
 # Initial tests and manipulations on parameters
 
-InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, nfi, npt, pastDistrib, futureDistrib, totV, totVi, totVt, noise){
-  
+InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, nfi, npt, pastDistrib, futureDistrib, totV, totVi, totVt, noise) {
   # 0.1 Testing "regr" effectively either "mlogit", "lm" or "lrm" -----------------------------------------------------------------------------------------------
-  
-  if ( (regr != "lm") & (regr != "lrm") & (regr!="rf")  & (regr!="multinom")) {
+
+  if ((regr != "lm") & (regr != "lrm") & (regr != "rf") & (regr != "multinom")) {
     stop("/!\\ regr defines the type of regression model you want to use.
                It has to be either assigned to character 'multinom' (for multinomial
                regression),'rf' (for random forests), lm' (for linear regression) or 'lrm' (for ordinal
                regression)")
   }
-  
-  
-  
+
+
+
   # 0.4 Eventually discarding the consideration of pastDistrib and futureDistrib --------------------------------------------------------------------------------
   # Making sure that pastDistrib and futureDistrib are set to FALSE by default
   # in case OD is made of "numeric" variables
-  if (ODClass=="numeric") {
+  if (ODClass == "numeric") {
     pastDistrib <- FALSE
     futureDistrib <- FALSE
     # Update of the totV variables
     # (which become then smaller since
     # we don't consider pastDistrib and futureDistrib)
-    totV <- 1+np+nf+nco+(ncot/nc)
-    totVi <- 1+nfi+nco+(ncot/nc)
-    totVt <- 1+npt+nco+(ncot/nc)
+    totV <- 1 + np + nf + nco + (ncot / nc)
+    totVi <- 1 + nfi + nco + (ncot / nc)
+    totVt <- 1 + npt + nco + (ncot / nc)
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
   # 0.5 Testing not np<0, nor nf<0 nor both ==0 -----------------------------------------------------------------------------------------------------------------
   # No VIs is not possible (we should have at least np>0 or nf>0)
-  if(np==0 & nf==0)
+  if (np == 0 & nf == 0) {
     stop("/!\\ We can't have np as well as nf equal to '0' at the same
                time")
+  }
   # Negative value for np as well as nf raises an error
-  if(np<0 | nf<0)
+  if (np < 0 | nf < 0) {
     stop("/!\\ np and nf can't be negative numbers")
-  
-  
-  
+  }
+
+
+
   # 0.7 Testing not nfi<0, nor npt<0 ----------------------------------------------------------------------------------------------------------------------------
   # Negative value for nfi as well as npt raises an error
-  if(nfi<0 | npt<0)
+  if (nfi < 0 | npt < 0) {
     stop("/!\\ nfi and npt can't be negative numbers")
-  
-  
+  }
+
+
   # 0.8 Testing the right construction of COt -------------------------------------------------------------------------------------------------------------------
   # Since COt contains the time-dependent covariates, each of them is
   # represented by a submatrix that has the same number of columns as OD.
   # The total number of columns of COt is necessarily a multiple of the number
   # of column of OD
-  if (ncot%%nc != 0) {
+  if (ncot %% nc != 0) {
     stop("/!\\ Each time-dependent covariates contained in COt has to have the same number of columns as OD.")
   }
-  
-  
+
+
   # 0.9 Taking the absolute value of the parameter "noise" -----------------------------------------------------------------------------------------------------
   # Since "noise" is the variance of the elements of the final vector pred, it
   # can't be negative
   noise <- abs(noise)
-  
+
   return(list(pastDistrib, futureDistrib, totV, totVi, totVt, noise))
 }
 
@@ -118,10 +134,10 @@ InitCorectControl <- function(regr, ODClass, OD, nr, nc, k, np, nf, nco, ncot, n
 # Update the number of columns of a matrix
 
 emptyColUpdate <- function(x) {
-  if (all(is.na(x))==FALSE) {# if CO is NOT completely empty
-    if(is.null(dim(x))){
+  if (all(is.na(x)) == FALSE) { # if CO is NOT completely empty
+    if (is.null(dim(x))) {
       return(1)
-    }else{
+    } else {
       return(ncol(x))
     }
   }
@@ -137,28 +153,27 @@ emptyColUpdate <- function(x) {
 
 deleteNaRows <- function(OD, CO, COt) {
   rowsNA <- c()
-  for(i in 1:nrow(OD)) {
-    if (all(is.na(OD[i,]))) {
-      rowsNA <- c(rowsNA,i)
+  for (i in 1:nrow(OD)) {
+    if (all(is.na(OD[i, ]))) {
+      rowsNA <- c(rowsNA, i)
     }
   }
-  
-  if(length(rowsNA)>0){
-    OD <- OD[-rowsNA,]
-    if (all(is.na(CO))==FALSE) { # Checking if CO is NOT completely
+
+  if (length(rowsNA) > 0) {
+    OD <- OD[-rowsNA, ]
+    if (all(is.na(CO)) == FALSE) { # Checking if CO is NOT completely
       # empty and updating the covariate matrix CO as well!
-      if(is.null(dim(CO))){
+      if (is.null(dim(CO))) {
         CO <- CO[-rowsNA]
-      }else{
-        CO <- CO[-rowsNA,]
-        
+      } else {
+        CO <- CO[-rowsNA, ]
       }
     }
-    if (all(is.na(COt))==FALSE) { # Checking if COt is NOT completely
+    if (all(is.na(COt)) == FALSE) { # Checking if COt is NOT completely
       # empty and updating the covariate matrix COt as well!
-      COt <- COt[-rowsNA,]
+      COt <- COt[-rowsNA, ]
     }
-  } 
+  }
   return(list(OD, CO, COt, rowsNA))
 }
 
@@ -168,7 +183,6 @@ deleteNaRows <- function(OD, CO, COt) {
 # (And eventually update of nr)
 
 defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistrib, futureDistrib, nr, nc) {
-  
   COtsample <- vector()
   if (ncot > 0) {
     # Creaion of a sample of COt
@@ -176,17 +190,17 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
     # them into the dataframe COtsample in order to create COtselected (with
     # some correct corresponding classes on each column!) in the
     # parts 3.1)
-    COtsample <- as.data.frame(matrix(nrow=nr,ncol=0))
-    
-    for (d in 1:(ncot/nc)) {
-      COtsample <- cbind(COtsample,COt[,1 + (d-1)*nc])
+    COtsample <- as.data.frame(matrix(nrow = nr, ncol = 0))
+
+    for (d in 1:(ncot / nc)) {
+      COtsample <- cbind(COtsample, COt[, 1 + (d - 1) * nc])
     }
   }
-  
+
   # Total number of variables in the imputation model
-  totV <- 1+np+nf+nco+(ncot/nc)
-  totVi <- 1+nfi+nco+(ncot/nc)
-  totVt <- 1+npt+nco+(ncot/nc)
+  totV <- 1 + np + nf + nco + (ncot / nc)
+  totVi <- 1 + nfi + nco + (ncot / nc)
+  totVt <- 1 + npt + nco + (ncot / nc)
   if (pastDistrib) {
     totV <- totV + k
     totVt <- totVt + k
@@ -203,31 +217,32 @@ defineNbVariables <- function(OD, COt, ncot, np, nco, nf, nfi, npt, k, pastDistr
 # In case of a factor dataset OD:
 # RECODING of OD with numbers "1", "2", etc. instead of its "words"
 
-factorAndMatrixChecks <- function(OD) { 
-  
+factorAndMatrixChecks <- function(OD) {
   nc <- ncol(OD)
   nr <- nrow(OD)
-  ODClass <- class(OD[1,1])
-  
+  ODClass <- class(OD[1, 1])
+
   # 0.2 Testing the class of the variables of the original dataset OD -------------------------------------------------------------------------------------------
-  if ( (ODClass != "factor") & (ODClass != "numeric") ) {
+  if ((ODClass != "factor") & (ODClass != "numeric")) {
     stop("/!\\ The class of the variables contained in your original dataset
            should be either 'factor' or 'numeric'")
   }
-  
+
   #*************************************
   ODlevels <- vector()
   if (ODClass == "factor") {
     ODlevels <- sort(unique(as.vector(as.matrix(OD))))
     k <- length(ODlevels)
-    OD <- as.data.frame( sapply(OD, mapvalues, from = ODlevels,
-                                to = as.character(as.vector(1:length(ODlevels)))) )
-  }else{
+    OD <- as.data.frame(sapply(OD, mapvalues,
+      from = ODlevels,
+      to = as.character(as.vector(1:length(ODlevels)))
+    ))
+  } else {
     k <- max(OD)
   }
   #*************************************
-  
-  
+
+
   # Making sure that OD is a matrix and not a data frame
   # /!\ Using simply "OD <- data.matrix(OD)"
   # may convert the components of OD to a different number
@@ -241,19 +256,16 @@ factorAndMatrixChecks <- function(OD) {
   #********************************************
   # When using as.matrix(), factors become strings. Using apply() will convert
   # everything to numeric without losing the matrix structure.
-  
-  
+
+
   ODi <- OD
   #
   # In case OD is constituted of factor variables, we make sure that the
   # variables of ODi are considered as factor ranging from "1" to "k"
   if (ODClass == "factor") {
-    for (j in 1:nc){
-      ODi[,j] <- factor(x = OD[,j], levels = c(1:k))
+    for (j in 1:nc) {
+      ODi[, j] <- factor(x = OD[, j], levels = c(1:k))
     }
   }
   return(list(OD, ODi, ODClass, ODlevels, k, nr, nc))
-  
 }
-
-
